@@ -19,9 +19,9 @@ class remove extends StaticAnnotation
 @deriving(Cofoo)
 sealed trait Baz
 @remove object Baz {
-  @remove implicit val `stalactite.examples.Cofoo[Baz]` : Cofoo[Baz] =
+  @remove implicit val `stalactite.examples.Cofoo`: Cofoo[Baz] =
     DerivedCofoo.gen
-  @remove implicit val `stalactite.examples.Cobar[Baz]` : Cobar[Baz] =
+  @remove implicit val `stalactite.examples.Cobar`: Cobar[Baz] =
     CustomCobar.go
 }
 

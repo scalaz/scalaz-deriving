@@ -7,7 +7,7 @@ import java.lang.String
 import scala.Any
 import scala.StringContext
 import scala.collection.immutable.{ ::, List, Map, Nil }
-import scala.Predef.wrapRefArray
+import scala.Predef.{ ???, wrapRefArray }
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.language.experimental.macros
@@ -20,6 +20,8 @@ class deriving extends StaticAnnotation {
 }
 
 class DerivingMacros(val c: Context) {
+  import c.universe._
+
   lazy val custom: Map[String, String] = c.settings
     .find(_.startsWith("stalactite="))
     .map { args =>
@@ -36,26 +38,24 @@ class DerivingMacros(val c: Context) {
     }
     .getOrElse(Map.empty)
 
-  import c.universe._
-
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
-    scala.Predef.println(s"settings = $custom")
+    def update(mod: ModuleDef): ModuleDef = mod
 
     annottees.map(_.tree) match {
-      case (data: ClassDef) :: Nil =>
-        scala.Predef.println(s"DATA $data")
-        c.Expr(q"""$data""")
+      case (_: ClassDef) :: Nil                              => ???
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        scala.Predef.println(s"DATA $data\nCOMPANION $companion")
+        //scala.Predef.println(s"DATA $data\nCOMPANION $companion")
+
+        val updatedCompanion = update(companion)
         c.Expr(q"""$data
-                   $companion""")
-      /*      case other =>
+                   $updatedCompanion""")
+
+      case _ =>
         c.abort(
           c.enclosingPosition,
           "@deriving can only be applied to classes and sealed traits"
-        )*/
+        )
     }
-
   }
 
 }
