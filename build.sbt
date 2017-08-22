@@ -9,7 +9,7 @@ inThisBuild(
 libraryDependencies ++= Seq(
   "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
   "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-  "com.github.mpilquist" %% "simulacrum"    % "0.10.0"           % "test",
+  "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
   "com.chuusai"          %% "shapeless"     % "2.3.2"            % "test",
   "org.typelevel"        %% "export-hook"   % "1.2.0"            % "test",
   "com.typesafe.play"    %% "play-json"     % "2.6.3"            % "test"
@@ -41,7 +41,7 @@ scalacOptions := scalacOptions.value.filterNot(_.startsWith("-Ywarn-unused"))
 scalacOptions += "-Ywarn-unused:-implicits,imports,locals,-params,patvars,privates"
 
 addCompilerPlugin(
-  "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full
+  "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
 )
 
 wartremoverWarnings in (Compile, compile) := Seq(
