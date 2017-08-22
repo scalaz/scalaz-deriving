@@ -11,7 +11,7 @@ import play.api.libs.json
 
 import stalactite.examples._
 
-class StalagtiteTest extends FlatSpec {
+class StalactiteTest extends FlatSpec {
 
   "@deriving" should "support case classes" in {
     implicitly[Cofoo[Foo]] shouldBe Foo.`stalactite.examples.Cofoo`
