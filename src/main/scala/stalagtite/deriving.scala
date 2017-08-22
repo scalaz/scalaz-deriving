@@ -8,6 +8,7 @@ import scala.Any
 import scala.StringContext
 import scala.collection.immutable.{ ::, List, Map, Nil }
 import scala.Predef.{ ???, wrapRefArray }
+import scala.Predef.println
 
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.language.experimental.macros
@@ -39,14 +40,33 @@ class DerivingMacros(val c: Context) {
     .getOrElse(Map.empty)
 
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
-    def update(mod: ModuleDef): ModuleDef = mod
+    val typeclasses = c.prefix.tree match {
+      case q"new deriving(..$b)" => b
+    }
+
+    def update(comp: ModuleDef): ModuleDef = {
+      val q"$mods object $name extends ..$bases { ..$body }" = comp
+
+      val vals = typeclasses.map { tc =>
+        val typ = TypeName(s"$tc[$name]")
+        q"""implicit val ${tc}: ${typ} = null"""
+      }
+
+      q"""
+        $mods object $name extends ..$bases {
+          ..$body
+          ..$vals
+        }
+      """
+    }
 
     annottees.map(_.tree) match {
       case (_: ClassDef) :: Nil                              => ???
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        //scala.Predef.println(s"DATA $data\nCOMPANION $companion")
+        //println(s"DATA $data\nCOMPANION $companion")
 
         val updatedCompanion = update(companion)
+        println(updatedCompanion)
         c.Expr(q"""$data
                    $updatedCompanion""")
 
