@@ -1,5 +1,6 @@
 inThisBuild(
   Seq(
+    organization := "com.fommil",
     scalaVersion := "2.12.3",
     sonatypeGithub := ("fommil", "stalactite"),
     licenses := Seq(LGPL3)

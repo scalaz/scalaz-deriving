@@ -18,8 +18,10 @@ pipeline:
           exit 1 ;
         fi
       - sbt ++$SCALA_VERSION ";test:compile ;doc";
-      - if [ -n "$DRONE_PULL_REQUEST" ] ; then sbt ++$SCALA_VERSION "testOnly -- -l IgnoreOnDrone" ; fi
+      - if [ -n "$DRONE_PULL_REQUEST" ] ; then sbt ++$SCALA_VERSION "test" ; fi
+      - if [ -z "$DRONE_PULL_REQUEST" ] ; then sbt ++$SCALA_VERSION publish ; fi
 
 matrix:
   SCALA_VERSION:
     - 2.12.3
+    - 2.11.11
