@@ -9,6 +9,7 @@ inThisBuild(
 libraryDependencies ++= Seq(
   "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
   "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
+  "org.ensime"           %% "pcplod"        % "1.2.0"            % "test",
   "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
   "com.chuusai"          %% "shapeless"     % "2.3.2"            % "test",
   "org.typelevel"        %% "export-hook"   % "1.2.0"            % "test",
@@ -17,9 +18,23 @@ libraryDependencies ++= Seq(
 
 scalacOptions in Test += {
   val custom = Map(
-    "stalactite.examples.Cobar" -> "stalactite.examples.CustomCobar.go"
+    "stalactite.typeclasses.Cobar" -> "stalactite.typeclasses.CustomCobar.go"
   ).map { case (from, to) => s"$from=$to" }.mkString("|", "|", "|")
   s"-Xmacro-settings:stalactite=$custom"
+}
+javaOptions in Test ++= {
+  val settings =
+    (//Seq("-Ymacro-expand:none") ++
+    (scalacOptions in Test).value
+      .filterNot(
+        _.startsWith("-Yno-")
+      ))
+      .mkString(",")
+  val classpath = (fullClasspath in Test).value.map(_.data).mkString(",")
+  Seq(
+    s"-Dpcplod.settings=$settings",
+    s"-Dpcplod.classpath=$classpath"
+  )
 }
 
 scalacOptions ++= Seq(
@@ -38,7 +53,7 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions := scalacOptions.value.filterNot(_.startsWith("-Ywarn-unused"))
-scalacOptions += "-Ywarn-unused:-implicits,imports,locals,-params,patvars,privates"
+//scalacOptions += "-Ywarn-unused:-implicits,imports,-locals,-params,-patvars,privates"
 
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
@@ -48,7 +63,9 @@ wartremoverWarnings in (Compile, compile) := Seq(
   Wart.FinalCaseClass,
   Wart.ExplicitImplicitTypes
 )
-wartremoverWarnings in (Test, compile) := (wartremoverWarnings in (Compile, compile)).value
+wartremoverWarnings in (Test, compile) := Seq(
+  Wart.FinalCaseClass
+)
 
 scalafmtOnCompile in ThisBuild := true
 scalafmtConfig in ThisBuild := file("project/scalafmt.conf")
