@@ -4,9 +4,8 @@ package stalactite
 
 import java.lang.String
 
-import scala.{ Any, AnyRef, Boolean, None, Some, StringContext }
+import scala.{ Any, AnyRef, Boolean, None, Option, Some, StringContext }
 import scala.Predef.{ ???, wrapRefArray, ArrowAssoc }
-import scala.Predef.println
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.collection.immutable.{ ::, List, Map, Nil }
 import scala.language.experimental.macros
@@ -51,7 +50,7 @@ class DerivingMacros(val c: Context) {
     // c.typecheck provides Symbol on the input Tree
     val Apply(Select(_, _), typeclasses) = c.typecheck(c.prefix.tree)
 
-    def toTypeName(t: Tree): Tree = t match {
+    def toSelectedTypeName(t: Tree): Tree = t match {
       case Ident(name) =>
         val pkg = t.symbol.asTerm.owner.fullName
         Select(c.parse(pkg), name.toTypeName)
@@ -73,72 +72,83 @@ class DerivingMacros(val c: Context) {
         }
       }
 
-    def update(clazz: ClassDef, comp: ModuleDef): c.Expr[Any] = {
+    def update(clazz: Option[ClassDef], comp: ModuleDef): c.Expr[Any] = {
       val q"$mods object $name extends ..$bases { ..$body }" = comp
 
       val implicits =
         typeclasses.map { tc =>
-          atPos(comp.pos) {
-            clazz.tparams match {
-              case Nil =>
-                ValDef(
-                  Modifiers(Flag.IMPLICIT),
-                  toTermName(tc),
-                  tq"${toTypeName(tc)}[${name.toTypeName}]",
-                  toGen(tc)
-                )
+          clazz match {
+            case None =>
+              ValDef(
+                Modifiers(Flag.IMPLICIT),
+                toTermName(tc),
+                tq"${toSelectedTypeName(tc)}[${name}.type]",
+                toGen(tc)
+              )
+            case Some(c) =>
+              c.tparams match {
+                case Nil =>
+                  ValDef(
+                    Modifiers(Flag.IMPLICIT),
+                    toTermName(tc),
+                    tq"${toSelectedTypeName(tc)}[${c.name}]",
+                    toGen(tc)
+                  )
 
-              case tparams =>
-                val implicits =
-                  if (isIde) Nil
-                  else
-                    List(
-                      tparams.zipWithIndex.map {
-                        case (t, i) =>
-                          ValDef(
-                            Modifiers(
-                              Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC
-                            ),
-                            TermName(s"evidence$$$i"),
-                            tq"${toTypeName(tc)}[${t.name.toTypeName}]",
-                            EmptyTree
-                          )
-                      }
-                    )
+                case tparams =>
+                  val implicits =
+                    if (isIde) Nil
+                    else
+                      List(
+                        tparams.zipWithIndex.map {
+                          case (t, i) =>
+                            ValDef(
+                              Modifiers(
+                                Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC
+                              ),
+                              TermName(s"evidence$$$i"),
+                              tq"${toSelectedTypeName(tc)}[${t.name}]",
+                              EmptyTree
+                            )
+                        }
+                      )
 
-                DefDef(
-                  Modifiers(Flag.IMPLICIT),
-                  toTermName(tc),
-                  tparams,
-                  implicits,
-                  tq"${toTypeName(tc)}[${name.toTypeName}[..${tparams.map(_.name)}]]",
-                  toGen(tc)
-                )
-            }
+                  DefDef(
+                    Modifiers(Flag.IMPLICIT),
+                    toTermName(tc),
+                    tparams,
+                    implicits,
+                    tq"${toSelectedTypeName(tc)}[${c.name}[..${tparams.map(_.name)}]]",
+                    toGen(tc)
+                  )
+              }
           }
         }
-      //println(implicits)
-      //println(showRaw(implicits))
 
-      c.Expr(q"""$clazz
+      val replacement =
+        q"""${clazz.getOrElse(EmptyTree)}
             $mods object $name extends ..$bases {
               ..$body
               ..$implicits
-            }""")
+            }"""
+
+      c.Expr(replacement)
     }
 
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
         val p         = data.pos
         val companion = q"object ${data.name.toTermName} {}"
-        update(data, companion)
+        update(Some(data), companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        update(data, companion)
+        update(Some(data), companion)
+      case (obj: ModuleDef) :: Nil =>
+        update(None, obj)
 
-      case _ =>
+      case other :: Nil =>
         c.abort(
           c.enclosingPosition,
-          "@deriving can only be applied to classes and sealed traits"
+          s"@deriving can only be applied to classes and sealed traits (got $other a ${other.getClass})"
         )
     }
   }

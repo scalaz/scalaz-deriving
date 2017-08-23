@@ -20,10 +20,16 @@ sealed trait Baz
 @deriving(json.Format, Cofoo, Cobar, Wibble)
 final case class Foo(string: String, int: Int) extends Baz
 
-@deriving(json.Format, Cofoo)
+@deriving(json.Format, Cofoo, Cobar)
 final case class Bar(foo: Foo) extends Baz
 object Bar {
   def hello: String = ""
+}
+
+//@deriving(json.Format, Cofoo, Cobar)
+@deriving(Cofoo)
+case object Car extends Baz {
+//  implicit val cofoo: Cofoo[Car.type] = DerivedCofoo.gen
 }
 
 //@deriving(json.Format, a.Cobaz, b.Cobaz)
