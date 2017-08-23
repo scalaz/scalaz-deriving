@@ -9,7 +9,7 @@ inThisBuild(
 libraryDependencies ++= Seq(
   "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
   "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-  "org.ensime"           %% "pcplod"        % "1.2.0"            % "test",
+  "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
   "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
   "com.chuusai"          %% "shapeless"     % "2.3.2"            % "test",
   "org.typelevel"        %% "export-hook"   % "1.2.0"            % "test",
@@ -24,11 +24,10 @@ scalacOptions in Test += {
 }
 javaOptions in Test ++= {
   val settings =
-    (//Seq("-Ymacro-expand:none") ++
+    //Seq("-Ymacro-expand:discard") ++
     (scalacOptions in Test).value
-      .filterNot(
-        _.startsWith("-Yno-")
-      ))
+      .filterNot(_.startsWith("-Yno-"))
+      .filterNot(_.contains(","))
       .mkString(",")
   val classpath = (fullClasspath in Test).value.map(_.data).mkString(",")
   Seq(

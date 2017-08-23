@@ -9,13 +9,15 @@ import org.ensime.pcplod._
 
 class PresentationCompilerTest extends FlatSpec {
   // the macro is not being run
-  "PresentationCompiler" should "see generated implicits" ignore withMrPlod(
+  "PresentationCompiler" should "not have errors" in withMrPlod(
     "interactive.scala"
   ) { mr =>
-    //scala.Predef.println(mr.pc.pc.settings)
-
     mr.messages shouldBe 'empty
+  }
 
+  it should "be able to perform type-at-point" ignore withMrPlod(
+    "interactive.scala"
+  ) { mr =>
     mr.typeAtPoint('foo).value shouldBe "wibble.Foo"
     mr.typeAtPoint('baz).value shouldBe "wibble.Baz"
     mr.typeAtPoint('gaz).value shouldBe "wibble.Gaz[T]"

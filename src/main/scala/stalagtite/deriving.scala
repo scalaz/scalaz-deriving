@@ -4,13 +4,11 @@ package stalactite
 
 import java.lang.String
 
-import scala.{ Any, AnyRef, Boolean, None, Some }
-import scala.StringContext
-import scala.collection.immutable.{ ::, List, Map, Nil }
+import scala.{ Any, AnyRef, Boolean, None, Some, StringContext }
 import scala.Predef.{ ???, wrapRefArray, ArrowAssoc }
 import scala.Predef.println
-
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
+import scala.collection.immutable.{ ::, List, Map, Nil }
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
@@ -29,9 +27,8 @@ object DerivingMacros {
 class DerivingMacros(val c: Context) {
   import c.universe._
 
-  // not running inside pcplod at all...
-  lazy val isIde: Boolean = false
-  //c.compilerSettings.find(_.startsWith("-Ymacro-expand")).isDefined
+  lazy val isIde: Boolean =
+    c.universe.isInstanceOf[scala.tools.nsc.interactive.Global]
 
   lazy val custom: Map[String, String] =
     DerivingMacros.lookup ++ c.settings
@@ -51,8 +48,6 @@ class DerivingMacros(val c: Context) {
       .getOrElse(Map.empty)
 
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
-    //java.lang.System.err.println(c.compilerSettings)
-
     // c.typecheck provides Symbol on the input Tree
     val Apply(Select(_, _), typeclasses) = c.typecheck(c.prefix.tree)
 
@@ -68,8 +63,7 @@ class DerivingMacros(val c: Context) {
 
     def toGen(t: Tree): Tree =
       if (isIde) {
-        java.lang.System.err.println("INSIDE IDE")
-        c.parse("null")
+        Literal(Constant(null))
       } else {
         val name = t.symbol.name
         val pkg  = t.symbol.asTerm.owner.fullName
@@ -82,48 +76,60 @@ class DerivingMacros(val c: Context) {
     def update(clazz: ClassDef, comp: ModuleDef): c.Expr[Any] = {
       val q"$mods object $name extends ..$bases { ..$body }" = comp
 
-      val vals = typeclasses.map { tc =>
-        clazz.tparams match {
-          case Nil =>
-            ValDef(
-              Modifiers(Flag.IMPLICIT),
-              toTermName(tc),
-              tq"${toTypeName(tc)}[${name.toTypeName}]",
-              toGen(tc)
-            )
-
-          case tparams =>
-            val implicits = tparams.zipWithIndex.map {
-              case (t, i) =>
+      val implicits =
+        typeclasses.map { tc =>
+          atPos(comp.pos) {
+            clazz.tparams match {
+              case Nil =>
                 ValDef(
-                  Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
-                  TermName(s"evidence$$$i"),
-                  tq"${toTypeName(tc)}[${t.name.toTypeName}]",
-                  EmptyTree
+                  Modifiers(Flag.IMPLICIT),
+                  toTermName(tc),
+                  tq"${toTypeName(tc)}[${name.toTypeName}]",
+                  toGen(tc)
+                )
+
+              case tparams =>
+                val implicits =
+                  if (isIde) Nil
+                  else
+                    List(
+                      tparams.zipWithIndex.map {
+                        case (t, i) =>
+                          ValDef(
+                            Modifiers(
+                              Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC
+                            ),
+                            TermName(s"evidence$$$i"),
+                            tq"${toTypeName(tc)}[${t.name.toTypeName}]",
+                            EmptyTree
+                          )
+                      }
+                    )
+
+                DefDef(
+                  Modifiers(Flag.IMPLICIT),
+                  toTermName(tc),
+                  tparams,
+                  implicits,
+                  tq"${toTypeName(tc)}[${name.toTypeName}[..${tparams.map(_.name)}]]",
+                  toGen(tc)
                 )
             }
-
-            DefDef(
-              Modifiers(Flag.IMPLICIT),
-              toTermName(tc),
-              tparams,
-              List(implicits),
-              tq"${toTypeName(tc)}[${name.toTypeName}[..${tparams.map(_.name)}]]",
-              toGen(tc)
-            )
+          }
         }
-
-      }
+      //println(implicits)
+      //println(showRaw(implicits))
 
       c.Expr(q"""$clazz
             $mods object $name extends ..$bases {
               ..$body
-              ..$vals
+              ..$implicits
             }""")
     }
 
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
+        val p         = data.pos
         val companion = q"object ${data.name.toTermName} {}"
         update(data, companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
