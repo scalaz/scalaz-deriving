@@ -29,9 +29,6 @@ object Bar {
 //@deriving(json.Format, a.Cobaz, b.Cobaz)
 @deriving(json.Format)
 final case class Gaz[T](t: T)
-object Gaz {
-  def j[T: json.Format]: json.Format[Gaz[T]] = null
-}
 
 @typeclass trait Wibble[T] {}
 object DerivedWibble {
