@@ -26,11 +26,8 @@ object Bar {
   def hello: String = ""
 }
 
-//@deriving(json.Format, Cofoo, Cobar)
-@deriving(Cofoo)
-case object Car extends Baz {
-//  implicit val cofoo: Cofoo[Car.type] = DerivedCofoo.gen
-}
+@deriving(Cofoo, Cobar, json.Format)
+case object Car extends Baz
 
 //@deriving(json.Format, a.Cobaz, b.Cobaz)
 @deriving(json.Format)
