@@ -26,7 +26,8 @@ object Bar {
   def hello: String = ""
 }
 
-@deriving(Cofoo, Cobar, json.Format)
+// can't do json.Format: https://github.com/playframework/play-json/issues/93
+@deriving(Cofoo, Cobar)
 case object Car extends Baz
 
 //@deriving(json.Format, a.Cobaz, b.Cobaz)
