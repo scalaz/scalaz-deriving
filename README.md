@@ -15,7 +15,7 @@ with [`stalagmite`](https://github.com/fommil/stalagmite)) makes it convenient t
 ```scala
 import stalactite._
 
-@deriving(FooFormat)
+@deriving(Encoder, Decoder)
 case class Bar(s: String, b: Boolean)
 ```
 
@@ -24,7 +24,8 @@ expanding to
 ```scala
 case class Bar(s: String, b: Boolean)
 object Bar {
-  implicit val fooFormat: FooFormat[Bar] = DerivedFooFormat.gen
+  implicit val encoder: Encoder[Bar] = DerivedEncoder.gen
+  implicit val decoder: Decoder[Bar] = DerivedDecoder.gen
 }
 ```
 
