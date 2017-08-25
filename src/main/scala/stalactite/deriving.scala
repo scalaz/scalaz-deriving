@@ -46,10 +46,19 @@ class DerivingMacros(val c: Context) {
       }
       .getOrElse(Map.empty)
 
+  case class AnyValDesc(name: TypeName, accessor: TermName, tpe: String)
+
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
     // c.typecheck provides Symbol on the input Tree
     val Apply(Select(_, _), typeclasses) = c.typecheck(c.prefix.tree)
 
+    // hacky, for things that must be reparsed
+    def stringyTypeName(t: Tree): String = t match {
+      case Ident(name)        => name.toTypeName.toString
+      case Select(qual, name) => s"${qual}.${name.toTypeName}"
+    }
+
+    // only for typed trees
     def toSelectedTypeName(t: Tree): Tree = t match {
       case Ident(name) =>
         val pkg = t.symbol.asTerm.owner.fullName
@@ -57,20 +66,39 @@ class DerivingMacros(val c: Context) {
       case Select(qual, name) => Select(qual, name.toTypeName)
     }
 
+    // only for typed trees
     def toTermName(t: Tree): TermName =
       TermName(t.symbol.asTerm.fullName).encodedName.toTermName
 
-    def toGen(t: Tree): Tree =
+    def toGen(t: Tree, anyVal: Option[AnyValDesc]): Tree =
       if (isIde) {
         Literal(Constant(null))
       } else {
         val name = t.symbol.name
         val pkg  = t.symbol.asTerm.owner.fullName
-        val call = custom.get(s"$pkg.$name") match {
-          case None        => s"$pkg.Derived$name.gen"
-          case Some(other) => other
+        val call = anyVal match {
+          case Some(value) =>
+            s"""_root_.scala.Predef.implicitly[_root_.$pkg.$name[${value.tpe}]]
+                .xmap(new ${value.name}(_), _.${value.accessor})"""
+          case None =>
+            custom.get(s"$pkg.$name") match {
+              case None        => s"_root_.$pkg.Derived$name.gen"
+              case Some(other) => other
+            }
         }
         c.parse(call)
+      }
+
+    def anyVal(c: ClassDef): Option[AnyValDesc] =
+      c.impl.parents.flatMap {
+        case Ident(name) if name.toString == "AnyVal"        => Some(c)
+        case Select(qual, name) if name.toString == "AnyVal" => Some(c)
+        case _                                               => None
+      }.headOption.flatMap { anyval =>
+        anyval.impl.body.collect {
+          case ValDef(_, name, tpt, _) =>
+            AnyValDesc(anyval.name, name, stringyTypeName(tpt))
+        }.headOption
       }
 
     def update(clazz: Option[ClassDef], comp: ModuleDef): c.Expr[Any] = {
@@ -84,7 +112,7 @@ class DerivingMacros(val c: Context) {
                 Modifiers(Flag.IMPLICIT),
                 toTermName(tc),
                 tq"${toSelectedTypeName(tc)}[${name}.type]",
-                toGen(tc)
+                toGen(tc, None)
               )
             case Some(c) =>
               c.tparams match {
@@ -93,7 +121,7 @@ class DerivingMacros(val c: Context) {
                     Modifiers(Flag.IMPLICIT),
                     toTermName(tc),
                     tq"${toSelectedTypeName(tc)}[${c.name}]",
-                    toGen(tc)
+                    toGen(tc, anyVal(c))
                   )
 
                 case tparams =>
@@ -120,7 +148,7 @@ class DerivingMacros(val c: Context) {
                     tparams,
                     implicits,
                     tq"${toSelectedTypeName(tc)}[${c.name}[..${tparams.map(_.name)}]]",
-                    toGen(tc)
+                    toGen(tc, anyVal(c))
                   )
               }
           }

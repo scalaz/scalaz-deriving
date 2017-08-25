@@ -2,9 +2,20 @@
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 package stalactite.typeclasses
 
+import java.lang.String
+
 import simulacrum.typeclass
 
-@typeclass trait Cofoo[T] {}
+@typeclass trait Cofoo[A] {
+  def toFoo(a: A): String = "this is the default gen codepath"
+
+  final def xmap[B](f: A => B, g: B => A): Cofoo[B] = new Cofoo[B] {
+    override def toFoo(b: B): String = "exercised the xmap codepath"
+  }
+}
+object Cofoo {
+  implicit val string: Cofoo[String] = new Cofoo[String] {}
+}
 trait DerivedCofoo[T] extends Cofoo[T]
 object DerivedCofoo {
   def gen[T, Repr](
@@ -13,6 +24,15 @@ object DerivedCofoo {
 }
 
 @typeclass trait Cobar[T] {}
+object Cobar {
+  implicit val invariant: scalaz.InvariantFunctor[Cobar] =
+    new scalaz.InvariantFunctor[Cobar] {
+      override def xmap[A, B](ma: Cobar[A], f: A => B, g: B => A): Cobar[B] =
+        new Cobar[B] {}
+    }
+
+  implicit val string: Cobar[String] = new Cobar[String] {}
+}
 object CustomCobar {
   def go[T, Repr](
     implicit G: shapeless.LabelledGeneric.Aux[T, Repr]

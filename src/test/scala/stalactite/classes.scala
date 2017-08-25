@@ -3,7 +3,7 @@
 package stalactite.examples
 
 import java.lang.String
-import scala.Int
+import scala.{ AnyVal, Int }
 
 // https://github.com/playframework/play-json/issues/92
 import scala.Predef.implicitly
@@ -13,6 +13,9 @@ import stalactite.typeclasses._
 import simulacrum.typeclass
 
 import play.api.libs.json
+
+import scalaz._
+import Scalaz._
 
 @deriving(Cofoo, Cobar)
 sealed trait Baz
@@ -29,6 +32,11 @@ object Bar {
 // can't do json.Format: https://github.com/playframework/play-json/issues/93
 @deriving(Cofoo, Cobar)
 case object Car extends Baz
+
+@deriving(Cofoo, Cobar)
+final case class Anyz(s: String) extends AnyVal
+@deriving(Cofoo, Cobar)
+final class Anyzz(val s: String) extends scala.AnyVal
 
 //@deriving(json.Format, a.Cobaz, b.Cobaz)
 @deriving(json.Format)

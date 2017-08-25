@@ -11,6 +11,8 @@ import shapeless.the
 import stalactite.examples._
 import stalactite.typeclasses._
 
+import Cofoo.ops._
+
 class StalactiteTest extends FlatSpec {
 
   "@deriving" should "support case classes" in {
@@ -51,6 +53,26 @@ class StalactiteTest extends FlatSpec {
     the[Cobar[Baz]] should not equal null
   }
 
+  it should "special case AnyVal" in {
+    the[Cofoo[Anyz]] should not equal null
+
+    the[Cofoo[Anyz]] shouldBe Anyz.`stalactite.typeclasses.Cofoo`
+
+    Anyz("wibble").toFoo shouldBe "exercised the xmap codepath"
+
+    new Anyzz("wobble").toFoo shouldBe "exercised the xmap codepath"
+  }
+
+  it should "support AnyVal for typeclasses with an InvariantFunctor" in {
+    the[Cobar[Anyz]] should not equal null
+
+    the[Cobar[Anyzz]] should not equal null
+  }
+
+  it should "fail to derive AnyVal that is not invariant" ignore {
+    fail("see below, must be manual")
+  }
+
   it should "support baked-in rules" in {
     the[json.Format[Foo]] shouldBe Foo.`play.api.libs.json.Format`
     the[json.Format[Foo]] should not equal null
@@ -64,9 +86,15 @@ class StalactiteTest extends FlatSpec {
   it should "provide position information on failure" ignore {
     // https://github.com/milessabin/shapeless/issues/756
     // https://github.com/scalatest/scalatest/issues/1193
+    fail("see below, must be manual")
   }
 }
 
 // WORKAROUND: ignored position information test above
 // @stalactite.deriving(Cobar)
 // class ElZilcho(s: String)
+
+// AnyVal cannot be defined in a test
+// should fail with "value xmap is not a member of ..."
+// @stalactite.deriving(Cobar)
+// class Bad(val s: String) extends scala.AnyVal
