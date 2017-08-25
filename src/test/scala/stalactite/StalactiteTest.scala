@@ -61,4 +61,12 @@ class StalactiteTest extends FlatSpec {
     the[Cobar[Foo]] should not equal null
   }
 
+  it should "provide position information on failure" ignore {
+    // https://github.com/milessabin/shapeless/issues/756
+    // https://github.com/scalatest/scalatest/issues/1193
+  }
 }
+
+// WORKAROUND: ignored position information test above
+// @stalactite.deriving(Cobar)
+// class ElZilcho(s: String)

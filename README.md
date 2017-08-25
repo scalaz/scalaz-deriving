@@ -7,8 +7,9 @@ with [`stalagmite`](https://github.com/fommil/stalagmite)) makes it convenient t
 
 - faster compiles (never deeper than one `case class`)
 - faster runtime (less object allocation)
-- cleaner compiler errors (know *exactly* what is missing)
 - simpler implicit rules (less time fighting the compiler)
+- ~~cleaner compiler errors (know *exactly* what is missing)~~ ([broken upstream](https://github.com/fommil/stalactite/issues/11))
+
 
 ## Usage
 

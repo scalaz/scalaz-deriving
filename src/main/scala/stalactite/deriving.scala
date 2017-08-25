@@ -66,10 +66,11 @@ class DerivingMacros(val c: Context) {
       } else {
         val name = t.symbol.name
         val pkg  = t.symbol.asTerm.owner.fullName
-        custom.get(s"$pkg.$name") match {
-          case None        => c.parse(s"$pkg.Derived$name.gen")
-          case Some(other) => c.parse(other)
+        val call = custom.get(s"$pkg.$name") match {
+          case None        => s"$pkg.Derived$name.gen"
+          case Some(other) => other
         }
+        c.parse(call)
       }
 
     def update(clazz: Option[ClassDef], comp: ModuleDef): c.Expr[Any] = {
@@ -132,13 +133,12 @@ class DerivingMacros(val c: Context) {
               ..$implicits
             }"""
 
-      c.Expr(replacement)
+      c.Expr(atPos(comp.pos)(replacement))
     }
 
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
-        val p         = data.pos
-        val companion = q"object ${data.name.toTermName} {}"
+        val companion = atPos(data.pos)(q"object ${data.name.toTermName} {}")
         update(Some(data), companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
         update(Some(data), companion)
