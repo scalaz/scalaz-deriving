@@ -133,7 +133,7 @@ class DerivingMacros(val c: Context) {
                           case (t, i) =>
                             ValDef(
                               Modifiers(
-                                Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC
+                                Flag.IMPLICIT | Flag.PARAM
                               ),
                               TermName(s"evidence$$$i"),
                               tq"${toSelectedTypeName(tc)}[${t.name}]",
@@ -166,7 +166,15 @@ class DerivingMacros(val c: Context) {
 
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
-        val companion = atPos(data.pos)(q"object ${data.name.toTermName} {}")
+        val mods =
+          if (data.mods.hasFlag(Flag.PRIVATE))
+            Modifiers(Flag.PRIVATE, data.mods.privateWithin)
+          else if (data.mods.hasFlag(Flag.PROTECTED))
+            Modifiers(Flag.PROTECTED, data.mods.privateWithin)
+          else NoMods
+
+        val companion =
+          atPos(data.pos)(q"$mods object ${data.name.toTermName} {}")
         update(Some(data), companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
         update(Some(data), companion)
