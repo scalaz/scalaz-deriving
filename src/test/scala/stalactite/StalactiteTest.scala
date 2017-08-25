@@ -90,11 +90,10 @@ class StalactiteTest extends FlatSpec {
   }
 }
 
-// WORKAROUND: ignored position information test above
-// @stalactite.deriving(Cobar)
-// class ElZilcho(s: String)
+//@stalactite.deriving(Cobar)
+//class ElZilcho(s: String)
 
 // AnyVal cannot be defined in a test
 // should fail with "value xmap is not a member of ..."
-// @stalactite.deriving(Cobar)
-// class Bad(val s: String) extends scala.AnyVal
+//@stalactite.deriving(Cobar)
+//class Bad(val s: String) extends scala.AnyVal
