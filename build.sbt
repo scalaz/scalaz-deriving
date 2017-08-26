@@ -8,14 +8,15 @@ inThisBuild(
 )
 
 libraryDependencies ++= Seq(
-  "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
-  "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-  "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
-  "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
-  "com.chuusai"          %% "shapeless"     % "2.3.2"            % "test",
-  "org.typelevel"        %% "export-hook"   % "1.2.0"            % "test",
-  "com.typesafe.play"    %% "play-json"     % "2.6.3"            % "test",
-  "org.scalaz"           %% "scalaz-core"   % "7.2.15"           % "test"
+  "org.scala-lang"         % "scala-compiler" % scalaVersion.value % "provided",
+  "org.scala-lang"         % "scala-reflect"  % scalaVersion.value % "provided",
+  "org.scala-lang.modules" %% "scala-xml"     % "1.0.6"            % "test",
+  "org.ensime"             %% "pcplod"        % "1.2.1"            % "test",
+  "com.github.mpilquist"   %% "simulacrum"    % "0.11.0"           % "test",
+  "com.chuusai"            %% "shapeless"     % "2.3.2"            % "test",
+  "org.typelevel"          %% "export-hook"   % "1.2.0"            % "test",
+  "com.typesafe.play"      %% "play-json"     % "2.6.3"            % "test",
+  "org.scalaz"             %% "scalaz-core"   % "7.2.15"           % "test"
 )
 
 scalacOptions in Test += {
@@ -54,7 +55,6 @@ scalacOptions ++= Seq(
 )
 
 scalacOptions := scalacOptions.value.filterNot(_.startsWith("-Ywarn-unused"))
-//scalacOptions += "-Ywarn-unused:-implicits,imports,-locals,-params,-patvars,privates"
 
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
