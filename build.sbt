@@ -1,7 +1,8 @@
 inThisBuild(
   Seq(
     organization := "com.fommil",
-    scalaVersion := "2.12.3",
+    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    scalaVersion := crossScalaVersions.value.head,
     sonatypeGithub := ("fommil", "stalactite"),
     licenses := Seq(LGPL3)
   )
