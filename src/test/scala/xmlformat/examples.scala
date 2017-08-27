@@ -26,7 +26,7 @@ case object Baz extends SimpleTrait {
   implicit val e: Encoder[Baz.type] = Encoder[String].contramap { _ =>
     "Baz!"
   }
-  implicit val d: Decoder[Baz.type] = Decoder[String].map {
+  implicit val d: Decoder[Baz.type] = Decoder[String].andThen {
     case "Baz!" => Right(Baz)
     case other  => Left(failure(s"that's no Baz! $other"))
   }
@@ -40,7 +40,7 @@ case object Baz extends SimpleTrait {
 
 object orphans {
   implicit val e: Encoder[Foo] = Encoder[String].contramap(_.s)
-  implicit val d: Decoder[Foo] = Decoder[String].map(s => Right(Foo(s)))
+  implicit val d: Decoder[Foo] = Decoder[String].map(Foo(_))
 
   implicit val ste: Encoder[SimpleTrait] = DerivedEncoder.gen
   implicit val std: Decoder[SimpleTrait] = DerivedDecoder.gen

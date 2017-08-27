@@ -39,7 +39,12 @@ import simulacrum._
 trait Decoder[A] { self =>
   def fromXml(xml: NodeSeq): Decoder.Decoded[A]
 
-  final def map[B](f: A => Decoder.Decoded[B]): Decoder[B] =
+  final def map[B](f: A => B): Decoder[B] =
+    new Decoder[B] {
+      final override def fromXml(xml: NodeSeq): Decoder.Decoded[B] =
+        self.fromXml(xml).map(f)
+    }
+  final def andThen[B](f: A => Decoder.Decoded[B]): Decoder[B] =
     new Decoder[B] {
       final override def fromXml(xml: NodeSeq): Decoder.Decoded[B] =
         self.fromXml(xml).flatMap(f)
@@ -95,7 +100,7 @@ object Decoder {
       override def xmap[A, B](ma: Decoder[A],
                               f: A => B,
                               g: B => A): Decoder[B] =
-        ma.map(a => Right(f(a)))
+        ma.map(f)
     }
 
   // because scala.xml has been designed so badly, it is possible to
@@ -127,8 +132,8 @@ object Decoder {
   implicit val double: Decoder[Double] = strInstance(_.parseDouble.toOption)
 
   implicit val string: Decoder[String] = strInstance(_.some)
-  implicit val symbol: Decoder[Symbol] = string.map(s => Right(Symbol(s)))
-  implicit val char: Decoder[Char] = string.map {
+  implicit val symbol: Decoder[Symbol] = string.map(s => Symbol(s))
+  implicit val char: Decoder[Char] = string.andThen {
     case text if text.length == 1 => Right(text.charAt(0))
     case text                     => Left(failure(s"text too long: $text"))
   }
@@ -162,7 +167,7 @@ object Decoder {
     _list("value")
 
   implicit def nel[A: Decoder]: Decoder[NonEmptyList[A]] =
-    list[A].map { stdlib =>
+    list[A].andThen { stdlib =>
       IList.fromList(stdlib).toNel.toRight(failure("list was empty"))
     }
 
@@ -176,7 +181,7 @@ object Decoder {
 
   implicit def cbf[T[_], A: Decoder](
     implicit CBF: CanBuildFrom[Nothing, A, T[A]]
-  ): Decoder[T[A]] = _list[A]("value").map(c => Right(c.to))
+  ): Decoder[T[A]] = _list[A]("value").map(_.to)
 
   private def dictEntry[K, V](
     implicit K: Decoder[K],
@@ -188,8 +193,9 @@ object Decoder {
   }
 
   implicit def dict[K: Decoder, V: Decoder]: Decoder[Map[K, V]] =
-    _list("entry")(dictEntry[K, V]).map(c => Right(c.toMap))
+    _list("entry")(dictEntry[K, V]).map(_.toMap)
 
-  implicit val finite: Decoder[FiniteDuration] = long.map(c => Right(c.millis))
+  implicit val finite: Decoder[FiniteDuration] =
+    long.map(_.millis)
 
 }
