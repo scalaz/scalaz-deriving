@@ -20,12 +20,8 @@ libraryDependencies ++= Seq(
   "org.scalaz"             %% "scalaz-core"   % "7.2.15"           % "test"
 )
 
-scalacOptions in Test += {
-  val custom = Map(
-    "stalactite.typeclasses.Cobar" -> "stalactite.typeclasses.CustomCobar.go"
-  ).map { case (from, to) => s"$from=$to" }.mkString("|", "|", "|")
-  s"-Xmacro-settings:stalactite=$custom"
-}
+scalacOptions in Test += s"-Xmacro-settings:stalactite.config=project/stalactite.conf"
+
 javaOptions in Test ++= {
   val settings =
     //Seq("-Ymacro-expand:discard") ++

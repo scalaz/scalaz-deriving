@@ -4,7 +4,18 @@ package stalactite
 
 import java.lang.String
 
-import scala.{ Any, AnyRef, Boolean, None, Option, Some, StringContext }
+import scala.{
+  Any,
+  AnyRef,
+  Boolean,
+  Either,
+  Left,
+  None,
+  Option,
+  Right,
+  Some,
+  StringContext
+}
 import scala.Predef.{ wrapRefArray, ArrowAssoc }
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.collection.immutable.{ ::, List, Map, Nil }
@@ -18,9 +29,90 @@ class deriving(typeclasses: AnyRef*) extends StaticAnnotation {
 }
 
 object DerivingMacros {
-  val lookup: Map[String, String] = Map(
-    "play.api.libs.json.Format" -> "play.api.libs.json.Json.format"
-  )
+  private implicit class EitherBackCompat[L, R](e: Either[L, R]) {
+    def map[RR](f: R => RR): Either[L, RR] = e match {
+      case Left(left)   => Left(left)
+      case Right(right) => Right(f(right))
+    }
+
+    def flatMap[RR](f: R => Either[L, RR]): Either[L, RR] = e match {
+      case Left(left)   => Left(left)
+      case Right(right) => f(right)
+    }
+  }
+
+  private type Config = Either[String, Map[String, String]]
+  private def config(path: Option[String]): Config =
+    for {
+      d <- defaults
+      u <- path.fold(Right(Map.empty): Config)(user)
+    } yield (d ++ u)
+
+  // cached to avoid hitting disk on every use of the macro
+  private[this] var cached: Map[String, Config] = Map.empty
+  private[this] def user(path: String): Config =
+    cached.get(path) match {
+      case Some(got) => got
+      case None =>
+        val calculated = for {
+          s <- readFile(path)
+          c <- parseConfig(s)
+        } yield c
+        cached += path -> calculated
+        calculated
+    }
+
+  private lazy val defaults: Config =
+    for {
+      s <- readResource("/stalactite.conf")
+      c <- parseConfig(s)
+    } yield c
+
+  private[this] def parseConfig(config: String): Config =
+    try {
+      Right(
+        config
+          .split("\n")
+          .toList
+          .filterNot(_.isEmpty)
+          .map(_.split("=").toList)
+          .map {
+            case List(from, to) => from -> to
+            case other          =>
+              // I'd have used Left with traverse, but this is stdlib...
+              throw new java.lang.IllegalArgumentException(
+                s"expected 2 parts but got ${other.size} in $other"
+              )
+          }
+          .toMap
+      )
+    } catch {
+      case t: java.lang.Throwable =>
+        Left(t.getMessage)
+    }
+
+  private[this] def readFile(file: String): Either[String, String] =
+    readInputStream(new java.io.FileInputStream(file))
+
+  private[this] def readResource(res: String): Either[String, String] =
+    readInputStream(getClass.getResourceAsStream(res))
+
+  private[this] def readInputStream(
+    is: java.io.InputStream
+  ): Either[String, String] =
+    try {
+      val baos              = new java.io.ByteArrayOutputStream()
+      val data              = scala.Array.ofDim[scala.Byte](2048)
+      var len: scala.Int    = 0
+      def read(): scala.Int = { len = is.read(data); len }
+      while (read != -1) {
+        baos.write(data, 0, len)
+      }
+      Right(new String(baos.toByteArray(), "UTF-8"))
+    } catch {
+      case t: java.lang.Throwable => Left(t.getMessage)
+    } finally is.close()
+
 }
 
 class DerivingMacros(val c: Context) {
@@ -28,23 +120,6 @@ class DerivingMacros(val c: Context) {
 
   lazy val isIde: Boolean =
     c.universe.isInstanceOf[scala.tools.nsc.interactive.Global]
-
-  lazy val custom: Map[String, String] =
-    DerivingMacros.lookup ++ c.settings
-      .find(_.startsWith("stalactite="))
-      .map { args =>
-        args
-          .substring(11)
-          .split("\\|")
-          .toList
-          .filterNot(_.isEmpty)
-          .map { setting =>
-            val List(from, to) = setting.split("=").toList
-            (from, to)
-          }
-          .toMap
-      }
-      .getOrElse(Map.empty)
 
   case class AnyValDesc(name: TypeName, accessor: TermName, tpe: Tree)
 
@@ -67,7 +142,22 @@ class DerivingMacros(val c: Context) {
     atPos(pos)(Unposition(t))
   }
 
+  def readConfig() = {
+    val custom =
+      c.settings.find(_.startsWith("stalactite.config=")).map(_.substring(18))
+    DerivingMacros.config(custom)
+  }
+
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
+    val config = readConfig().fold(
+      error => {
+        c.warning(c.prefix.tree.pos,
+                  s"Failed to parse stalactite config: $error")
+        Map.empty[String, String]
+      },
+      success => success
+    )
+
     // c.typecheck provides Symbol on the input Tree
     val Apply(Select(_, _), parameters) = c.typecheck(c.prefix.tree)
     // gets the juicy typed bits
@@ -136,7 +226,7 @@ class DerivingMacros(val c: Context) {
         anyVal match {
           case Some(value) => genAnyValXmap(t, value)
           case None =>
-            custom.get(t.fullName) match {
+            config.get(t.fullName) match {
               case None =>
                 toTree(t) match {
                   case Ident(name) =>

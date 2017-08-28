@@ -14,6 +14,8 @@ stages:
 
 verify_job:
   stage: verify
+  except:
+    - feature/*
   script:
     - if $(git grep -qE "TODO|FIXME" *) ; then
         echo "Please remove TODO or FIXME." ;
@@ -28,6 +30,8 @@ verify_job:
 
 build_job:
   stage: build
+  except:
+    - feature/*
   cache:
     policy: pull
   script:
@@ -35,20 +39,21 @@ build_job:
 
 test_job:
   stage: test
+  except:
+    - master
+    - feature/*
   cache:
     policy: pull
   script:
     - sbt "+test"
-  except:
-    - master
 
 deploy_job:
+  only:
+    - master
+  except:
+    - tags
   stage: deploy
   cache:
     policy: pull
   script:
     - sbt "+publish"
-  only:
-    - master
-  except:
-    - tags
