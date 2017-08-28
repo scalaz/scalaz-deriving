@@ -82,7 +82,10 @@ You can provide your own project-specific wirings by setting up your
 build to point to your configuration file, e.g.
 
 ```scala
-scalacOptions += s"-Xmacro-settings:stalactite.config=project/stalactite.conf"
+scalacOptions += {
+  val dir = (baseDirectory in ThisBuild).value / "project"
+  s"-Xmacro-settings:stalactite.config=$dir/stalactite.conf"
+}
 ```
 
 The config file is plain text with one line per wiring, formatted:

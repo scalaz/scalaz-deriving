@@ -186,7 +186,7 @@ class DerivingMacros(val c: Context) {
     )
   }
 
-  private def toGen(config: Map[String, String],
+  private def toGen(target: Option[String],
                     t: ModuleSymbol,
                     anyVal: Option[AnyValDesc]): Tree =
     if (isIde) {
@@ -195,7 +195,7 @@ class DerivingMacros(val c: Context) {
       anyVal match {
         case Some(value) => genAnyValXmap(t, value)
         case None =>
-          config.get(t.fullName) match {
+          target match {
             case None =>
               toTree(t) match {
                 case Ident(name) =>
@@ -221,6 +221,78 @@ class DerivingMacros(val c: Context) {
       }.headOption
     }
 
+  private def genObjectImplicitVal(
+    target: Option[String],
+    tc: ModuleSymbol,
+    termName: TermName,
+    typeCons: Tree,
+    comp: ModuleDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      AppliedTypeTree(
+        typeCons,
+        List(SingletonTypeTree(Ident(comp.name.toTermName)))
+      ),
+      toGen(target, tc, None)
+    )
+
+  private def genClassImplicitVal(
+    target: Option[String],
+    tc: ModuleSymbol,
+    termName: TermName,
+    typeCons: Tree,
+    c: ClassDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      AppliedTypeTree(typeCons, List(Ident(c.name))),
+      toGen(target, tc, anyVal(c))
+    )
+
+  private def genClassImplicitDef(
+    target: Option[String],
+    tc: ModuleSymbol,
+    termName: TermName,
+    typeCons: Tree,
+    c: ClassDef,
+    tparams: List[TypeDef]
+  ) = {
+    val implicits =
+      if (isIde) Nil
+      else
+        List(
+          tparams.zipWithIndex.map {
+            case (t, i) =>
+              ValDef(
+                Modifiers(Flag.IMPLICIT | Flag.PARAM),
+                TermName(s"evidence$$$i"),
+                AppliedTypeTree(typeCons, List(Ident(t.name))),
+                EmptyTree
+              )
+          }
+        )
+
+    DefDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      tparams,
+      implicits,
+      AppliedTypeTree(
+        typeCons,
+        List(
+          AppliedTypeTree(
+            Ident(c.name),
+            tparams.map(tp => Ident(tp.name))
+          )
+        )
+      ),
+      toGen(target, tc, anyVal(c))
+    )
+  }
+
   private def update(config: Map[String, String],
                      typeclasses: List[ModuleSymbol],
                      clazz: Option[ClassDef],
@@ -229,60 +301,17 @@ class DerivingMacros(val c: Context) {
       typeclasses.map { tc =>
         val termName = TermName(tc.fullName).encodedName.toTermName
         val typeCons = nameToTypeName(toTree(tc))
+        val target   = config.get(tc.fullName)
 
         clazz match {
           case None =>
-            ValDef(
-              Modifiers(Flag.IMPLICIT),
-              termName,
-              AppliedTypeTree(
-                typeCons,
-                List(SingletonTypeTree(Ident(comp.name.toTermName)))
-              ),
-              toGen(config, tc, None)
-            )
+            genObjectImplicitVal(target, tc, termName, typeCons, comp)
           case Some(c) =>
             c.tparams match {
               case Nil =>
-                ValDef(
-                  Modifiers(Flag.IMPLICIT),
-                  termName,
-                  AppliedTypeTree(typeCons, List(Ident(c.name))),
-                  toGen(config, tc, anyVal(c))
-                )
-
+                genClassImplicitVal(target, tc, termName, typeCons, c)
               case tparams =>
-                val implicits =
-                  if (isIde) Nil
-                  else
-                    List(
-                      tparams.zipWithIndex.map {
-                        case (t, i) =>
-                          ValDef(
-                            Modifiers(Flag.IMPLICIT | Flag.PARAM),
-                            TermName(s"evidence$$$i"),
-                            AppliedTypeTree(typeCons, List(Ident(t.name))),
-                            EmptyTree
-                          )
-                      }
-                    )
-
-                DefDef(
-                  Modifiers(Flag.IMPLICIT),
-                  termName,
-                  tparams,
-                  implicits,
-                  AppliedTypeTree(
-                    typeCons,
-                    List(
-                      AppliedTypeTree(
-                        Ident(c.name),
-                        tparams.map(tp => Ident(tp.name))
-                      )
-                    )
-                  ),
-                  toGen(config, tc, anyVal(c))
-                )
+                genClassImplicitDef(target, tc, termName, typeCons, c, tparams)
             }
         }
       }
