@@ -48,8 +48,7 @@ trait Encoder[A] { self =>
   }
 }
 
-object Encoder {
-  // https://github.com/mpilquist/simulacrum/issues/5
+object Encoder extends EncoderLowPriority {
   def instance[A](f: A => NodeSeq): Encoder[A] = new Encoder[A] {
     override def toXml(a: A): NodeSeq = f(a)
   }
@@ -118,16 +117,6 @@ object Encoder {
     Group(t.toList.map(s => el("value", s.toXml)))
   }
 
-  // safe use of asInstanceOf because we are provided implicit
-  // evidence that T is a subtype of Traversable.
-  @java.lang.SuppressWarnings(scala.Array("org.wartremover.warts.AsInstanceOf"))
-  implicit def traversable[T[_], A: Encoder](
-    implicit T: T[A] <:< Traversable[A]
-  ): Encoder[T[A]] = instance { t =>
-    val ss = t.asInstanceOf[Traversable[A]].toSeq
-    Group(ss.map(s => el("value", s.toXml)))
-  }
-
   // special-case Map, not as a Traversable[(K, V)]
   implicit def dict[K: Encoder, V: Encoder]: Encoder[Map[K, V]] =
     instance { ss =>
@@ -144,4 +133,19 @@ object Encoder {
   implicit val finiteDuration: Encoder[FiniteDuration] =
     long.contramap[FiniteDuration](_.toMillis)
 
+}
+
+// low priority because they are expensive
+trait EncoderLowPriority {
+  this: Encoder.type =>
+
+  // safe use of asInstanceOf because we are provided implicit
+  // evidence that T is a subtype of Traversable.
+  @java.lang.SuppressWarnings(scala.Array("org.wartremover.warts.AsInstanceOf"))
+  implicit def traversable[T[_], A: Encoder](
+    implicit T: T[A] <:< Traversable[A]
+  ): Encoder[T[A]] = instance { t =>
+    val ss = t.asInstanceOf[Traversable[A]].toSeq
+    Group(ss.map(s => el("value", Encoder[A].toXml(s))))
+  }
 }

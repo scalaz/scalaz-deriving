@@ -118,34 +118,196 @@ object DerivingMacros {
 class DerivingMacros(val c: Context) {
   import c.universe._
 
-  lazy val isIde: Boolean =
+  private def isIde: Boolean =
     c.universe.isInstanceOf[scala.tools.nsc.interactive.Global]
 
-  case class AnyValDesc(name: TypeName, accessor: TermName, tpe: Tree)
-
-  def debug(t: Tree) =
+  private def debug(t: Tree) =
     scala.Predef.println(showRaw(t))
   //scala.Predef.println(showRaw(t, printPositions = true))
 
-  def reposition[T <: Tree](pos: Position)(t: T): T = {
-    val symtab =
-      c.universe.asInstanceOf[_root_.scala.reflect.internal.SymbolTable]
+  private case class AnyValDesc(name: TypeName, accessor: TermName, tpe: Tree)
 
-    object Unposition extends Traverser {
-      override def traverse(tree: c.universe.Tree): scala.Unit =
-        if (tree.canHaveAttrs) {
-          tree.asInstanceOf[symtab.Tree].setPos(symtab.NoPosition)
-          super.traverse(tree)
-        }
-    }
-
-    atPos(pos)(Unposition(t))
-  }
-
-  def readConfig() = {
+  private def readConfig() = {
     val custom =
       c.settings.find(_.startsWith("stalactite.config=")).map(_.substring(18))
     DerivingMacros.config(custom)
+  }
+
+  private def toSelect(parts: List[TermName]): Tree = parts match {
+    case Nil          => Ident(termNames.ROOTPKG)
+    case head :: tail => Select(toSelect(tail), head)
+  }
+
+  private def parseToTermTree(s: String): Tree =
+    toSelect(s.split("[.]").toList.map(TermName(_)).reverse)
+
+  private def nameToTypeName(t: Tree): Tree = t match {
+    case Ident(name)        => Ident(name.toTypeName)
+    case Select(qual, name) => Select(qual, name.toTypeName)
+  }
+
+  private def toTree(s: Symbol): Tree = c.internal.gen.mkAttributedStableRef(s)
+
+  // long-winded way of saying
+  //
+  // implicitly[TC[A]].xmap(new A(_), _.value)
+  private def genAnyValXmap(t: ModuleSymbol, value: AnyValDesc) = {
+    import Flag._
+    val typeCons = nameToTypeName(toTree(t))
+    Apply(
+      Select(
+        TypeApply(
+          Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scala")),
+                        TermName("Predef")),
+                 TermName("implicitly")),
+          List(AppliedTypeTree(typeCons, List(value.tpe)))
+        ),
+        TermName("xmap")
+      ),
+      List(
+        Function(
+          List(
+            ValDef(Modifiers(PARAM | SYNTHETIC),
+                   TermName("x"),
+                   TypeTree(),
+                   EmptyTree)
+          ),
+          Apply(Select(New(Ident(value.name)), termNames.CONSTRUCTOR),
+                List(Ident(TermName("x"))))
+        ),
+        Function(List(
+                   ValDef(Modifiers(PARAM | SYNTHETIC),
+                          TermName("x"),
+                          TypeTree(),
+                          EmptyTree)
+                 ),
+                 Select(Ident(TermName("x")), value.accessor))
+      )
+    )
+  }
+
+  private def toGen(config: Map[String, String],
+                    t: ModuleSymbol,
+                    anyVal: Option[AnyValDesc]): Tree =
+    if (isIde) {
+      Literal(Constant(null))
+    } else {
+      anyVal match {
+        case Some(value) => genAnyValXmap(t, value)
+        case None =>
+          config.get(t.fullName) match {
+            case None =>
+              toTree(t) match {
+                case Ident(name) =>
+                  Select(Ident(TermName(s"Derived$name")), TermName("gen"))
+                case Select(qual, name) =>
+                  Select(Select(qual, TermName(s"Derived$name")),
+                         TermName("gen"))
+              }
+            case Some(other) => parseToTermTree(other)
+          }
+      }
+    }
+
+  private def anyVal(c: ClassDef): Option[AnyValDesc] =
+    c.impl.parents.flatMap {
+      case Ident(name) if name.toString == "AnyVal"        => Some(c)
+      case Select(qual, name) if name.toString == "AnyVal" => Some(c)
+      case _                                               => None
+    }.headOption.flatMap { anyval =>
+      anyval.impl.body.collect {
+        case ValDef(_, name, tpt, _) =>
+          AnyValDesc(anyval.name, name, nameToTypeName(tpt))
+      }.headOption
+    }
+
+  private def update(config: Map[String, String],
+                     typeclasses: List[ModuleSymbol],
+                     clazz: Option[ClassDef],
+                     comp: ModuleDef): c.Expr[Any] = {
+    val implicits =
+      typeclasses.map { tc =>
+        val termName = TermName(tc.fullName).encodedName.toTermName
+        val typeCons = nameToTypeName(toTree(tc))
+
+        clazz match {
+          case None =>
+            ValDef(
+              Modifiers(Flag.IMPLICIT),
+              termName,
+              AppliedTypeTree(
+                typeCons,
+                List(SingletonTypeTree(Ident(comp.name.toTermName)))
+              ),
+              toGen(config, tc, None)
+            )
+          case Some(c) =>
+            c.tparams match {
+              case Nil =>
+                ValDef(
+                  Modifiers(Flag.IMPLICIT),
+                  termName,
+                  AppliedTypeTree(typeCons, List(Ident(c.name))),
+                  toGen(config, tc, anyVal(c))
+                )
+
+              case tparams =>
+                val implicits =
+                  if (isIde) Nil
+                  else
+                    List(
+                      tparams.zipWithIndex.map {
+                        case (t, i) =>
+                          ValDef(
+                            Modifiers(Flag.IMPLICIT | Flag.PARAM),
+                            TermName(s"evidence$$$i"),
+                            AppliedTypeTree(typeCons, List(Ident(t.name))),
+                            EmptyTree
+                          )
+                      }
+                    )
+
+                DefDef(
+                  Modifiers(Flag.IMPLICIT),
+                  termName,
+                  tparams,
+                  implicits,
+                  AppliedTypeTree(
+                    typeCons,
+                    List(
+                      AppliedTypeTree(
+                        Ident(c.name),
+                        tparams.map(tp => Ident(tp.name))
+                      )
+                    )
+                  ),
+                  toGen(config, tc, anyVal(c))
+                )
+            }
+        }
+      }
+
+    val module = atPos(comp.pos)(
+      treeCopy.ModuleDef(
+        comp,
+        comp.mods,
+        comp.name,
+        treeCopy.Template(comp.impl,
+                          comp.impl.parents,
+                          comp.impl.self,
+                          comp.impl.body ::: implicits)
+      )
+    )
+
+    // if we try to create the AST directly here, we get: "top-level
+    // class without companion can only expand either into an
+    // eponymous class or into a block consisting in eponymous
+    // companions"
+    val replacement =
+      q"""${clazz.getOrElse(EmptyTree)}
+          $module"""
+
+    c.Expr(replacement)
   }
 
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
@@ -163,168 +325,6 @@ class DerivingMacros(val c: Context) {
     // gets the juicy typed bits
     val typeclasses = parameters.map(_.symbol.asModule)
 
-    def toSelect(parts: List[TermName]): Tree = parts match {
-      case Nil          => Ident(termNames.ROOTPKG)
-      case head :: tail => Select(toSelect(tail), head)
-    }
-
-    def parseToTermTree(s: String): Tree =
-      toSelect(s.split("[.]").toList.map(TermName(_)).reverse)
-
-    def nameToTypeName(t: Tree): Tree = t match {
-      case Ident(name)        => Ident(name.toTypeName)
-      case Select(qual, name) => Select(qual, name.toTypeName)
-    }
-
-    def toTree(s: Symbol): Tree =
-      if (s == NoSymbol || s.name.toString == "<root>")
-        Ident(termNames.ROOTPKG)
-      else Select(toTree(s.owner), s.name.toTermName)
-
-    // long-winded way of saying
-    //
-    // implicitly[TC[A]].xmap(new A(_), _.value)
-    def genAnyValXmap(t: ModuleSymbol, value: AnyValDesc) = {
-      import Flag._
-      val typeCons = nameToTypeName(toTree(t))
-      Apply(
-        Select(
-          TypeApply(
-            Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scala")),
-                          TermName("Predef")),
-                   TermName("implicitly")),
-            List(AppliedTypeTree(typeCons, List(value.tpe)))
-          ),
-          TermName("xmap")
-        ),
-        List(
-          Function(
-            List(
-              ValDef(Modifiers(PARAM | SYNTHETIC),
-                     TermName("x"),
-                     TypeTree(),
-                     EmptyTree)
-            ),
-            Apply(Select(New(Ident(value.name)), termNames.CONSTRUCTOR),
-                  List(Ident(TermName("x"))))
-          ),
-          Function(List(
-                     ValDef(Modifiers(PARAM | SYNTHETIC),
-                            TermName("x"),
-                            TypeTree(),
-                            EmptyTree)
-                   ),
-                   Select(Ident(TermName("x")), value.accessor))
-        )
-      )
-    }
-
-    def toGen(t: ModuleSymbol, anyVal: Option[AnyValDesc]): Tree =
-      if (isIde) {
-        Literal(Constant(null))
-      } else {
-        anyVal match {
-          case Some(value) => genAnyValXmap(t, value)
-          case None =>
-            config.get(t.fullName) match {
-              case None =>
-                toTree(t) match {
-                  case Ident(name) =>
-                    Select(Ident(TermName(s"Derived$name")), TermName("gen"))
-                  case Select(qual, name) =>
-                    Select(Select(qual, TermName(s"Derived$name")),
-                           TermName("gen"))
-                }
-              case Some(other) => parseToTermTree(other)
-            }
-        }
-      }
-
-    def anyVal(c: ClassDef): Option[AnyValDesc] =
-      c.impl.parents.flatMap {
-        case Ident(name) if name.toString == "AnyVal"        => Some(c)
-        case Select(qual, name) if name.toString == "AnyVal" => Some(c)
-        case _                                               => None
-      }.headOption.flatMap { anyval =>
-        anyval.impl.body.collect {
-          case ValDef(_, name, tpt, _) =>
-            AnyValDesc(anyval.name, name, nameToTypeName(tpt))
-        }.headOption
-      }
-
-    def update(clazz: Option[ClassDef], comp: ModuleDef): c.Expr[Any] = {
-      val q"$mods object $name extends ..$bases { ..$body }" = comp
-      val implicits =
-        typeclasses.map { tc =>
-          val termName = TermName(tc.fullName).encodedName.toTermName
-          val typeCons = nameToTypeName(toTree(tc))
-
-          clazz match {
-            case None =>
-              ValDef(
-                Modifiers(Flag.IMPLICIT),
-                termName,
-                AppliedTypeTree(
-                  typeCons,
-                  List(SingletonTypeTree(Ident(name.toTermName)))
-                ),
-                toGen(tc, None)
-              )
-            case Some(c) =>
-              c.tparams match {
-                case Nil =>
-                  ValDef(
-                    Modifiers(Flag.IMPLICIT),
-                    termName,
-                    AppliedTypeTree(typeCons, List(Ident(c.name))),
-                    toGen(tc, anyVal(c))
-                  )
-
-                case tparams =>
-                  val implicits =
-                    if (isIde) Nil
-                    else
-                      List(
-                        tparams.zipWithIndex.map {
-                          case (t, i) =>
-                            ValDef(
-                              Modifiers(Flag.IMPLICIT | Flag.PARAM),
-                              TermName(s"evidence$$$i"),
-                              AppliedTypeTree(typeCons, List(Ident(t.name))),
-                              EmptyTree
-                            )
-                        }
-                      )
-
-                  DefDef(
-                    Modifiers(Flag.IMPLICIT),
-                    termName,
-                    tparams,
-                    implicits,
-                    AppliedTypeTree(
-                      typeCons,
-                      List(
-                        AppliedTypeTree(
-                          Ident(c.name),
-                          tparams.map(tp => Ident(tp.name))
-                        )
-                      )
-                    ),
-                    toGen(tc, anyVal(c))
-                  )
-              }
-          }
-        }
-
-      val replacement = q"""${clazz.getOrElse(EmptyTree)}
-            $mods object $name extends ..$bases {
-              ..$body
-              ..$implicits
-            }"""
-
-      c.Expr(reposition(comp.pos)(replacement))
-    }
-
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
         val mods =
@@ -336,17 +336,22 @@ class DerivingMacros(val c: Context) {
 
         val companion =
           atPos(data.pos)(
-            ModuleDef(
+            // if we use ModuleDef directly, it doesn't insert the
+            // constructor.
+            c.internal.reificationSupport.SyntacticObjectDef(
               mods,
               data.name.toTermName,
-              Template(Nil, noSelfType, Nil)
+              Nil,
+              Nil,
+              noSelfType,
+              Nil
             )
           )
-        update(Some(data), companion)
+        update(config, typeclasses, Some(data), companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        update(Some(data), companion)
+        update(config, typeclasses, Some(data), companion)
       case (obj: ModuleDef) :: Nil =>
-        update(None, obj)
+        update(config, typeclasses, None, obj)
 
       case other :: Nil =>
         c.abort(

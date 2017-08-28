@@ -90,8 +90,8 @@ class StalactiteTest extends FlatSpec {
   }
 }
 
-//@stalactite.deriving(Cobar)
-//class ElZilcho(s: String)
+// @stalactite.deriving(Cobar)
+// class ElZilcho(s: String)
 
 // AnyVal cannot be defined in a test
 // should fail with "value xmap is not a member of ..."

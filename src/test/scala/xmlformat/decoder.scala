@@ -65,7 +65,7 @@ object DecoderUtils {
   }
 }
 
-object Decoder {
+object Decoder extends DecoderLowPriority {
   // https://github.com/mpilquist/simulacrum/issues/88
   object ops extends ToDecoderOps {
     implicit class DecoderOps(t: NodeSeq) {
@@ -151,7 +151,7 @@ object Decoder {
         Decoder[R].fromXml(el.children).map(Right(_))
     }
 
-  private def _list[A](
+  private[xmlformat] def _list[A](
     label: String
   )(implicit D: Decoder[A]): Decoder[List[A]] =
     instance {
@@ -179,10 +179,6 @@ object Decoder {
         Decoder[V].fromXml(el.children).map(Success(_))
     }
 
-  implicit def cbf[T[_], A: Decoder](
-    implicit CBF: CanBuildFrom[Nothing, A, T[A]]
-  ): Decoder[T[A]] = _list[A]("value").map(_.to)
-
   private def dictEntry[K, V](
     implicit K: Decoder[K],
     V: Decoder[V]
@@ -197,5 +193,15 @@ object Decoder {
 
   implicit val finite: Decoder[FiniteDuration] =
     long.map(_.millis)
+
+}
+
+// low priority because they are expensive
+trait DecoderLowPriority {
+  this: Decoder.type =>
+
+  implicit def cbf[T[_], A: Decoder](
+    implicit CBF: CanBuildFrom[Nothing, A, T[A]]
+  ): Decoder[T[A]] = _list[A]("value").map(_.to)
 
 }

@@ -17,7 +17,7 @@ import org.scalatest.EitherValues._
 import org.scalatest.Matchers._
 import scalaz._
 
-class DencoderTests extends FreeSpec {
+class DecoderTests extends FreeSpec {
   import Decoder.ops._
   import DecoderUtils._
 
