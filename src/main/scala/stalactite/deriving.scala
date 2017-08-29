@@ -221,23 +221,6 @@ class DerivingMacros(val c: Context) {
       }.headOption
     }
 
-  private def genObjectImplicitVal(
-    target: Option[String],
-    tc: ModuleSymbol,
-    termName: TermName,
-    typeCons: Tree,
-    comp: ModuleDef
-  ) =
-    ValDef(
-      Modifiers(Flag.IMPLICIT),
-      termName,
-      AppliedTypeTree(
-        typeCons,
-        List(SingletonTypeTree(Ident(comp.name.toTermName)))
-      ),
-      toGen(target, tc, None)
-    )
-
   private def genClassImplicitVal(
     target: Option[String],
     tc: ModuleSymbol,
@@ -293,6 +276,125 @@ class DerivingMacros(val c: Context) {
     )
   }
 
+  private def genObjectImplicitVal(
+    target: Option[String],
+    tc: ModuleSymbol,
+    termName: TermName,
+    typeCons: Tree,
+    comp: ModuleDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      AppliedTypeTree(
+        typeCons,
+        List(SingletonTypeTree(Ident(comp.name.toTermName)))
+      ),
+      toGen(target, tc, None)
+    )
+
+  /**
+   * The pattern we actually want to generate is more like
+   *
+   * {{{
+   *    val `shapeless.LabelledGeneric` = {
+   *      def `shapeless.LabelledGeneric.Aux` = scala.Predef.???
+   *      shapeless.LabelledGeneric[Bar]
+   *    }
+   *    implicit val `shapeless.LabelledGeneric.Aux`
+   *      : shapeless.LabelledGeneric.Aux[Bar, `shapeless.LabelledGeneric`.Repr] =
+   *      `shapeless.LabelledGeneric`
+   * }}}
+   *
+   * which would expose the actual .Aux. However, generating this
+   * results in a compiler error
+   *
+   * {{{
+   * Encountered Valdef without symbol:
+   *   implicit val <none>: LabelledGeneric.Aux[Bar, LabelledGeneric.Repr]
+   * at UnCurry$UnCurryTransformer.mainTransform(UnCurry.scala:466)
+   * }}}
+   *
+   * which means the type of LabelledGeneric is not being filled in.
+   *
+   * However, we can do a much simpler alternative which is to
+   * generate something like
+   *
+   * {{{
+   *   implicit val `shapeless.LabelledGeneric` = shapeless.LabelledGeneric[Bar]
+   * }}}
+   *
+   * i.e. to put the types on the RHS and let the compiler infer them
+   * on the left.
+   */
+  private def genAuxClassImplicitVal(
+    target: String,
+    tc: ModuleSymbol,
+    termName: TermName,
+    cd: ClassDef
+  ): Tree =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      TypeTree(),
+      TypeApply(
+        parseToTermTree(target),
+        List(Ident(cd.name))
+      )
+    )
+
+  // https://github.com/milessabin/shapeless/issues/757 means that
+  // this is rarely useful, since derivation inside yourself (when you
+  // are your own companion) is problematic. We could use def and
+  // manage a private var cache, if necessary.
+  private def genAuxObjectImplicitVal(
+    target: String,
+    tc: ModuleSymbol,
+    termName: TermName,
+    comp: ModuleDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      TypeTree(),
+      TypeApply(
+        parseToTermTree(target),
+        List(SingletonTypeTree(Ident(comp.name.toTermName)))
+      )
+    )
+
+  // unlike getClassImplicitDef, we do not generate an implicit
+  // parameter section (unless this turns out to be required).
+  private def genAuxClassImplicitDef(
+    target: String,
+    tc: ModuleSymbol,
+    termName: TermName,
+    typeCons: Tree,
+    c: ClassDef,
+    tparams: List[TypeDef]
+  ) =
+    DefDef(
+      Modifiers(Flag.IMPLICIT),
+      termName,
+      tparams,
+      Nil,
+      TypeTree(),
+      TypeApply(
+        parseToTermTree(target),
+        List(
+          AppliedTypeTree(
+            Ident(c.name),
+            tparams.map(tp => Ident(tp.name))
+          )
+        )
+      )
+    )
+
+  /* typeclass patterns supported */
+  sealed trait Target
+  case class Standard(custom: Option[String]) extends Target
+  case class LeftInferred(target: String)     extends Target
+
   private def update(config: Map[String, String],
                      typeclasses: List[ModuleSymbol],
                      clazz: Option[ClassDef],
@@ -301,18 +403,31 @@ class DerivingMacros(val c: Context) {
       typeclasses.map { tc =>
         val termName = TermName(tc.fullName).encodedName.toTermName
         val typeCons = nameToTypeName(toTree(tc))
-        val target   = config.get(tc.fullName)
+        val target = {
+          config.get(s"${tc.fullName}.Aux") match {
+            case Some(aux) => LeftInferred(aux)
+            case None      => Standard(config.get(tc.fullName))
+          }
+        }
 
-        clazz match {
-          case None =>
-            genObjectImplicitVal(target, tc, termName, typeCons, comp)
-          case Some(c) =>
+        (clazz, target) match {
+          case (Some(c), Standard(to)) =>
             c.tparams match {
               case Nil =>
-                genClassImplicitVal(target, tc, termName, typeCons, c)
+                genClassImplicitVal(to, tc, termName, typeCons, c)
               case tparams =>
-                genClassImplicitDef(target, tc, termName, typeCons, c, tparams)
+                genClassImplicitDef(to, tc, termName, typeCons, c, tparams)
             }
+          case (None, Standard(to)) =>
+            genObjectImplicitVal(to, tc, termName, typeCons, comp)
+          case (Some(c), LeftInferred(to)) =>
+            c.tparams match {
+              case Nil => genAuxClassImplicitVal(to, tc, termName, c)
+              case tparams =>
+                genAuxClassImplicitDef(to, tc, termName, typeCons, c, tparams)
+            }
+          case (None, LeftInferred(to)) =>
+            genAuxObjectImplicitVal(to, tc, termName, comp)
         }
       }
 
@@ -378,6 +493,7 @@ class DerivingMacros(val c: Context) {
           )
         update(config, typeclasses, Some(data), companion)
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
+        //debug(companion)
         update(config, typeclasses, Some(data), companion)
       case (obj: ModuleDef) :: Nil =>
         update(config, typeclasses, None, obj)

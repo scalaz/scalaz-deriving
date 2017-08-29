@@ -7,7 +7,7 @@ import java.lang.String
 import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
-import shapeless.the
+import shapeless.{ the, Generic, LabelledGeneric }
 import stalactite.examples._
 import stalactite.typeclasses._
 
@@ -81,6 +81,30 @@ class StalactiteTest extends FlatSpec {
   it should "support user-provided rules" in {
     the[Cobar[Foo]] shouldBe Foo.`stalactite.typeclasses.Cobar`
     the[Cobar[Foo]] should not equal null
+  }
+
+  it should "support the .Aux pattern on regular classes" in {
+    Bar.`shapeless.Generic` should not equal null
+    val g = Generic[Bar]
+    Bar.`shapeless.Generic` should be theSameInstanceAs (g)
+    val gAux: Generic.Aux[Bar, g.Repr] = g
+
+    Bar.`shapeless.LabelledGeneric` should not equal null
+    val lg = LabelledGeneric[Bar]
+    Bar.`shapeless.LabelledGeneric` should be theSameInstanceAs (lg)
+    val lgAux: LabelledGeneric.Aux[Bar, lg.Repr] = lg
+  }
+
+  it should "support the .Aux pattern on parameterised classes" in {
+    // we can't expect theSameInstanceAs to hold without
+    // https://gitlab.com/fommil/stalactite/issues/35
+    Gaz.`shapeless.Generic`[String] should not equal null
+    val g                                      = Generic[Gaz[String]]
+    val gAux: Generic.Aux[Gaz[String], g.Repr] = g
+
+    Gaz.`shapeless.LabelledGeneric`[String] should not equal null
+    val lg                                               = LabelledGeneric[Gaz[String]]
+    val lgAux: LabelledGeneric.Aux[Gaz[String], lg.Repr] = lg
   }
 
   it should "provide position information on failure" ignore {

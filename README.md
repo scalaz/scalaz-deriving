@@ -35,7 +35,7 @@ Also supports:
 - `sealed trait` and `object`
 - `extends AnyVal` (if the typeclass has a `def xmap` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
 
-### Supported Derivations
+### Standard Derivation
 
 The macro expansion only works if a semi-auto derivation method exists
 for your typeclass. The following pattern of writing typeclasses is
@@ -45,8 +45,11 @@ strongly recommended:
 @typeclass trait Foo[F[_]] {
   // put your methods here
 }
-object Foo {
+object Foo extends FooLowPriority {
   // put your default instances here
+}
+trait FooLowPriority {
+  // put your slow derivations here (e.g. those that take a lot of evidence)
 }
 ```
 
@@ -56,7 +59,7 @@ and not automatically derived
 ```scala
 @typeclass DerivedFoo[F[_]] extends Foo[F]
 object DerivedFoo {
-    def gen[T]: DerivedFoo[T] = ???
+  def gen[T]: DerivedFoo[T] = ???
 }
 ```
 
@@ -72,6 +75,47 @@ at
 [semiencoder](https://github.com/fommil/dotfiles/blob/master/.emacs.d/snippets/scala-mode/semiencoder).
 
 We plan on simplifying the process of generic derivation in #4.
+
+### `.Aux` Derivation
+
+If you would prefer to let the compiler infer the type
+
+```scala
+@deriving(Generic, LabelledGeneric)
+case class Bar(s: String, b: Boolean)
+```
+
+generating
+
+```scala
+object Bar {
+  implicit val generic = shapeless.Generic[Bar]
+  implicit val labelled = shapeless.LabelledGeneric[Bar]
+}
+```
+
+(note that the type is not bound on the LHS, allowing for complex types), you can do so by creating a `.Aux` rule (see customisation below). Note that because these derivations are typically "flat", we do not require implicit evidence for the typeclass for all type parameters. e.g. for
+
+```scala
+@deriving(Generic)
+final case class Gaz[T](t: T)
+```
+
+we generate
+
+```scala
+object Gaz {
+  implicit def generic[T] = Generic[T]
+}
+```
+
+not
+
+```scala
+object Gaz {
+  implicit def generic[T: Generic] = Generic[T]
+}
+```
 
 ### Custom
 
@@ -89,22 +133,32 @@ scalacOptions += {
 ```
 
 The config file is plain text with one line per wiring, formatted:
-`fqn.TypeClass=fqn.DerivedTypeClass.method`
+`fqn.TypeClass=fqn.DerivedTypeClass.method` for standard mappings, or `fqn.TypeClass.Aux=fqn.DerivedTypeClass.method` for `.Aux` rules.
 
 ## Installation
+
+### IntelliJ Users
+
+Stalactite will work out-of-the box once [#388 is merged and released](https://github.com/JetBrains/intellij-scala/pull/388).
+
+Until then, you can install this
+[Custom Scala Plugin](https://github.com/fommil/stalactite/releases/download/v0.0.2/scala-plugin.zip).
 
 ### Maven Central
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/stalactite_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/stalactite_2.12)
 
 ```scala
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+
 libraryDependencies += "com.fommil" %% "stalactite" % "<version>"
 ```
 
 ### Snapshots
 
 ```scala
-resolvers += Resolver.sonatypeRepo("snapshots")
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
+resolvers += Resolver.sonatypeRepo("snapshots")
 libraryDependencies += "com.fommil" %% "stalactite" % "<version + 0.0.1>-SNAPSHOT"
 ```
