@@ -8,9 +8,8 @@ import scala.{ AnyVal, Int }
 // https://github.com/playframework/play-json/issues/92
 import scala.Predef.implicitly
 
-import shapeless.{ LabelledGeneric => LG, Generic => G }
 import stalactite.deriving
-import stalactite.typeclasses._
+import stalactite.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
 
 import play.api.libs.json
@@ -18,13 +17,13 @@ import play.api.libs.json
 import scalaz._
 import Scalaz._
 
-@deriving(G, LG, Cofoo, Cobar)
+@deriving(Cofoo, B)
 sealed trait Baz
 
-@deriving(json.Format, Cofoo, Cobar, Wibble)
+@deriving(json.Format, Cofoo, B, Wibble)
 final case class Foo(string: String, int: Int) extends Baz
 
-@deriving(G, LG, json.Format, Cofoo, Cobar)
+@deriving(json.Format, Cofoo, B)
 final case class Bar(foo: Foo) extends Baz
 object Bar {
   def hello: String = ""
@@ -34,16 +33,15 @@ object Bar {
 private[examples] final case class Par(s: String)
 
 // can't do json.Format: https://github.com/playframework/play-json/issues/93
-// can't do G, LG https://github.com/milessabin/shapeless/issues/757
-@deriving(Cofoo, Cobar)
+@deriving(Cofoo, B)
 case object Car extends Baz
 
-@deriving(G, LG, Cofoo, Cobar)
+@deriving(Cofoo, B)
 final case class Anyz(s: String) extends AnyVal
-@deriving(G, LG, Cofoo, Cobar)
+@deriving(Cofoo, B)
 final class Anyzz(val s: String) extends scala.AnyVal
 
-@deriving(G, LG, json.Format)
+@deriving(json.Format)
 final case class Gaz[T](t: T)
 
 @typeclass trait Wibble[T] {}

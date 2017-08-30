@@ -42,11 +42,11 @@ for your typeclass. The following pattern of writing typeclasses is
 strongly recommended:
 
 ```scala
-@typeclass trait Foo[F[_]] {
+@typeclass trait Foo[A] {
   // put your methods here
 }
 object Foo extends FooLowPriority {
-  // put your default instances here
+  // put your stdlib instances here
 }
 trait FooLowPriority {
   // put your slow derivations here (e.g. those that take a lot of evidence)
@@ -57,9 +57,9 @@ and in a separate file put your generic derivation, which is opt-in
 and not automatically derived
 
 ```scala
-@typeclass DerivedFoo[F[_]] extends Foo[F]
+@typeclass DerivedFoo[A] extends Foo[A]
 object DerivedFoo {
-  def gen[T]: DerivedFoo[T] = ???
+  def gen[A]: DerivedFoo[A] = ???
 }
 ```
 
@@ -123,17 +123,26 @@ We provide wirings for several popular libraries out-of-the-box in
 =stalactite.conf= (and will accept Merge Requests to add more).
 
 You can provide your own project-specific wirings by setting up your
-build to point to your configuration file, e.g.
+build to point to your configuration files, e.g.
 
 ```scala
-scalacOptions += {
+scalacOptions ++= {
   val dir = (baseDirectory in ThisBuild).value / "project"
-  s"-Xmacro-settings:stalactite.config=$dir/stalactite.conf"
+  Seq(
+    s"-Xmacro-settings:stalactite.targets=$dir/stalactite-targets.conf",
+    s"-Xmacro-settings:stalactite.defaults=$dir/stalactite-defaults.conf"
+  )
 }
 ```
 
-The config file is plain text with one line per wiring, formatted:
-`fqn.TypeClass=fqn.DerivedTypeClass.method` for standard mappings, or `fqn.TypeClass.Aux=fqn.DerivedTypeClass.method` for `.Aux` rules.
+The `targets` config file is plain text with one line per wiring,
+formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method` for standard
+mappings, or `fqn.TypeClass.Aux=fqn.DerivedTypeClass.method` for
+`.Aux` rules.
+
+The `defaults` config file is plain text with one line per default
+typeclass. Use the `fqn.TypeClass` name, special patterns (such as
+`.Aux`) will be picked up correctly from the `targets` config.
 
 ## Installation
 

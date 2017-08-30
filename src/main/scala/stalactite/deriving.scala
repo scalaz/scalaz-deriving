@@ -41,34 +41,61 @@ object DerivingMacros {
     }
   }
 
-  private type Config = Either[String, Map[String, String]]
-  private def config(path: Option[String]): Config =
+  private type Result[T] = Either[String, T]
+  private type Stringy   = Map[String, String]
+
+  type Defaults = List[String]
+  private val defaultDefaults: Result[Defaults] = Right(Nil)
+  private def defaults(
+    path: Option[String]
+  ): Result[Defaults] =
     for {
-      d <- defaults
-      u <- path.fold(Right(Map.empty): Config)(user)
+      content <- path.fold(defaultDefaults)(parseOrCachedDefaults)
+    } yield content
+
+  private[this] var cachedDefaults: Map[String, Result[Defaults]] = Map.empty
+  def parseOrCachedDefaults(path: String): Result[Defaults] =
+    cachedDefaults.get(path) match {
+      case Some(got) => got
+      case None =>
+        val calculated: Result[Defaults] = for {
+          s <- readFile(path)
+          d <- parseDefaults(s)
+        } yield d
+        cachedDefaults += (path -> calculated)
+        calculated
+    }
+  def parseDefaults(contents: String): Result[Defaults] =
+    Right(contents.split("\n").toList.map(_.trim).filterNot(_.isEmpty))
+
+  private val EmptyTargets: Result[Stringy] = Right(Map.empty)
+  private def targets(path: Option[String]): Result[Stringy] =
+    for {
+      d <- defaultTargets
+      u <- path.fold(EmptyTargets)(user)
     } yield (d ++ u)
 
   // cached to avoid hitting disk on every use of the macro
-  private[this] var cached: Map[String, Config] = Map.empty
-  private[this] def user(path: String): Config =
-    cached.get(path) match {
+  private[this] var cachedUserTargets: Map[String, Result[Stringy]] = Map.empty
+  private[this] def user(path: String): Result[Stringy] =
+    cachedUserTargets.get(path) match {
       case Some(got) => got
       case None =>
         val calculated = for {
           s <- readFile(path)
-          c <- parseConfig(s)
+          c <- parseProperties(s)
         } yield c
-        cached += path -> calculated
+        cachedUserTargets += path -> calculated
         calculated
     }
 
-  private lazy val defaults: Config =
+  private lazy val defaultTargets: Result[Stringy] =
     for {
       s <- readResource("/stalactite.conf")
-      c <- parseConfig(s)
+      c <- parseProperties(s)
     } yield c
 
-  private[this] def parseConfig(config: String): Config =
+  private[this] def parseProperties(config: String): Result[Stringy] =
     try {
       Right(
         config
@@ -77,7 +104,7 @@ object DerivingMacros {
           .filterNot(_.isEmpty)
           .map(_.split("=").toList)
           .map {
-            case List(from, to) => from -> to
+            case List(from, to) => from.trim -> to.trim
             case other          =>
               // I'd have used Left with traverse, but this is stdlib...
               throw new java.lang.IllegalArgumentException(
@@ -116,6 +143,7 @@ object DerivingMacros {
 }
 
 class DerivingMacros(val c: Context) {
+  import DerivingMacros.EitherBackCompat
   import c.universe._
 
   private def isIde: Boolean =
@@ -125,42 +153,71 @@ class DerivingMacros(val c: Context) {
     scala.Predef.println(showRaw(t))
   //scala.Predef.println(showRaw(t, printPositions = true))
 
-  private case class AnyValDesc(name: TypeName, accessor: TermName, tpe: Tree)
-
-  private def readConfig() = {
-    val custom =
-      c.settings.find(_.startsWith("stalactite.config=")).map(_.substring(18))
-    DerivingMacros.config(custom)
+  // some classes that add type hints around what a Tree contains
+  private case class TreeTypeName(tree: Tree) {
+    def toTermName: TreeTermName =
+      TreeTermName(tree match {
+        case Ident(name)        => Ident(name.toTermName)
+        case Select(qual, name) => Select(qual, name.toTermName)
+      })
   }
-
-  private def toSelect(parts: List[TermName]): Tree = parts match {
-    case Nil          => Ident(termNames.ROOTPKG)
-    case head :: tail => Select(toSelect(tail), head)
+  private case class TreeTermName(tree: Tree) {
+    def toTypeName: TreeTypeName =
+      TreeTypeName(tree match {
+        case Ident(name)        => Ident(name.toTypeName)
+        case Select(qual, name) => Select(qual, name.toTypeName)
+      })
   }
-
-  private def parseToTermTree(s: String): Tree =
-    toSelect(s.split("[.]").toList.map(TermName(_)).reverse)
-
-  private def nameToTypeName(t: Tree): Tree = t match {
-    case Ident(name)        => Ident(name.toTypeName)
-    case Select(qual, name) => Select(qual, name.toTypeName)
+  private case class TermAndType(term: TreeTermName, cons: TreeTypeName)
+  private object TermAndType {
+    def apply(s: ModuleSymbol): TermAndType = {
+      val term = TreeTermName(c.internal.gen.mkAttributedStableRef(s))
+      TermAndType(term, term.toTypeName)
+    }
   }
+  private case class AnyValDesc(name: TypeName,
+                                accessor: TermName,
+                                tpe: TreeTypeName)
 
-  private def toTree(s: Symbol): Tree = c.internal.gen.mkAttributedStableRef(s)
+  private case class Config(
+    targets: Map[String, String] = Map.empty,
+    defaults: List[String] = Nil
+  )
+
+  private def getParam(key: String): Option[String] =
+    c.settings.find(_.startsWith(s"$key=")).map(_.substring(key.length + 1))
+
+  private def readConfig(): Either[String, Config] =
+    for {
+      targets  <- DerivingMacros.targets(getParam("stalactite.targets"))
+      defaults <- DerivingMacros.defaults(getParam("stalactite.defaults"))
+    } yield
+      Config(
+        targets,
+        defaults
+      )
+
+  private def parseToTermTree(s: String): TreeTermName = {
+    def toSelect(parts: List[TermName]): Tree = parts match {
+      case Nil          => Ident(termNames.ROOTPKG)
+      case head :: tail => Select(toSelect(tail), head)
+    }
+    val parts = s.split("[.]").toList.map(TermName(_)).reverse
+    TreeTermName(toSelect(parts))
+  }
 
   // long-winded way of saying
   //
   // implicitly[TC[A]].xmap(new A(_), _.value)
-  private def genAnyValXmap(t: ModuleSymbol, value: AnyValDesc) = {
+  private def genAnyValXmap(typeCons: TreeTypeName, value: AnyValDesc) = {
     import Flag._
-    val typeCons = nameToTypeName(toTree(t))
     Apply(
       Select(
         TypeApply(
           Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scala")),
                         TermName("Predef")),
                  TermName("implicitly")),
-          List(AppliedTypeTree(typeCons, List(value.tpe)))
+          List(AppliedTypeTree(typeCons.tree, List(value.tpe.tree)))
         ),
         TermName("xmap")
       ),
@@ -186,26 +243,23 @@ class DerivingMacros(val c: Context) {
     )
   }
 
-  private def toGen(target: Option[String],
-                    t: ModuleSymbol,
+  private def defaultTarget(term: TreeTermName): TreeTermName =
+    TreeTermName(term.tree match {
+      case Ident(name) =>
+        Select(Ident(TermName(s"Derived$name")), TermName("gen"))
+      case Select(qual, name) =>
+        Select(Select(qual, TermName(s"Derived$name")), TermName("gen"))
+    })
+
+  private def toGen(target: TreeTermName,
+                    typeclass: TermAndType,
                     anyVal: Option[AnyValDesc]): Tree =
     if (isIde) {
       Literal(Constant(null))
     } else {
       anyVal match {
-        case Some(value) => genAnyValXmap(t, value)
-        case None =>
-          target match {
-            case None =>
-              toTree(t) match {
-                case Ident(name) =>
-                  Select(Ident(TermName(s"Derived$name")), TermName("gen"))
-                case Select(qual, name) =>
-                  Select(Select(qual, TermName(s"Derived$name")),
-                         TermName("gen"))
-              }
-            case Some(other) => parseToTermTree(other)
-          }
+        case Some(value) => genAnyValXmap(typeclass.cons, value)
+        case None        => target.tree
       }
     }
 
@@ -217,29 +271,27 @@ class DerivingMacros(val c: Context) {
     }.headOption.flatMap { anyval =>
       anyval.impl.body.collect {
         case ValDef(_, name, tpt, _) =>
-          AnyValDesc(anyval.name, name, nameToTypeName(tpt))
+          AnyValDesc(anyval.name, name, TreeTermName(tpt).toTypeName)
       }.headOption
     }
 
   private def genClassImplicitVal(
-    target: Option[String],
-    tc: ModuleSymbol,
-    termName: TermName,
-    typeCons: Tree,
+    target: TreeTermName,
+    memberName: TermName,
+    typeclass: TermAndType,
     c: ClassDef
   ) =
     ValDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
-      AppliedTypeTree(typeCons, List(Ident(c.name))),
-      toGen(target, tc, anyVal(c))
+      memberName,
+      AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
+      toGen(target, typeclass, anyVal(c))
     )
 
   private def genClassImplicitDef(
-    target: Option[String],
-    tc: ModuleSymbol,
-    termName: TermName,
-    typeCons: Tree,
+    target: TreeTermName,
+    memberName: TermName,
+    typeclass: TermAndType,
     c: ClassDef,
     tparams: List[TypeDef]
   ) = {
@@ -252,7 +304,7 @@ class DerivingMacros(val c: Context) {
               ValDef(
                 Modifiers(Flag.IMPLICIT | Flag.PARAM),
                 TermName(s"evidence$$$i"),
-                AppliedTypeTree(typeCons, List(Ident(t.name))),
+                AppliedTypeTree(typeclass.cons.tree, List(Ident(t.name))),
                 EmptyTree
               )
           }
@@ -260,11 +312,11 @@ class DerivingMacros(val c: Context) {
 
     DefDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
+      memberName,
       tparams,
       implicits,
       AppliedTypeTree(
-        typeCons,
+        typeclass.cons.tree,
         List(
           AppliedTypeTree(
             Ident(c.name),
@@ -272,25 +324,24 @@ class DerivingMacros(val c: Context) {
           )
         )
       ),
-      toGen(target, tc, anyVal(c))
+      toGen(target, typeclass, anyVal(c))
     )
   }
 
   private def genObjectImplicitVal(
-    target: Option[String],
-    tc: ModuleSymbol,
-    termName: TermName,
-    typeCons: Tree,
+    target: TreeTermName,
+    memberName: TermName,
+    typeclass: TermAndType,
     comp: ModuleDef
   ) =
     ValDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
+      memberName,
       AppliedTypeTree(
-        typeCons,
+        typeclass.cons.tree,
         List(SingletonTypeTree(Ident(comp.name.toTermName)))
       ),
-      toGen(target, tc, None)
+      toGen(target, typeclass, None)
     )
 
   /**
@@ -328,37 +379,34 @@ class DerivingMacros(val c: Context) {
    * on the left.
    */
   private def genAuxClassImplicitVal(
-    target: String,
-    tc: ModuleSymbol,
-    termName: TermName,
+    target: TreeTermName,
+    memberName: TermName,
     cd: ClassDef
   ): Tree =
     ValDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
+      memberName,
       TypeTree(),
       TypeApply(
-        parseToTermTree(target),
+        target.tree,
         List(Ident(cd.name))
       )
     )
 
   // https://github.com/milessabin/shapeless/issues/757 means that
   // this is rarely useful, since derivation inside yourself (when you
-  // are your own companion) is problematic. We could use def and
-  // manage a private var cache, if necessary.
+  // are your own companion) is problematic.
   private def genAuxObjectImplicitVal(
-    target: String,
-    tc: ModuleSymbol,
-    termName: TermName,
+    target: TreeTermName,
+    memberName: TermName,
     comp: ModuleDef
   ) =
     ValDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
+      memberName,
       TypeTree(),
       TypeApply(
-        parseToTermTree(target),
+        target.tree,
         List(SingletonTypeTree(Ident(comp.name.toTermName)))
       )
     )
@@ -366,21 +414,19 @@ class DerivingMacros(val c: Context) {
   // unlike getClassImplicitDef, we do not generate an implicit
   // parameter section (unless this turns out to be required).
   private def genAuxClassImplicitDef(
-    target: String,
-    tc: ModuleSymbol,
-    termName: TermName,
-    typeCons: Tree,
+    target: TreeTermName,
+    memberName: TermName,
     c: ClassDef,
     tparams: List[TypeDef]
   ) =
     DefDef(
       Modifiers(Flag.IMPLICIT),
-      termName,
+      memberName,
       tparams,
       Nil,
       TypeTree(),
       TypeApply(
-        parseToTermTree(target),
+        target.tree,
         List(
           AppliedTypeTree(
             Ident(c.name),
@@ -391,45 +437,64 @@ class DerivingMacros(val c: Context) {
     )
 
   /* typeclass patterns supported */
-  sealed trait Target
-  case class Standard(custom: Option[String]) extends Target
-  case class LeftInferred(target: String)     extends Target
+  private sealed trait Target
+  private case class Standard(value: TreeTermName)     extends Target
+  private case class LeftInferred(value: TreeTermName) extends Target
 
-  private def update(config: Map[String, String],
+  private def update(config: Config,
                      typeclasses: List[ModuleSymbol],
                      clazz: Option[ClassDef],
                      comp: ModuleDef): c.Expr[Any] = {
-    val implicits =
-      typeclasses.map { tc =>
-        val termName = TermName(tc.fullName).encodedName.toTermName
-        val typeCons = nameToTypeName(toTree(tc))
-        val target = {
-          config.get(s"${tc.fullName}.Aux") match {
-            case Some(aux) => LeftInferred(aux)
-            case None      => Standard(config.get(tc.fullName))
-          }
+    val requested = typeclasses.map { tc: ModuleSymbol =>
+      // ModuleSymbol is very powerful and only available because we
+      // typechecked the annotation. Please do not pass it around to
+      // the methods beneath or it will not be possible to migrate
+      // the to earlier stages in the compile (e.g. as a plugin).
+      tc.fullName -> TermAndType(tc)
+    }
+    val defaults = config.defaults.map { tc: String =>
+      val termName = parseToTermTree(tc)
+      tc -> TermAndType(termName, termName.toTypeName)
+    }
+
+    // defaults first (typically dependencies of everything else...)
+    val implicits = (defaults ++ requested).map {
+      case (fqn, typeclass) =>
+        val memberName = TermName(fqn).encodedName.toTermName
+        val target = config.targets.get(s"$fqn.Aux") match {
+          case Some(aux) => LeftInferred(parseToTermTree(aux))
+          case None =>
+            val to = config.targets
+              .get(fqn)
+              .map(parseToTermTree)
+              .getOrElse(defaultTarget(typeclass.term))
+            Standard(to)
         }
 
         (clazz, target) match {
           case (Some(c), Standard(to)) =>
             c.tparams match {
               case Nil =>
-                genClassImplicitVal(to, tc, termName, typeCons, c)
+                genClassImplicitVal(to, memberName, typeclass, c)
               case tparams =>
-                genClassImplicitDef(to, tc, termName, typeCons, c, tparams)
+                genClassImplicitDef(to, memberName, typeclass, c, tparams)
             }
           case (None, Standard(to)) =>
-            genObjectImplicitVal(to, tc, termName, typeCons, comp)
+            genObjectImplicitVal(to, memberName, typeclass, comp)
+
           case (Some(c), LeftInferred(to)) =>
             c.tparams match {
-              case Nil => genAuxClassImplicitVal(to, tc, termName, c)
+              case _ if isIde => EmptyTree
+              case Nil =>
+                genAuxClassImplicitVal(to, memberName, c)
               case tparams =>
-                genAuxClassImplicitDef(to, tc, termName, typeCons, c, tparams)
+                genAuxClassImplicitDef(to, memberName, c, tparams)
             }
           case (None, LeftInferred(to)) =>
-            genAuxObjectImplicitVal(to, tc, termName, comp)
+            // see documentation on genAuxObjectImplicitVal
+            EmptyTree
         }
-      }
+    }
 
     val module = atPos(comp.pos)(
       treeCopy.ModuleDef(
@@ -457,9 +522,8 @@ class DerivingMacros(val c: Context) {
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
     val config = readConfig().fold(
       error => {
-        c.warning(c.prefix.tree.pos,
-                  s"Failed to parse stalactite config: $error")
-        Map.empty[String, String]
+        c.error(c.prefix.tree.pos, s"Failed to parse stalactite config: $error")
+        Config()
       },
       success => success
     )

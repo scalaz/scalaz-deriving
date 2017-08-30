@@ -20,9 +20,12 @@ libraryDependencies ++= Seq(
   "org.scalaz"             %% "scalaz-core"   % "7.2.15"           % "test"
 )
 
-scalacOptions in Test += {
+scalacOptions in Test ++= {
   val dir = (baseDirectory in ThisBuild).value / "project"
-  s"-Xmacro-settings:stalactite.config=$dir/stalactite.conf"
+  Seq(
+    s"-Xmacro-settings:stalactite.targets=$dir/stalactite-targets.conf",
+    s"-Xmacro-settings:stalactite.defaults=$dir/stalactite-defaults.conf"
+  )
 }
 
 javaOptions in Test ++= {

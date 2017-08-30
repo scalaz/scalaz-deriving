@@ -32,8 +32,6 @@ build_job:
   stage: build
   except:
     - /^feature.*$/
-  cache:
-    policy: pull
   script:
     - sbt ";+test:compile ;+doc";
 
@@ -42,8 +40,6 @@ test_job:
   except:
     - master
     - /^feature.*$/
-  cache:
-    policy: pull
   script:
     - sbt "+test"
 
@@ -53,7 +49,5 @@ deploy_job:
   except:
     - tags
   stage: deploy
-  cache:
-    policy: pull
   script:
     - sbt "+publish"
