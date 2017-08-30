@@ -33,7 +33,7 @@ Also supports:
 
 - type parameters (will use `implicit def`)
 - `sealed trait` and `object`
-- `extends AnyVal` (if the typeclass has a `def xmap` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
+- `extends AnyVal` (if the typeclass `TC[A]` has a `def xmap[B](f: A => B, g: B => A): TC[B]` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
 
 ### Standard Derivation
 
@@ -57,7 +57,7 @@ and in a separate file put your generic derivation, which is opt-in
 and not automatically derived
 
 ```scala
-@typeclass DerivedFoo[A] extends Foo[A]
+trait DerivedFoo[A] extends Foo[A]
 object DerivedFoo {
   def gen[A]: DerivedFoo[A] = ???
 }
