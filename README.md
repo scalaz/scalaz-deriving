@@ -105,7 +105,7 @@ we generate
 
 ```scala
 object Gaz {
-  implicit def generic[T] = Generic[T]
+  implicit def generic[T] = Generic[Gaz[T]]
 }
 ```
 
@@ -113,7 +113,7 @@ not
 
 ```scala
 object Gaz {
-  implicit def generic[T: Generic] = Generic[T]
+  implicit def generic[T: Generic] = Generic[Gaz[T]]
 }
 ```
 
