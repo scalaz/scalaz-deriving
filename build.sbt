@@ -8,6 +8,13 @@ inThisBuild(
   )
 )
 
+enablePlugins(NeoJmh)
+inConfig(Jmh)(
+  sensibleTestSettings ++
+    scalafmtSettings ++
+    HeaderPlugin.toBeScopedSettings
+)
+
 libraryDependencies ++= Seq(
   "org.scala-lang"         % "scala-compiler" % scalaVersion.value % "provided",
   "org.scala-lang"         % "scala-reflect"  % scalaVersion.value % "provided",
@@ -89,4 +96,4 @@ initialCommands in (Compile, console) := Seq(
   "Scalaz._"
 ).mkString("import ", ",", "")
 
-addCommandAlias("fmt", ";sbt:scalafmt ;scalafmt ;test:scalafmt")
+addCommandAlias("fmt", ";sbt:scalafmt ;scalafmt ;test:scalafmt ;jmh:scalafmt")
