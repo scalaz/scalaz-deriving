@@ -3,7 +3,7 @@
 package stalactite.examples
 
 import java.lang.String
-import scala.{ AnyVal, Int }
+import scala.{ AnyVal, Either, Int }
 
 // https://github.com/playframework/play-json/issues/92
 import scala.Predef.implicitly
@@ -40,6 +40,8 @@ case object Car extends Baz
 final case class Anyz(s: String) extends AnyVal
 @deriving(Cofoo, B)
 final class Anyzz(val s: String) extends scala.AnyVal
+@deriving(Cofoo)
+final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
 @deriving(json.Format)
 final case class Gaz[T](t: T)

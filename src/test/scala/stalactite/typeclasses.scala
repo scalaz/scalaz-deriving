@@ -4,6 +4,8 @@ package stalactite.typeclasses
 
 import java.lang.String
 
+import scala.Either
+
 import simulacrum.typeclass
 
 @typeclass trait Cofoo[A] {
@@ -15,6 +17,8 @@ import simulacrum.typeclass
 }
 object Cofoo {
   implicit val string: Cofoo[String] = new Cofoo[String] {}
+  implicit def either[L: Cofoo, R: Cofoo]: Cofoo[Either[L, R]] =
+    new Cofoo[Either[L, R]] {}
 }
 trait DerivedCofoo[T] extends Cofoo[T]
 object DerivedCofoo {

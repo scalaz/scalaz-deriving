@@ -251,17 +251,8 @@ class DerivingMacros(val c: Context) {
         Select(Select(qual, TermName(s"Derived$name")), TermName("gen"))
     })
 
-  private def toGen(target: TreeTermName,
-                    typeclass: TermAndType,
-                    anyVal: Option[AnyValDesc]): Tree =
-    if (isIde) {
-      Literal(Constant(null))
-    } else {
-      anyVal match {
-        case Some(value) => genAnyValXmap(typeclass.cons, value)
-        case None        => target.tree
-      }
-    }
+  private def toGen(target: TreeTermName): Tree =
+    if (isIde) Literal(Constant(null)) else target.tree
 
   private def anyVal(c: ClassDef): Option[AnyValDesc] =
     c.impl.parents.flatMap {
@@ -271,7 +262,7 @@ class DerivingMacros(val c: Context) {
     }.headOption.flatMap { anyval =>
       anyval.impl.body.collect {
         case ValDef(_, name, tpt, _) =>
-          AnyValDesc(anyval.name, name, TreeTermName(tpt).toTypeName)
+          AnyValDesc(anyval.name, name, TreeTypeName(tpt))
       }.headOption
     }
 
@@ -285,7 +276,7 @@ class DerivingMacros(val c: Context) {
       Modifiers(Flag.IMPLICIT),
       memberName,
       AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
-      toGen(target, typeclass, anyVal(c))
+      toGen(target)
     )
 
   private def genClassImplicitDef(
@@ -324,7 +315,7 @@ class DerivingMacros(val c: Context) {
           )
         )
       ),
-      toGen(target, typeclass, anyVal(c))
+      toGen(target)
     )
   }
 
@@ -341,7 +332,7 @@ class DerivingMacros(val c: Context) {
         typeclass.cons.tree,
         List(SingletonTypeTree(Ident(comp.name.toTermName)))
       ),
-      toGen(target, typeclass, None)
+      toGen(target)
     )
 
   /**
@@ -436,6 +427,63 @@ class DerivingMacros(val c: Context) {
       )
     )
 
+  /**
+   * AnyVal is special cased to use an invariant functor
+   */
+  private def genValueClassImplicitVal(
+    target: TreeTermName,
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef,
+    value: AnyValDesc
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
+      genAnyValXmap(typeclass.cons, value)
+    )
+
+  private def genValueClassImplicitDef(
+    target: TreeTermName,
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef,
+    tparams: List[TypeDef],
+    value: AnyValDesc
+  ) = {
+    val implicits =
+      if (isIde) Nil
+      else
+        List(
+          List(
+            ValDef(
+              Modifiers(Flag.IMPLICIT | Flag.PARAM),
+              TermName(s"ev"),
+              AppliedTypeTree(typeclass.cons.tree, List(value.tpe.tree)),
+              EmptyTree
+            )
+          )
+        )
+
+    DefDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      tparams,
+      implicits,
+      AppliedTypeTree(
+        typeclass.cons.tree,
+        List(
+          AppliedTypeTree(
+            Ident(c.name),
+            tparams.map(tp => Ident(tp.name))
+          )
+        )
+      ),
+      genAnyValXmap(typeclass.cons, value)
+    )
+  }
+
   /* typeclass patterns supported */
   private sealed trait Target
   private case class Standard(value: TreeTermName)     extends Target
@@ -473,22 +521,30 @@ class DerivingMacros(val c: Context) {
 
         (clazz, target) match {
           case (Some(c), Standard(to)) =>
-            c.tparams match {
-              case Nil =>
+            (anyVal(c), c.tparams) match {
+              case (Some(vt), Nil) =>
+                genValueClassImplicitVal(to, memberName, typeclass, c, vt)
+              case (Some(vt), tparams) =>
+                genValueClassImplicitDef(to,
+                                         memberName,
+                                         typeclass,
+                                         c,
+                                         tparams,
+                                         vt)
+              case (None, Nil) =>
                 genClassImplicitVal(to, memberName, typeclass, c)
-              case tparams =>
+              case (None, tparams) =>
                 genClassImplicitDef(to, memberName, typeclass, c, tparams)
             }
           case (None, Standard(to)) =>
             genObjectImplicitVal(to, memberName, typeclass, comp)
 
           case (Some(c), LeftInferred(to)) =>
+            // LeftInferred is the same for value classes and normal classes
             c.tparams match {
               case _ if isIde => EmptyTree
-              case Nil =>
-                genAuxClassImplicitVal(to, memberName, c)
-              case tparams =>
-                genAuxClassImplicitDef(to, memberName, c, tparams)
+              case Nil        => genAuxClassImplicitVal(to, memberName, c)
+              case tparams    => genAuxClassImplicitDef(to, memberName, c, tparams)
             }
           case (None, LeftInferred(to)) =>
             // see documentation on genAuxObjectImplicitVal
@@ -515,6 +571,9 @@ class DerivingMacros(val c: Context) {
     val replacement =
       q"""${clazz.getOrElse(EmptyTree)}
           $module"""
+
+    //debug(replacement)
+    //scala.Predef.println(replacement)
 
     c.Expr(replacement)
   }

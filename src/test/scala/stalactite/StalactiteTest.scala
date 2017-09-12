@@ -4,6 +4,8 @@ package stalactite.tests
 
 import java.lang.String
 
+import scala.{ Either, Right }
+
 import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
@@ -61,6 +63,11 @@ class StalactiteTest extends FlatSpec {
     Anyz("wibble").toFoo shouldBe "exercised the xmap codepath"
 
     new Anyzz("wobble").toFoo shouldBe "exercised the xmap codepath"
+  }
+
+  it should "special case AnyVal with type parameters" in {
+    val e: Either[String, String] = Right("hello")
+    new Valuezz(e).toFoo shouldBe "exercised the xmap codepath"
   }
 
   it should "support AnyVal for typeclasses with an InvariantFunctor" in {
