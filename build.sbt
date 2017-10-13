@@ -3,7 +3,7 @@ inThisBuild(
     organization := "com.fommil",
     crossScalaVersions := Seq("2.12.3", "2.11.11"),
     scalaVersion := crossScalaVersions.value.head,
-    sonatypeGithub := ("fommil", "stalactite"),
+    sonatypeGithost := ("gitlab.com", "fommil", "stalactite"),
     licenses := Seq(LGPL3)
   )
 )
@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "com.github.mpilquist"   %% "simulacrum"    % "0.11.0"           % "test",
   "com.chuusai"            %% "shapeless"     % "2.3.2"            % "test",
   "org.typelevel"          %% "export-hook"   % "1.2.0"            % "test",
-  "com.typesafe.play"      %% "play-json"     % "2.6.3"            % "test",
+  "com.typesafe.play"      %% "play-json"     % "2.6.6"            % "test",
   "org.scalaz"             %% "scalaz-core"   % "7.2.15"           % "test"
 )
 

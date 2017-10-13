@@ -1,4 +1,4 @@
-// Copyright: 2017 https://github.com/fommil/stalactite/graphs
+// Copyright: 2017 https://gitlab.com/fommil/stalactite/graphs
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 package stalagtite
 
