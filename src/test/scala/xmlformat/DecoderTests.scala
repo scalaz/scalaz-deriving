@@ -24,11 +24,11 @@ class DecoderTests extends FreeSpec {
 
   implicit class StringHelper(xml: String) {
     def as[T: Decoder](implicit P: Position): T =
-      XML.loadString(xml).decode[T].right.value
+      safeLoadString(xml).decode[T].right.value
 
     def parseChild: NodeSeq = {
       val doc = s"""<value>$xml</value>"""
-      XML.loadString(doc).children
+      safeLoadString(doc).children
     }
 
     def parsedAs[T: Decoder](implicit P: Position): T =

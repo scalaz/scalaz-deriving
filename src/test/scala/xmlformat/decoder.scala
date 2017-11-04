@@ -6,6 +6,8 @@ package xmlformat
 import java.lang.String
 import java.math.{ BigDecimal => BD }
 
+import javax.xml.parsers.SAXParserFactory
+
 import scala.{
   Boolean,
   Char,
@@ -54,6 +56,23 @@ trait Decoder[A] { self =>
 
 object DecoderUtils {
   def failure(msg: String): NonEmptyList[String] = NonEmptyList(msg)
+  // DESNOTE(2017-11-02, SHalliday)
+  // see https://github.com/scala/scala-xml/issues/17
+  def safeParser() = {
+    val f = SAXParserFactory.newInstance()
+    f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    f.setFeature(
+      "http://xml.org/sax/features/external-parameter-entities",
+      false
+    )
+    f.setFeature("http://xml.org/sax/features/external-general-entities", false)
+    f.setXIncludeAware(false)
+    f.setNamespaceAware(false)
+    f.newSAXParser()
+  }
+  def safeLoadString(xml: String) =
+    XML.loadXML(scala.xml.Source.fromString(xml), safeParser())
+
   def unexpected[A](xml: NodeSeq): NonEmptyList[String] =
     failure(s"unexpected ${xml.getClass.getName}: ${xml}")
 

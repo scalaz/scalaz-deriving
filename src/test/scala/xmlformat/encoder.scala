@@ -7,7 +7,7 @@ import java.lang.String
 import java.math.{ BigDecimal => BD }
 
 import scala._
-import scala.Predef.{ <:<, identity }
+import scala.Predef.identity
 import scala.collection.immutable.{ Map, Traversable }
 import scala.concurrent.duration.FiniteDuration
 import scala.xml._
@@ -49,7 +49,7 @@ trait Encoder[A] { self =>
   }
 }
 
-object Encoder extends EncoderLowPriority {
+object Encoder {
   def instance[A](f: A => NodeSeq): Encoder[A] = new Encoder[A] {
     override def toXml(a: A): NodeSeq = f(a)
   }
@@ -134,19 +134,11 @@ object Encoder extends EncoderLowPriority {
   implicit val finiteDuration: Encoder[FiniteDuration] =
     long.contramap[FiniteDuration](_.toMillis)
 
-}
-
-// low priority because they are expensive
-trait EncoderLowPriority {
-  this: Encoder.type =>
-
   // safe use of asInstanceOf because we are provided implicit
   // evidence that T is a subtype of Traversable.
-  @java.lang.SuppressWarnings(scala.Array("org.wartremover.warts.AsInstanceOf"))
-  implicit def traversable[T[_], A: Encoder](
-    implicit T: T[A] <:< Traversable[A]
-  ): Encoder[T[A]] = instance { t =>
-    val ss = t.asInstanceOf[Traversable[A]].toSeq
-    Group(ss.map(s => el("value", Encoder[A].toXml(s))))
+  implicit def traversable[T[a] <: Traversable[a], A: Encoder]
+    : Encoder[T[A]] = { ss =>
+    Group(ss.map(s => el("value", Encoder[A].toXml(s)))(collection.breakOut))
   }
+
 }
