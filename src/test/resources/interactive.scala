@@ -1,5 +1,6 @@
-// Copyright: 2017 https://gitlab.com/fommil/stalactite/graphs
+// Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+
 import play.api.libs.json._
 import stalactite._
 

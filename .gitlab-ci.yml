@@ -21,12 +21,7 @@ verify_job:
         echo "Please remove TODO or FIXME." ;
         exit 1 ;
       fi
-    - sbt ";+update ;+test:update ;scalafmt::test ;test:scalafmt::test ;jmh:scalafmt::test ;sbt:scalafmt::test ;createHeaders ;test:createHeaders ;jmh:createHeaders";
-      if $(! git diff --exit-code --quiet) ; then
-        echo "Copyright header information mismatch" ;
-        git --no-pager diff ;
-        exit 1 ;
-      fi
+    - sbt ";+update ;+test:update ;scalafmt::test ;test:scalafmt::test ;jmh:scalafmt::test ;sbt:scalafmt::test ;headerCheck ;test:headerCheck ;jmh:headerCheck"
 
 build_job:
   stage: build

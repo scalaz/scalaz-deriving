@@ -57,6 +57,11 @@ object NeoJmh extends AutoPlugin {
     val resourceDir = resourceManaged.value
     val generator = (neoJmhGenerator in Jmh).value
     val classpath = dependencyClasspath.value
+    val javaHomeV = (javaHome in Jmh).value
+    val outputStrategyV = (outputStrategy in Jmh).value
+    val workingDirectory = Option((baseDirectory in Jmh).value)
+    val connectInputV = (connectInput in Jmh).value
+    val envVarsV = (envVars in Jmh).value
 
     val inputs: Set[File] = (bytecodeDir ** "*").filter(_.isFile).get.toSet
     val cachedGeneration = FileFunction.cached(cacheDir, FilesInfo.hash) { _ =>
@@ -66,17 +71,24 @@ object NeoJmh extends AutoPlugin {
       IO.createDirectory(resourceDir)
 
       val options = ForkOptions(
-        runJVMOptions = Nil,
-        envVars = Map.empty,
-        workingDirectory = Some(baseDirectory.value)
+        javaHome = javaHomeV,
+        outputStrategy = outputStrategyV,
+        bootJars = Vector.empty[java.io.File],
+        workingDirectory = workingDirectory,
+        runJVMOptions = Vector.empty[String],
+        connectInput = connectInputV,
+        envVars = envVarsV
       )
       new ForkRun(options).run(
         "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
         Attributed.data(classpath),
         List(bytecodeDir.getPath, sourceDir.getPath, resourceDir.getPath, generator),
         s.log
-      ).foreach(sys.error)
-               ((sourceDir ** "*").filter(_.isFile) +++ (resourceDir ** "*").filter(_.isFile)).get.toSet
+      )
+      .failed
+      .foreach(f => sys.error(f.getMessage))
+
+      ((sourceDir ** "*").filter(_.isFile) +++ (resourceDir ** "*").filter(_.isFile)).get.toSet
     }
     cachedGeneration(inputs).toSeq.partition(f => IO.relativizeFile(sourceDir, f).nonEmpty)
   }

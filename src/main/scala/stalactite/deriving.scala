@@ -1,5 +1,6 @@
-// Copyright: 2017 https://gitlab.com/fommil/stalactite/graphs
+// Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+
 package stalactite
 
 import java.lang.String
@@ -23,24 +24,12 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
 @compileTimeOnly("deriving annotation should have been removed")
-class deriving(typeclasses: AnyRef*) extends StaticAnnotation {
+class deriving(val typeclasses: AnyRef*) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any =
     macro DerivingMacros.generateImplicits
 }
 
-object DerivingMacros {
-  private implicit class EitherBackCompat[L, R](e: Either[L, R]) {
-    def map[RR](f: R => RR): Either[L, RR] = e match {
-      case Left(left)   => Left(left)
-      case Right(right) => Right(f(right))
-    }
-
-    def flatMap[RR](f: R => Either[L, RR]): Either[L, RR] = e match {
-      case Left(left)   => Left(left)
-      case Right(right) => f(right)
-    }
-  }
-
+object DerivingMacros extends BackCompat {
   private type Result[T] = Either[String, T]
   private type Stringy   = Map[String, String]
 
@@ -142,14 +131,13 @@ object DerivingMacros {
 
 }
 
-class DerivingMacros(val c: Context) {
-  import DerivingMacros.EitherBackCompat
+class DerivingMacros(val c: Context) extends BackCompat {
   import c.universe._
 
   private def isIde: Boolean =
     c.universe.isInstanceOf[scala.tools.nsc.interactive.Global]
 
-  private def debug(t: Tree) =
+  def debug(t: Tree) =
     scala.Predef.println(showRaw(t))
   //scala.Predef.println(showRaw(t, printPositions = true))
 
@@ -256,9 +244,9 @@ class DerivingMacros(val c: Context) {
 
   private def anyVal(c: ClassDef): Option[AnyValDesc] =
     c.impl.parents.flatMap {
-      case Ident(name) if name.toString == "AnyVal"        => Some(c)
-      case Select(qual, name) if name.toString == "AnyVal" => Some(c)
-      case _                                               => None
+      case Ident(name) if name.toString == "AnyVal"     => Some(c)
+      case Select(_, name) if name.toString == "AnyVal" => Some(c)
+      case _                                            => None
     }.headOption.flatMap { anyval =>
       anyval.impl.body.collect {
         case ValDef(_, name, tpt, _) =>
@@ -387,7 +375,7 @@ class DerivingMacros(val c: Context) {
   // https://github.com/milessabin/shapeless/issues/757 means that
   // this is rarely useful, since derivation inside yourself (when you
   // are your own companion) is problematic.
-  private def genAuxObjectImplicitVal(
+  /*private def genAuxObjectImplicitVal(
     target: TreeTermName,
     memberName: TermName,
     comp: ModuleDef
@@ -400,7 +388,7 @@ class DerivingMacros(val c: Context) {
         target.tree,
         List(SingletonTypeTree(Ident(comp.name.toTermName)))
       )
-    )
+    )*/
 
   // unlike getClassImplicitDef, we do not generate an implicit
   // parameter section (unless this turns out to be required).
@@ -431,7 +419,6 @@ class DerivingMacros(val c: Context) {
    * AnyVal is special cased to use an invariant functor
    */
   private def genValueClassImplicitVal(
-    target: TreeTermName,
     memberName: TermName,
     typeclass: TermAndType,
     c: ClassDef,
@@ -445,7 +432,6 @@ class DerivingMacros(val c: Context) {
     )
 
   private def genValueClassImplicitDef(
-    target: TreeTermName,
     memberName: TermName,
     typeclass: TermAndType,
     c: ClassDef,
@@ -523,14 +509,9 @@ class DerivingMacros(val c: Context) {
           case (Some(c), Standard(to)) =>
             (anyVal(c), c.tparams) match {
               case (Some(vt), Nil) =>
-                genValueClassImplicitVal(to, memberName, typeclass, c, vt)
+                genValueClassImplicitVal(memberName, typeclass, c, vt)
               case (Some(vt), tparams) =>
-                genValueClassImplicitDef(to,
-                                         memberName,
-                                         typeclass,
-                                         c,
-                                         tparams,
-                                         vt)
+                genValueClassImplicitDef(memberName, typeclass, c, tparams, vt)
               case (None, Nil) =>
                 genClassImplicitVal(to, memberName, typeclass, c)
               case (None, tparams) =>
@@ -546,7 +527,7 @@ class DerivingMacros(val c: Context) {
               case Nil        => genAuxClassImplicitVal(to, memberName, c)
               case tparams    => genAuxClassImplicitDef(to, memberName, c, tparams)
             }
-          case (None, LeftInferred(to)) =>
+          case (None, LeftInferred(to @ _)) =>
             // see documentation on genAuxObjectImplicitVal
             EmptyTree
         }

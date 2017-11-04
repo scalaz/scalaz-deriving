@@ -1,30 +1,29 @@
 inThisBuild(
   Seq(
     organization := "com.fommil",
-    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    crossScalaVersions := Seq("2.12.4", "2.11.11"),
     scalaVersion := crossScalaVersions.value.head,
-    sonatypeGithost := ("gitlab.com", "fommil", "stalactite"),
+    sonatypeGithost := (Gitlab, "fommil", "stalactite"),
     licenses := Seq(LGPL3)
   )
 )
 
+sonatypeDevelopers := List("Sam Halliday")
+
 enablePlugins(NeoJmh)
-inConfig(Jmh)(
-  sensibleTestSettings ++
-    scalafmtSettings ++
-    HeaderPlugin.toBeScopedSettings
-)
+inConfig(Jmh)(sensibleTestSettings ++ scalafmtSettings)
+headerSettings(Jmh)
 
 libraryDependencies ++= Seq(
+  "com.chuusai"            %% "shapeless"     % "2.3.2",
+  "org.scalaz"             %% "scalaz-core"   % "7.2.16",
   "org.scala-lang"         % "scala-compiler" % scalaVersion.value % "provided",
   "org.scala-lang"         % "scala-reflect"  % scalaVersion.value % "provided",
-  "org.scala-lang.modules" %% "scala-xml"     % "1.0.6"            % "test",
-  "org.ensime"             %% "pcplod"        % "1.2.1"            % "test",
-  "com.github.mpilquist"   %% "simulacrum"    % "0.11.0"           % "test",
-  "com.chuusai"            %% "shapeless"     % "2.3.2"            % "test",
-  "org.typelevel"          %% "export-hook"   % "1.2.0"            % "test",
-  "com.typesafe.play"      %% "play-json"     % "2.6.6"            % "test",
-  "org.scalaz"             %% "scalaz-core"   % "7.2.15"           % "test"
+  "org.scala-lang.modules" %% "scala-xml"     % "1.0.6" % "test",
+  "org.ensime"             %% "pcplod"        % "1.2.1" % "test",
+  "com.github.mpilquist"   %% "simulacrum"    % "0.11.0" % "test",
+  "org.typelevel"          %% "export-hook"   % "1.2.0" % "test",
+  "com.typesafe.play"      %% "play-json"     % "2.6.7" % "test"
 )
 
 scalacOptions in Test ++= {
@@ -34,6 +33,8 @@ scalacOptions in Test ++= {
     s"-Xmacro-settings:stalactite.defaults=$dir/stalactite-defaults.conf"
   )
 }
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
 
 javaOptions in Test ++= {
   val settings =
@@ -61,10 +62,18 @@ scalacOptions ++= Seq(
   "-Xlog-reflective-calls",
   "-Yrangepos",
   "-Yno-imports",
-  "-Yno-predef"
+  "-Yno-predef",
+  "-Xexperimental" // SAM types in 2.11
 )
 
+// waiting for sbt-sensible upgrade
 scalacOptions := scalacOptions.value.filterNot(_.startsWith("-Ywarn-unused"))
+scalacOptions in (Compile, compile) ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 12)) => Seq("-Ywarn-unused:explicits,patvars,linted")
+    case _             => Nil
+  }
+}
 
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
@@ -80,7 +89,7 @@ wartremoverWarnings in (Test, compile) := Seq(
 
 scalafmtOnCompile in ThisBuild := true
 scalafmtConfig in ThisBuild := file("project/scalafmt.conf")
-scalafmtVersion in ThisBuild := "1.2.0"
+scalafmtVersion in ThisBuild := "1.3.0"
 
 scalacOptions in (Compile, console) -= "-Xfatal-warnings"
 initialCommands in (Compile, console) := Seq(
