@@ -7,35 +7,16 @@ variables:
   COURSIER_CACHE: "project/.sbt/coursier"
 
 stages:
-  - verify
   - build
-  - test
   - deploy
-
-verify_job:
-  stage: verify
-  except:
-    - /^feature.*$/
-  script:
-    - if $(git grep -qE "TODO|FIXME" *) ; then
-        echo "Please remove TODO or FIXME." ;
-        exit 1 ;
-      fi
-    - sbt ";+update ;+test:update ;scalafmt::test ;test:scalafmt::test ;jmh:scalafmt::test ;sbt:scalafmt::test ;headerCheck ;test:headerCheck ;jmh:headerCheck"
 
 build_job:
   stage: build
   except:
-    - /^feature.*$/
-  script:
-    - sbt ";+test:compile ;+doc";
-
-test_job:
-  stage: test
-  except:
     - master
-    - /^feature.*$/
   script:
+    - sbt ";scalafmt::test ;test:scalafmt::test ;jmh:scalafmt::test ;sbt:scalafmt::test ;headerCheck ;test:headerCheck ;jmh:headerCheck"
+    - sbt ";+test:compile ;+doc";
     - sbt "+test"
 
 deploy_job:
