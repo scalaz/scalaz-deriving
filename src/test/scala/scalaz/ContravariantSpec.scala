@@ -13,7 +13,7 @@ import examples.recgadt._
 
 import Scalaz._
 
-class CodivideSpec extends FlatSpec with NonImplicitAssertions {
+class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
 
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz

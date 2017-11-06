@@ -5,6 +5,9 @@ package scalaz
 
 import scala.{ inline }
 
+// TODO: support arbitrary arity an the invariant level. i.e.
+// CoproductiveCodivideX and ApplicativeDivisibleX.
+//
 // allows typeclass derivation for products, coproducts and AnyVal
 trait TypeclassDerivation[F[_]]
     extends CoproductiveCodivide[F]
@@ -20,22 +23,18 @@ object TypeclassDerivation {
   // should really be on the companion of Equal
   implicit val Equal: TypeclassDerivation[Equal] =
     new ContravariantTypeclassDerivation[Equal] {
-      def products[C[_]: Foldable, Z](params: C[Param[Z, Equal]]): Equal[Z] = {
-        (z1: Z, z2: Z) =>
-          params.all { f =>
-            f.tc.equal(f(z1), f(z2))
-          }
+      def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
+        ProductX.and(f)(z1, z2).all {
+          case (p1, p2) => p1.tc.equal(p1.value, p2.value)
+        }
       }
 
-      def coproducts[C[_]: Foldable1, Z](
-        params: C[Coparam[Z, Equal]]
-      ): Equal[Z] = { (z1: Z, z2: Z) =>
-        params.any { f =>
-          (f(z1), f(z2)) match {
-            case (Just(a), Just(b)) => f.tc.equal(a, b)
-            case _                  => false
+      def coproducts[Z](f: Z => CoproductX[Equal]): Equal[Z] = {
+        (z1: Z, z2: Z) =>
+          CoproductX.and(f)(z1, z2) match {
+            case Just((p1, p2)) => p1.tc.equal(p1.value, p2.value)
+            case _              => false
           }
-        }
       }
     }
 
@@ -45,15 +44,13 @@ object TypeclassDerivation {
 trait ContravariantTypeclassDerivation[F[_]]
     extends TypeclassDerivation[F]
     with CodivideX[F]
-    with DivisibleX[F] // DivisibleX.contramap wins
-    {
-  final def codivideX[C[_]: Foldable1, Z](params: C[Coparam[Z, F]]): F[Z] =
-    coproducts(params)
-  def coproducts[C[_]: Foldable1, Z](params: C[Coparam[Z, F]]): F[Z]
+    with DivisibleX[F] {
+  final def codivideX[Z](f: Z => CoproductX[F]): F[Z] = coproducts(f)
+  def coproducts[Z](f: Z => CoproductX[F]): F[Z]
 
-  final def divideX[C[_]: Foldable, Z](params: C[Param[Z, F]]): F[Z] =
-    products(params)
-  def products[C[_]: Foldable, Z](params: C[Param[Z, F]]): F[Z]
+  final def divideX[Z](f: Z => ProductX[F]): F[Z] = products(f)
+  def products[Z](f: Z => ProductX[F]): F[Z]
+
 }
 object ContravariantTypeclassDerivation {
   @inline def apply[F[_]](

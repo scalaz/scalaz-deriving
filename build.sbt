@@ -66,8 +66,8 @@ scalacOptions ++= Seq(
   "-Xexperimental" // SAM types in 2.11
 )
 
-// waiting for sbt-sensible upgrade
-scalacOptions := scalacOptions.value.filterNot(_.startsWith("-Ywarn-unused"))
+// weird false positives...
+scalacOptions -= "-Ywarn-dead-code"
 scalacOptions in (Compile, compile) ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) => Seq("-Ywarn-unused:explicits,patvars,linted")

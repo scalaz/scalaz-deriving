@@ -6,9 +6,6 @@ package stalactite.examples
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
 
-// https://github.com/playframework/play-json/issues/92
-import scala.Predef.implicitly
-
 import stalactite.deriving
 import stalactite.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
