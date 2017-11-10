@@ -60,23 +60,23 @@ trait LazyDivide[F[_]] extends Contravariant[F] with ApplyDivide[F] {
 
   // ApplyDivide impl
   override final def xproduct2[Z, A1, A2](
-    fa: => F[A1],
-    fb: => F[A2]
+    a1: => F[A1],
+    a2: => F[A2]
   )(f: (A1, A2) => Z, g: Z => (A1, A2)): F[Z] =
-    divide2(fa, fb)(g)
-  override final def xproduct3[Z, A1, A2, A3](fa: => F[A1],
-                                              fb: => F[A2],
-                                              fc: => F[A3])(
+    divide2(a1, a2)(g)
+  override final def xproduct3[Z, A1, A2, A3](a1: => F[A1],
+                                              a2: => F[A2],
+                                              a3: => F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  ): F[Z] = divide3(fa, fb, fc)(g)
+  ): F[Z] = divide3(a1, a2, a3)(g)
   override final def xproduct4[Z, A1, A2, A3, A4](
-    fa: => F[A1],
-    fb: => F[A2],
-    fc: => F[A3],
-    fd: => F[A4]
+    a1: => F[A1],
+    a2: => F[A2],
+    a3: => F[A3],
+    a4: => F[A4]
   )(f: (A1, A2, A3, A4) => Z, g: Z => (A1, A2, A3, A4)): F[Z] =
-    divide4(fa, fb, fc, fd)(g)
+    divide4(a1, a2, a3, a4)(g)
 
 }
 object LazyDivide {

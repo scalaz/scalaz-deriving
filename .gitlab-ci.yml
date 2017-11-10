@@ -15,9 +15,9 @@ build_job:
   except:
     - master
   script:
-    - sbt ";scalafmt::test ;test:scalafmt::test ;jmh:scalafmt::test ;sbt:scalafmt::test ;headerCheck ;test:headerCheck ;jmh:headerCheck"
+    - sbt "all scalafmt::test test:scalafmt::test jmh:scalafmt::test sbt:scalafmt::test headerCheck test:headerCheck jmh:headerCheck"
     - sbt ";+test:compile ;+doc";
-    - sbt "+test"
+    - sbt ";+test"
 
 deploy_job:
   only:

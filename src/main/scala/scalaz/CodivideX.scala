@@ -3,46 +3,44 @@
 
 package scalaz
 
-import scala.inline
+import scala.{ inline }
 
+import iotaz._
+import iotaz.TList.Compute.{ Aux => ↦ }
+import iotaz.TList.Op.{ Map => ƒ }
+
+/** Implementation of Codivide in terms of a single, generic, method. */
 trait CodivideX[F[_]] extends Codivide[F] {
-  def codivideX[Z](c: Z => CoproductX[F]): F[Z]
+  import Catholics._
+
+  def codivideX[Z, L <: TList, FL <: TList](
+    tcs: Prod[FL]
+  )(
+    f: Z => Cop[L]
+  )(
+    implicit
+    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z]
 
   override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
-    codivideX[Z] { z =>
-      CoproductX(0, ParamX(f(z), a1))
-    }
-  override def codivide2[Z, A1, A2](fb: => F[A1],
-                                    fc: => F[A2])(f: Z => A1 \/ A2): F[Z] =
-    codivideX[Z] { z =>
-      f(z) match {
-        case -\/(b) => CoproductX(0, ParamX(b, fb))
-        case \/-(c) => CoproductX(1, ParamX(c, fc))
-      }
-    }
-  override def codivide3[Z, A1, A2, A3](fb: => F[A1], fc: => F[A2], fd: F[A3])(
-    f: Z => A1 \/ (A2 \/ A3)
-  ): F[Z] = codivideX[Z] { z =>
-    f(z) match {
-      case -\/(b)      => CoproductX(0, ParamX(b, fb))
-      case \/-(-\/(c)) => CoproductX(1, ParamX(c, fc))
-      case \/-(\/-(d)) => CoproductX(2, ParamX(d, fd))
-    }
-  }
+    codivideX(Prod(Value(a1)))(z => from1(f(z)))
+  override def codivide2[Z, A1, A2](a1: => F[A1],
+                                    a2: => F[A2])(f: Z => A1 \/ A2): F[Z] =
+    codivideX(LazyProd(a1, a2))(z => from2(f(z)))
+  override def codivide3[Z, A1, A2, A3](
+    a1: => F[A1],
+    a2: => F[A2],
+    a3: => F[A3]
+  )(f: Z => A1 \/ (A2 \/ A3)): F[Z] =
+    codivideX(LazyProd(a1, a2, a3))(z => from3(f(z)))
+  override def codivide4[Z, A1, A2, A3, A4](
+    a1: => F[A1],
+    a2: => F[A2],
+    a3: => F[A3],
+    a4: => F[A4]
+  )(f: Z => A1 \/ (A2 \/ (A3 \/ A4))): F[Z] =
+    codivideX(LazyProd(a1, a2, a3, a4))(z => from4(f(z)))
 
-  override def codivide4[Z, A1, A2, A3, A4](fb: => F[A1],
-                                            fc: => F[A2],
-                                            fd: => F[A3],
-                                            fe: => F[A4])(
-    f: Z => A1 \/ (A2 \/ (A3 \/ A4))
-  ): F[Z] = codivideX[Z] { z =>
-    f(z) match {
-      case -\/(b)           => CoproductX(0, ParamX(b, fb))
-      case \/-(-\/(c))      => CoproductX(1, ParamX(c, fc))
-      case \/-(\/-(-\/(d))) => CoproductX(2, ParamX(d, fd))
-      case \/-(\/-(\/-(e))) => CoproductX(3, ParamX(e, fe))
-    }
-  }
 }
 object CodivideX {
   @inline def apply[F[_]](implicit i: CodivideX[F]): CodivideX[F] = i

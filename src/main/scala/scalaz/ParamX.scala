@@ -15,6 +15,12 @@ sealed abstract class ParamX[F[_]] {
   type T
   def value: T
   def tc: F[T]
+
+  // TODO: def label: String
+  // However, this is not trivial from a lawfullnes point of view.
+  // The existing methods can use tuple-style labels, but it will
+  // lead to laws being broken, for example:
+  // divide2(divide2(a, b), divide2(c, d)) != divide4(a, b, c, d)
 }
 object ParamX {
   type Aux[F[_], A] = ParamX[F] { type T = A }
@@ -73,8 +79,7 @@ object CoproductX {
       Maybe.empty
   }
 
-  // FIXME: would be nice to return something cleaner that doesn't duplicate the
-  // .tc field
+  // TODO: return something that doesn't duplicate the .tc field
   type Two[F[_]] =
     (ParamX.Aux[F, A], ParamX.Aux[F, A]) forSome { type A }
 
@@ -96,7 +101,7 @@ object ProductX {
     (p1.get zip p2.get).asInstanceOf[Two[F]]
   }
 
-  // this is over-generous... the real constraint is that each A
+  // TODO: return something that doesn't duplicate the .tc field
   type Two[F[_]] =
     IList[(ParamX.Aux[F, A], ParamX.Aux[F, A]) forSome { type A }]
 

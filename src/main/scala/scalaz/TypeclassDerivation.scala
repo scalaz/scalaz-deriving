@@ -5,12 +5,16 @@ package scalaz
 
 import scala.{ inline }
 
+import iotaz._
+import iotaz.TList.Compute.{ Aux => ↦ }
+import iotaz.TList.Op.{ Map => ƒ }
+
 // TODO: support arbitrary arity an the invariant level. i.e.
-// CoproductiveCodivideX and ApplicativeDivisibleX.
+// CoapplicativeCodivideX and ApplicativeDivisibleX.
 //
 // allows typeclass derivation for products, coproducts and AnyVal
 trait TypeclassDerivation[F[_]]
-    extends CoproductiveCodivide[F]
+    extends CoapplicativeCodivide[F]
     with ApplicativeDivisible[F]
 object TypeclassDerivation {
   @inline def apply[F[_]](
@@ -40,16 +44,42 @@ object TypeclassDerivation {
 
 }
 
-// TODO: does the fight for .contramap break any laws?
 trait ContravariantTypeclassDerivation[F[_]]
     extends TypeclassDerivation[F]
     with CodivideX[F]
     with DivisibleX[F] {
-  final def codivideX[Z](f: Z => CoproductX[F]): F[Z] = coproducts(f)
-  def coproducts[Z](f: Z => CoproductX[F]): F[Z]
 
-  final def divideX[Z](f: Z => ProductX[F]): F[Z] = products(f)
+  def coproducts[Z](f: Z => CoproductX[F]): F[Z]
   def products[Z](f: Z => ProductX[F]): F[Z]
+
+  final def codivideX[Z, L <: TList, FL <: TList](
+    tcs: Prod[FL]
+  )(
+    f: Z => Cop[L]
+  )(
+    implicit
+    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = coproducts { z =>
+    val co = f(z)
+    val tc = tcs.values(co.index).asInstanceOf[Name[F[scala.Any]]]
+    val v  = co.value
+    CoproductX(co.index, ParamX(v, tc.value))
+  }
+
+  final def divideX[Z, L <: TList, FL <: TList](
+    tcs: Prod[FL]
+  )(
+    f: Z => Prod[L]
+  )(
+    implicit
+    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = products { z =>
+    ProductX(
+      IList.fromList((f(z).values zip tcs.values).map { tcv =>
+        ParamX(tcv._1, tcv._2.asInstanceOf[Name[F[scala.Any]]].value)
+      }(scala.collection.breakOut))
+    )
+  }
 
 }
 object ContravariantTypeclassDerivation {
@@ -58,11 +88,23 @@ object ContravariantTypeclassDerivation {
   ): ContravariantTypeclassDerivation[F] = i
 }
 
-// TODO: does the fight for .map break any laws?
 trait CovariantTypeclassDerivation[F[_]]
     extends TypeclassDerivation[F]
-    with CoproductiveX[F]
-    with ProductiveX[F] // ProductiveX.map wins
+    with CoapplicativeX[F]
+    with ApplicativeX[F] {
+
+  //def coproducts[Z](f: CoproductX[F] => Z): F[Z]
+  //def products[Z](f: ProductX[F] => Z): F[Z]
+
+  final def coapplyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(f: Cop[L] => Z)(
+    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = scala.Predef.???
+
+  final def applyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(f: Prod[L] => Z)(
+    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = scala.Predef.???
+
+}
 object CovariantTypeclassDerivation {
   @inline def apply[F[_]](
     implicit i: CovariantTypeclassDerivation[F]

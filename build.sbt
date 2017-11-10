@@ -26,6 +26,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.play"      %% "play-json"     % "2.6.7" % "test"
 )
 
+libraryDependencies += "io.frees" %% "iotaz-core" % "0.3.2"
+
 scalacOptions in Test ++= {
   val dir = (baseDirectory in ThisBuild).value / "project"
   Seq(
@@ -70,8 +72,10 @@ scalacOptions ++= Seq(
 scalacOptions -= "-Ywarn-dead-code"
 scalacOptions in (Compile, compile) ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 12)) => Seq("-Ywarn-unused:explicits,patvars,linted")
-    case _             => Nil
+    case Some((2, 12)) if sys.env.get("CI").isDefined =>
+      // very annoying during local dev
+      Seq("-Ywarn-unused:explicits,patvars,linted")
+    case _ => Nil
   }
 }
 
@@ -100,7 +104,6 @@ initialCommands in (Compile, console) := Seq(
   "scala.util.{Try,Success,Failure}",
   "scala.Predef.{???,ArrowAssoc,identity,implicitly,<:<,=:=}",
   "shapeless.{ :: => :*:, _ }",
-  "_root_.io.circe",
   "scalaz._",
   "Scalaz._"
 ).mkString("import ", ",", "")
