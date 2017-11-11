@@ -104,7 +104,8 @@ trait CovariantDerived[F[_]]
     with ApplicativeX[F] {
 
   //def coproducts[Z](f: CoproductX[F] => Z): F[Z]
-  //def products[Z](f: ProductX[F] => Z): F[Z]
+
+  def products[A, Z](f: (F[A] => A) => Z): F[Z]
 
   /*
   final def coapplyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
@@ -112,13 +113,14 @@ trait CovariantDerived[F[_]]
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] = scala.Predef.???
+   */
 
   final def applyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Prod[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = scala.Predef.???
- */
+  ): F[Z] =
+    products(((faa: (F[A] => A)) => f(Prods.map(tcs)(faa))))
 
 }
 object CovariantDerived {

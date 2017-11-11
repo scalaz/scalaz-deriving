@@ -31,6 +31,8 @@ object LazyProd {
 }
 
 object Prods {
+  // when calling this method, be sure to add an explicit type on `f` or the
+  // compiler may infer Nothing and runtime exceptions may ensue.
   def map[T[_], Y, L <: TList, TL <: TList](
     tcs: Prod[TL]
   )(f: T[Y] => Y)(

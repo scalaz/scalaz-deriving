@@ -27,15 +27,8 @@ object Default {
     import iotaz.TList.Compute.{ Aux => ↦ }
     import iotaz.TList.Op.{ Map => ƒ }
 
-    def applyX[A, Z, L <: TList, DefaultL <: TList](
-      tcs: Prod[DefaultL]
-    )(
-      f: Prod[L] => Z
-    )(
-      implicit
-      ev: λ[a => Name[Default[a]]] ƒ L ↦ DefaultL
-    ): Default[Z] = instance {
-      f(Prods.map(tcs)((d: Default[A]) => d.default))
+    def products[A, Z](f: (Default[A] => A) => Z): Default[Z] = instance {
+      f((fa: Default[A]) => fa.default)
     }
 
     def coapplyX[A, Z, L <: TList, TL <: TList](
