@@ -13,20 +13,20 @@ import iotaz.TList.Op.{ Map => ƒ }
 // CoapplicativeCodivideX and ApplicativeDivisibleX.
 //
 // allows typeclass derivation for products, coproducts and AnyVal
-trait TypeclassDerivation[F[_]]
+trait Derived[F[_]]
     extends CoapplicativeCodivide[F]
     with ApplicativeDivisible[F]
-object TypeclassDerivation {
+object Derived {
   @inline def apply[F[_]](
-    implicit i: TypeclassDerivation[F]
-  ): TypeclassDerivation[F] = i
+    implicit i: Derived[F]
+  ): Derived[F] = i
 
   import Scalaz._
   import Maybe.Just
 
   // should really be on the companion of Equal
-  implicit val Equal: TypeclassDerivation[Equal] =
-    new ContravariantTypeclassDerivation[Equal] {
+  implicit val Equal: Derived[Equal] =
+    new ContravariantDerived[Equal] {
       def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
         ProductX.and(f)(z1, z2).all {
           case (p1, p2) => p1.tc.equal(p1.value, p2.value)
@@ -44,8 +44,8 @@ object TypeclassDerivation {
 
 }
 
-trait ContravariantTypeclassDerivation[F[_]]
-    extends TypeclassDerivation[F]
+trait ContravariantDerived[F[_]]
+    extends Derived[F]
     with CodivideX[F]
     with DivisibleX[F] {
 
@@ -82,14 +82,14 @@ trait ContravariantTypeclassDerivation[F[_]]
   }
 
 }
-object ContravariantTypeclassDerivation {
+object ContravariantDerived {
   @inline def apply[F[_]](
-    implicit i: ContravariantTypeclassDerivation[F]
-  ): ContravariantTypeclassDerivation[F] = i
+    implicit i: ContravariantDerived[F]
+  ): ContravariantDerived[F] = i
 }
 
-trait CovariantTypeclassDerivation[F[_]]
-    extends TypeclassDerivation[F]
+trait CovariantDerived[F[_]]
+    extends Derived[F]
     with CoapplicativeX[F]
     with ApplicativeX[F] {
 
@@ -111,8 +111,8 @@ trait CovariantTypeclassDerivation[F[_]]
  */
 
 }
-object CovariantTypeclassDerivation {
+object CovariantDerived {
   @inline def apply[F[_]](
-    implicit i: CovariantTypeclassDerivation[F]
-  ): CovariantTypeclassDerivation[F] = i
+    implicit i: CovariantDerived[F]
+  ): CovariantDerived[F] = i
 }
