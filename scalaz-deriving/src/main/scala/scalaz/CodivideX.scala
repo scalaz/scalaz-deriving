@@ -22,8 +22,8 @@ trait CodivideX[F[_]] extends Codivide[F] {
     ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z]
 
-  override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
-    codivideX(Prod(Value(a1)))(z => from1(f(z)))
+  override def codivide1[Z, A1](a1: => F[A1])(f: Z => A1): F[Z] =
+    codivideX(LazyProd(a1))(z => from1(f(z)))
   override def codivide2[Z, A1, A2](a1: => F[A1],
                                     a2: => F[A2])(f: Z => A1 \/ A2): F[Z] =
     codivideX(LazyProd(a1, a2))(z => from2(f(z)))

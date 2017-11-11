@@ -9,10 +9,20 @@ import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
-// TODO: support arbitrary arity an the invariant level. i.e.
-// CoapplicativeCodivideX and ApplicativeDivisibleX.
-//
-// allows typeclass derivation for products, coproducts and AnyVal
+/**
+ * Typeclass Derivation for products, coproducts and AnyVal.
+ *
+ * Typeclasses with parameters in contravariant position (e.g. encoders,
+ * comparators) should implement this typeclass with ContravariantDerived.
+ *
+ * Typeclasses with parameters in covariant position (e.g. decoders, data
+ * generators) should implement this typeclass with CovariantDerived.
+ *
+ * Typeclasses with a mix of contravariant and covariant position methods (e.g.
+ * a "format" that combines an encoder and a decoder) may implement this
+ * typeclass directly but such constructs are usually best split into two parts,
+ * with an implicit to create the combination where required.
+ */
 trait Derived[F[_]]
     extends CoapplicativeCodivide[F]
     with ApplicativeDivisible[F]

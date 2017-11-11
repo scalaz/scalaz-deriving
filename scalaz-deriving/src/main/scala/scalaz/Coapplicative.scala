@@ -8,12 +8,10 @@ import scala.Predef.identity
 
 import shapeless.{ Cached, Lazy }
 
-// coproduct analogue of Applicative
-trait Coapplicative[F[_]] extends Functor[F] with CoapplicativeCodivide[F] {
-  def coapply1[Z, A1](a1: F[A1])(f: A1 => Z): F[Z] = map(a1)(f)
+/** Coproduct analogue of Applicative */
+trait Coapplicative[F[_]] extends CoapplicativeCodivide[F] {
+  def coapply1[Z, A1](a1: => F[A1])(f: A1 => Z): F[Z]
   def coapply2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(f: A1 \/ A2 => Z): F[Z]
-  // if this trait were inherited by Plus, it can be derived
-  //map(plus[A1 \/ A2](map(a1)(-\/(_)), map(a2)(\/-(_))))(f)
   def coapply3[Z, A1, A2, A3](a1: => F[A1], a2: => F[A2], a3: => F[A3])(
     f: A1 \/ (A2 \/ A3) => Z
   ): F[Z] = coapply2(a1, either2(a2, a3))(f)
@@ -56,6 +54,10 @@ trait Coapplicative[F[_]] extends Functor[F] with CoapplicativeCodivide[F] {
     )
   // ... coapplyingX
 
+  override def xcoproduct1[Z, A1](a1: => F[A1])(
+    f: A1 => Z,
+    g: Z => A1
+  ): F[Z] = coapply1(a1)(f)
   override def xcoproduct2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
     f: (A1 \/ A2) => Z,
     g: Z => (A1 \/ A2)

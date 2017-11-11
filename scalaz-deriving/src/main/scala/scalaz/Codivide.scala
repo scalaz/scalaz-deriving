@@ -8,9 +8,9 @@ import scala.Predef.identity
 
 import shapeless.{ Cached, Lazy }
 
-// coproduct analogue of Divide
-trait Codivide[F[_]] extends Contravariant[F] with CoapplicativeCodivide[F] {
-  def codivide1[Z, A1, A2](a1: F[A1])(f: Z => A1): F[Z] = contramap(a1)(f)
+/** Coproduct analogue of Divide */
+trait Codivide[F[_]] extends CoapplicativeCodivide[F] {
+  def codivide1[Z, A1](a1: => F[A1])(f: Z => A1): F[Z]
   def codivide2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(f: Z => A1 \/ A2): F[Z]
   def codivide3[Z, A1, A2, A3](a1: => F[A1], a2: => F[A2], a3: => F[A3])(
     f: Z => A1 \/ (A2 \/ A3)
@@ -51,6 +51,11 @@ trait Codivide[F[_]] extends Contravariant[F] with CoapplicativeCodivide[F] {
               fa3.value.value,
               fa4.value.value)(f)
   // ... codividingX
+
+  override final def xcoproduct1[Z, A1](a1: => F[A1])(
+    f: A1 => Z,
+    g: Z => A1
+  ): F[Z] = codivide1(a1)(g)
 
   override final def xcoproduct2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
     f: (A1 \/ A2) => Z,

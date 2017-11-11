@@ -7,10 +7,9 @@ import scala.{ inline }
 
 import shapeless.{ Cached, Lazy }
 
-// invariant parent of Coapplicative and Codivide
-trait CoapplicativeCodivide[F[_]] extends InvariantFunctor[F] {
-  def xcoproduct1[Z, A1](a1: F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
-    xmap(a1, f, g)
+/** Invariant parent of Coapplicative and Codivide */
+trait CoapplicativeCodivide[F[_]] {
+  def xcoproduct1[Z, A1](a1: => F[A1])(f: A1 => Z, g: Z => A1): F[Z]
   def xcoproduct2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(f: A1 \/ A2 => Z,
                                                          g: Z => A1 \/ A2): F[Z]
   def xcoproduct3[Z, A1, A2, A3](a1: => F[A1], a2: => F[A2], a3: => F[A3])(

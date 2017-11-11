@@ -23,10 +23,9 @@ trait CoapplicativeX[F[_]] extends Coapplicative[F] {
     ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z]
 
-  override def map[A1, Z](a1: F[A1])(f: A1 => Z): F[Z] = coapply1(a1)(f)
-  override def coapply1[Z, A1](a1: F[A1])(f: A1 => Z): F[Z] = {
+  override def coapply1[Z, A1](a1: => F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil
-    coapplyX(Prod(Value(a1)))((c: Cop[L]) => f(to1(c)))
+    coapplyX(LazyProd(a1))((c: Cop[L]) => f(to1(c)))
   }
   override def coapply2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
     f: A1 \/ A2 => Z
