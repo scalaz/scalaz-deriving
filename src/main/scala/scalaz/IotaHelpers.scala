@@ -3,11 +3,14 @@
 
 package scalaz
 
-import scala.collection.immutable.Vector
+import scala.collection.immutable.{ Seq, Vector }
 
 import iotaz._
-import iotaz.TList.::
+import iotaz.TList._
+import iotaz.TList.Compute.{ Aux => ↦ }
+import iotaz.TList.Op.{ Map => ƒ }
 
+// unintentional joke about the state of northern irish politics...
 object LazyProd {
   def apply[A1](a1: => A1): Prod[Name[A1] :: TNil] = Prod(Name(a1))
   def apply[A1, A2](a1: => A1, a2: => A2): Prod[Name[A1] :: Name[A2] :: TNil] =
@@ -27,7 +30,21 @@ object LazyProd {
     Prod(Name(a1), Name(a2), Name(a3), Name(a4))
 }
 
-object Huns {
+object Prods {
+  def map[T[_], Y, L <: TList, TL <: TList](
+    tcs: Prod[TL]
+  )(f: T[Y] => Y)(
+    implicit
+    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+    // although scala is unable to infer an Cop.Inject[Y, L], we can
+    // mathematically prove one exists because L is aligned with TL.
+    // ev2: Cop.InjectL[Y, L]
+  ): Prod[L] = Prod.unsafeApply { // allowed by evidence of Y
+    tcs.values
+      .asInstanceOf[Seq[Name[T[Y]]]] // from TMap
+      .map(nty => f(nty.value))
+  }
+
   val empty: Prod[TNil] = Prod()
 
   def from1T[A1](a: A1): Prod[A1 :: TNil] =
@@ -62,7 +79,41 @@ object Huns {
 
 }
 
-object Catholics {
+object Cops {
+  def mapMaybe[T[_], Y, L <: TList, TL <: TList](
+    tcs: Prod[TL]
+  )(f: T[Y] => Maybe[Y])(
+    implicit
+    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+    // although scala is unable to infer an Cop.Inject[Y, L], we can
+    // mathematically prove one exists because L is aligned with TL.
+    // ev2: Cop.InjectL[Y, L]
+  ): Maybe[Cop[L]] = Maybe.fromOption {
+    tcs.values
+      .asInstanceOf[Seq[Name[T[Y]]]] // from TMap
+      .toStream
+      .zipWithIndex
+      .flatMap {
+        case (v, i) =>
+          f(v.value).toOption.map { y =>
+            Cop.unsafeApply[L, Y](i, y) // from implied InjectL
+          }
+      }
+      .headOption
+  }
+
+  // variant of covariantExtract that always succeeds
+  // (Default could be a niche usecase to be fair...)
+  def mapFirst[T[_], Y, L <: TList, TL <: TList](
+    tcs: Prod[TL]
+  )(f: T[Y] => Y)(
+    implicit
+    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+  ): Cop[L] = {
+    val ty = tcs.values.asInstanceOf[Seq[Name[T[Y]]]] // from TMap
+    Cop.unsafeApply[L, Y](0, f(ty.head.value)) // from implied InjectL
+  }
+
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
   def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {
     case -\/(a) => Cop.unsafeApply(0, a)

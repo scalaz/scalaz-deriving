@@ -11,7 +11,7 @@ import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Codivide in terms of a single, generic, method. */
 trait CodivideX[F[_]] extends Codivide[F] {
-  import Catholics._
+  import Cops._
 
   def codivideX[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]

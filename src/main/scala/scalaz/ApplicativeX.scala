@@ -3,7 +3,7 @@
 
 package scalaz
 
-import scala.{ inline }
+import scala.{ inline, Unit }
 
 import iotaz.{ Prod, TList, TNil }
 import iotaz.TList.::
@@ -14,9 +14,9 @@ import iotaz.TList.Op.{ Map => ƒ }
 trait ApplicativeX[F[_]]
     extends LazyApplicative[F]
     with DangerousApplicative[F] {
-  import Huns._
+  import Prods._
 
-  def applyX[Z, L <: TList, FL <: TList](
+  def applyX[A, Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Prod[L] => Z
@@ -26,7 +26,7 @@ trait ApplicativeX[F[_]]
   ): F[Z]
 
   override def point[Z](z: => Z): F[Z] =
-    applyX[Z, TNil, TNil](empty)(_ => z)
+    applyX[Unit, Z, TNil, TNil](empty)(_ => z)
 
   override def map[A1, Z](a1: F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil

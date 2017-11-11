@@ -96,13 +96,19 @@ trait CovariantTypeclassDerivation[F[_]]
   //def coproducts[Z](f: CoproductX[F] => Z): F[Z]
   //def products[Z](f: ProductX[F] => Z): F[Z]
 
-  final def coapplyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(f: Cop[L] => Z)(
+  /*
+  final def coapplyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+    f: Cop[L] => Z
+  )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] = scala.Predef.???
 
-  final def applyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(f: Prod[L] => Z)(
+  final def applyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+    f: Prod[L] => Z
+  )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] = scala.Predef.???
+ */
 
 }
 object CovariantTypeclassDerivation {

@@ -12,9 +12,9 @@ import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Coapplicative in terms of a single, generic, method. */
 trait CoapplicativeX[F[_]] extends Coapplicative[F] {
-  import Catholics._
+  import Cops._
 
-  def coapplyX[Z, L <: TList, FL <: TList](
+  def coapplyX[A, Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Cop[L] => Z

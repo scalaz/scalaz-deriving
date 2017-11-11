@@ -74,7 +74,9 @@ scalacOptions in (Compile, compile) ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) if sys.env.get("CI").isDefined =>
       // very annoying during local dev
-      Seq("-Ywarn-unused:explicits,patvars,linted")
+      Seq("-Ywarn-unused:explicits,patvars,imports,privates,locals")
+    // linted = imports,privates,locals,implicits
+    // but has far too many false positives with implicit evidence
     case _ => Nil
   }
 }
