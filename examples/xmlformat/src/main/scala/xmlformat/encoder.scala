@@ -6,9 +6,8 @@ package xmlformat
 import java.lang.String
 import java.math.{ BigDecimal => BD }
 
-import scala._
 import scala.Predef.identity
-import scala.collection.immutable.{ Map, Traversable }
+import scala.collection.immutable.{ Map, Seq, Traversable }
 import scala.concurrent.duration.FiniteDuration
 import scala.xml._
 

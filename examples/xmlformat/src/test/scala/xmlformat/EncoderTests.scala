@@ -6,7 +6,6 @@ package xmlformat
 import java.lang.String
 import java.math.{ BigDecimal => BD }
 
-import scala.{ Either, Int, Left, None, Option, Right, Some }
 import scala.Predef.ArrowAssoc
 import scala.collection.immutable._
 import scala.concurrent.duration._

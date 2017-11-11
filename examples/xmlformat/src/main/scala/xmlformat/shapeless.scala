@@ -5,7 +5,6 @@ package xmlformat
 
 import java.lang.String
 
-import scala.{ Left, None, Right, Some, StringContext, Symbol }
 import scala.Predef.ArrowAssoc
 import scala.collection.immutable.{ Map, Nil, Seq }
 import scala.reflect.ClassTag

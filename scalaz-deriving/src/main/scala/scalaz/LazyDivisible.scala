@@ -22,14 +22,10 @@ object LazyDivisible {
   import java.lang.String
   import scala.StringContext
 
-  // TODO make L symbolic / infix
-  // TODO syntax to create
   sealed trait L[F[_], A]
   final case class Label[F[_], A](fa: F[A], label: String) extends L[F, A]
   final case class Solo[F[_], A](fa: F[A])                 extends L[F, A]
 
-  // TODO: would be more efficient with Show.show: Cord
-  // TODO: need a "def completed(f: F[A]): F[A]"
   implicit val tcdShow: LazyDivisible[L[Show, ?]] =
     new LazyDivisible[L[Show, ?]] {
       def conquer[A]: L[Show, A] = Solo(Show.shows(_ => ""))

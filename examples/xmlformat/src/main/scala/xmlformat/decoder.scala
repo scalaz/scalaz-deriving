@@ -8,28 +8,8 @@ import java.math.{ BigDecimal => BD }
 
 import javax.xml.parsers.SAXParserFactory
 
-import scala.{
-  Boolean,
-  Char,
-  Double,
-  Either,
-  Float,
-  Int,
-  Left,
-  Long,
-  None,
-  Nothing,
-  Option,
-  PartialFunction,
-  Right,
-  Seq,
-  Short,
-  Some,
-  StringContext,
-  Symbol
-}
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable._
+import scala.collection.immutable.{ Seq, _ }
 import scala.concurrent.duration._
 import scala.xml._
 
@@ -79,8 +59,8 @@ object DecoderUtils {
   // .child breaks out of the ADT, this safely returns us
   implicit class ElOps(el: Elem) {
     def children: NodeSeq = el.child match {
-      case Seq(only) => only
-      case many      => Group(many.toList)
+      case scala.Seq(only) => only
+      case many            => Group(many.toList)
     }
   }
 }
@@ -142,7 +122,7 @@ object Decoder extends DecoderLowPriority {
 
   implicit val bd: Decoder[BD] = strInstance { str =>
     try { Some(new BD(str)) } catch {
-      case iae: java.lang.IllegalArgumentException => None
+      case _: java.lang.IllegalArgumentException => None
     }
   }
   implicit val short: Decoder[Short]   = strInstance(_.parseShort.toOption)

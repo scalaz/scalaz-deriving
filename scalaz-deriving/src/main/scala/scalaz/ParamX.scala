@@ -10,17 +10,13 @@ import scala.{ Int }
  *
  * The type of value is hidden, but since the types align we can apply value to
  * tc.
+ *
+ * If you require labels you must use LabelledDerived.
  */
 sealed abstract class ParamX[F[_]] {
   type T
   def value: T
   def tc: F[T]
-
-  // TODO: def label: String
-  // However, this is not trivial from a lawfullnes point of view.
-  // The existing methods can use tuple-style labels, but it will
-  // lead to laws being broken, for example:
-  // divide2(divide2(a, b), divide2(c, d)) != divide4(a, b, c, d)
 }
 object ParamX {
   type Aux[F[_], A] = ParamX[F] { type T = A }

@@ -5,8 +5,6 @@ package xmlformat.examples
 
 import java.lang.String
 
-import scala.{ AnyVal, Left, None, Option, Right, StringContext }
-
 import xmlformat._
 import xmlformat.DecoderUtils._
 

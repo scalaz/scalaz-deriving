@@ -6,9 +6,8 @@ package xmlformat
 import java.lang.String
 import java.math.{ BigDecimal => BD }
 
-import scala._
 import scala.Predef.ArrowAssoc
-import scala.collection.immutable.{ ListSet, Map, Set }
+import scala.collection.immutable._
 import scala.concurrent.duration._
 import scala.xml._
 
@@ -213,9 +212,7 @@ class DecoderTests extends FreeSpec {
            </GRAND>"""
 
       // https://github.com/scala/scala-xml/issues/160
-      intercept[org.xml.sax.SAXParseException] {
-        PCData(top).toString.parsedAs[PCData]
-      }
+      PCData(top).toString.parsedAs[PCData]
 
     }
 
