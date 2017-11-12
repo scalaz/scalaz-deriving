@@ -11,15 +11,27 @@ val stalactite = (project in file("stalactite-macro")).settings(
   )
 )
 
-val deriving = (project in file("scalaz-deriving")).settings(
+// extensions to scalaz7.2
+val productive = (project in file("scalaz-productive")).settings(
   KindProjector,
-  name := "scalaz-deriving",
+  name := "scalaz-productive",
   libraryDependencies ++= Seq(
-    "io.frees"    %% "iotaz-core"  % "0.3.2",
     "com.chuusai" %% "shapeless"   % "2.3.2",
     "org.scalaz"  %% "scalaz-core" % "7.2.16"
   )
 )
+
+val deriving = (project in file("scalaz-deriving"))
+  .dependsOn(
+    productive
+  )
+  .settings(
+    KindProjector,
+    name := "scalaz-deriving",
+    libraryDependencies ++= Seq(
+      "io.frees" %% "iotaz-core" % "0.3.2"
+    )
+  )
 
 val xmlformat = (project in file("examples/xmlformat"))
   .dependsOn(stalactite)

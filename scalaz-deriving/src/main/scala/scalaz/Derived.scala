@@ -4,10 +4,13 @@
 package scalaz
 
 import scala.{ inline }
+import scala.collection.immutable.Stream
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
+
+import Scalaz._
 
 /**
  * Typeclass Derivation for products, coproducts and AnyVal.
@@ -56,9 +59,11 @@ object Derived {
 
 trait ContravariantDerived[F[_]]
     extends Derived[F]
-    with CodivideX[F]
-    with DivisibleX[F] {
+    with Codividez[F]
+    with Divisiblez[F] {
 
+  // FIXME in light of the covariant case, can we remove ProductX / CoproductX
+  // from the API and deal in existentials?
   def coproducts[Z](f: Z => CoproductX[F]): F[Z]
   def products[Z](f: Z => ProductX[F]): F[Z]
 
@@ -100,27 +105,26 @@ object ContravariantDerived {
 
 trait CovariantDerived[F[_]]
     extends Derived[F]
-    with CoapplicativeX[F]
-    with ApplicativeX[F] {
+    with Coapplicativez[F]
+    with Applicativez[F] {
 
-  //def coproducts[Z](f: CoproductX[F] => Z): F[Z]
+  // EphemeralStream gave stack overflow
+  def coproducts[Z](f: (F ~> Maybe) => Stream[Z]): F[Z]
+  def products[Z](f: (F ~> Id) => Z): F[Z]
 
-  def products[A, Z](f: (F[A] => A) => Z): F[Z]
-
-  /*
-  final def coapplyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+  final def coapplyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Cop[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = scala.Predef.???
-   */
+  ): F[Z] =
+    coproducts((faa: (F ~> Maybe)) => Cops.mapMaybe(tcs)(faa).map(f))
 
-  final def applyX[A, Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+  final def applyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Prod[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] =
-    products(((faa: (F[A] => A)) => f(Prods.map(tcs)(faa))))
+    products(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
 
 }
 object CovariantDerived {

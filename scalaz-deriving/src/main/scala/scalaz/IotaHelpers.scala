@@ -3,31 +3,33 @@
 
 package scalaz
 
-import scala.collection.immutable.{ Seq, Vector }
+import scala.collection.immutable.{ Seq, Stream, Vector }
 
 import iotaz._
 import iotaz.TList._
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
+import Scalaz._
+
 // unintentional joke about the state of northern irish politics...
 object LazyProd {
-  def apply[A1](a1: => A1): Prod[Name[A1] :: TNil] = Prod(Name(a1))
+  def apply[A1](a1: => A1): Prod[Name[A1] :: TNil] = Prod(Need(a1))
   def apply[A1, A2](a1: => A1, a2: => A2): Prod[Name[A1] :: Name[A2] :: TNil] =
-    Prod(Name(a1), Name(a2))
+    Prod(Need(a1), Need(a2))
   def apply[A1, A2, A3](
     a1: => A1,
     a2: => A2,
     a3: => A3
   ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil] =
-    Prod(Name(a1), Name(a2), Name(a3))
+    Prod(Need(a1), Need(a2), Need(a3))
   def apply[A1, A2, A3, A4](
     a1: => A1,
     a2: => A2,
     a3: => A3,
     a4: => A4
   ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil] =
-    Prod(Name(a1), Name(a2), Name(a3), Name(a4))
+    Prod(Need(a1), Need(a2), Need(a3), Need(a4))
 }
 
 object Prods {
@@ -82,39 +84,27 @@ object Prods {
 }
 
 object Cops {
-  def mapMaybe[T[_], Y, L <: TList, TL <: TList](
+  // TODO: return a G[Cop[L]]... I don't know how to turn a Stream[G[?]] into
+  // G[?] (seems to need a way of turning a Seq into a G), needs Unfoldable?
+  def mapMaybe[T[_], G[_]: Foldable, L <: TList, TL <: TList](
     tcs: Prod[TL]
-  )(f: T[Y] => Maybe[Y])(
+  )(f: T ~> G)(
     implicit
     ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]
-  ): Maybe[Cop[L]] = Maybe.fromOption {
+  ): Stream[Cop[L]] =
     tcs.values
-      .asInstanceOf[Seq[Name[T[Y]]]] // from TMap
+      .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
       .toStream
       .zipWithIndex
       .flatMap {
         case (v, i) =>
-          f(v.value).toOption.map { y =>
-            Cop.unsafeApply[L, Y](i, y) // from implied InjectL
+          f(v.value).toStream.map { y =>
+            Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
           }
       }
-      .headOption
-  }
-
-  // variant of covariantExtract that always succeeds
-  // (Default could be a niche usecase to be fair...)
-  def mapFirst[T[_], Y, L <: TList, TL <: TList](
-    tcs: Prod[TL]
-  )(f: T[Y] => Y)(
-    implicit
-    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
-  ): Cop[L] = {
-    val ty = tcs.values.asInstanceOf[Seq[Name[T[Y]]]] // from TMap
-    Cop.unsafeApply[L, Y](0, f(ty.head.value)) // from implied InjectL
-  }
 
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
   def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {

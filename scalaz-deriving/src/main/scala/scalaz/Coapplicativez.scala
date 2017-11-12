@@ -11,10 +11,10 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Coapplicative in terms of a single, generic, method. */
-trait CoapplicativeX[F[_]] extends Coapplicative[F] {
+trait Coapplicativez[F[_]] extends Coapplicative[F] {
   import Cops._
 
-  def coapplyX[A, Z, L <: TList, FL <: TList](
+  def coapplyX[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Cop[L] => Z
@@ -52,6 +52,6 @@ trait CoapplicativeX[F[_]] extends Coapplicative[F] {
   }
 
 }
-object CoapplicativeX {
-  @inline def apply[F[_]](implicit i: CoapplicativeX[F]): CoapplicativeX[F] = i
+object Coapplicativez {
+  @inline def apply[F[_]](implicit i: Coapplicativez[F]): Coapplicativez[F] = i
 }

@@ -3,7 +3,7 @@
 
 package scalaz
 
-import scala.{ inline, Unit }
+import scala.{ inline }
 
 import iotaz.{ Prod, TList, TNil }
 import iotaz.TList.::
@@ -11,12 +11,12 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Applicative in terms of a single, generic, method. */
-trait ApplicativeX[F[_]]
+trait Applicativez[F[_]]
     extends LazyApplicative[F]
     with DangerousApplicative[F] {
   import Prods._
 
-  def applyX[A, Z, L <: TList, FL <: TList](
+  def applyX[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Prod[L] => Z
@@ -26,7 +26,7 @@ trait ApplicativeX[F[_]]
   ): F[Z]
 
   override def point[Z](z: => Z): F[Z] =
-    applyX[Unit, Z, TNil, TNil](empty)(_ => z)
+    applyX[Z, TNil, TNil](empty)(_ => z)
 
   override def map[A1, Z](a1: F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil
@@ -57,6 +57,6 @@ trait ApplicativeX[F[_]]
   // scalaz goes all the way to apply12, but we give up here for brevity
 
 }
-object ApplicativeX {
-  @inline def apply[F[_]](implicit i: ApplicativeX[F]): ApplicativeX[F] = i
+object Applicativez {
+  @inline def apply[F[_]](implicit i: Applicativez[F]): Applicativez[F] = i
 }

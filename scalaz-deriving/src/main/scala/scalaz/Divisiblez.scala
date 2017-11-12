@@ -10,7 +10,7 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Divisible in terms of a single, generic, method. */
-trait DivisibleX[F[_]] extends LazyDivisible[F] {
+trait Divisiblez[F[_]] extends LazyDivisible[F] {
   import Prods._
 
   def divideX[Z, L <: TList, FL <: TList](
@@ -45,6 +45,6 @@ trait DivisibleX[F[_]] extends LazyDivisible[F] {
   // scalaz goes all the way to divide22, but we give up here for brevity
 
 }
-object DivisibleX {
-  @inline def apply[F[_]](implicit i: DivisibleX[F]): DivisibleX[F] = i
+object Divisiblez {
+  @inline def apply[F[_]](implicit i: Divisiblez[F]): Divisiblez[F] = i
 }

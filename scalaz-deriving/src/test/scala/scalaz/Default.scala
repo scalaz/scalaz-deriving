@@ -6,6 +6,9 @@ package scalaz
 import java.lang.String
 
 import scala.{ inline, Boolean, Int }
+import scala.collection.immutable.Stream
+
+import Scalaz._
 
 // a simple covariant typeclass
 trait Default[A] {
@@ -22,26 +25,14 @@ object Default {
   implicit val boolean: Default[Boolean] = instance(false)
 
   implicit val Derived: Derived[Default] = new CovariantDerived[Default] {
+    val extract = λ[Default ~> Id](_.default)
+    override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
+      instance { f(extract) }
 
-    import iotaz._
-    import iotaz.TList.Compute.{ Aux => ↦ }
-    import iotaz.TList.Op.{ Map => ƒ }
-
-    def products[A, Z](f: (Default[A] => A) => Z): Default[Z] = instance {
-      f((fa: Default[A]) => fa.default)
-    }
-
-    def coapplyX[A, Z, L <: TList, TL <: TList](
-      tcs: Prod[TL]
-    )(
-      f: Cop[L] => Z
-    )(
-      implicit
-      ev: λ[a => Name[Default[a]]] ƒ L ↦ TL
-    ): Default[Z] = instance {
-      f(Cops.mapFirst(tcs)((d: Default[A]) => d.default))
-    }
-
+    val choose = λ[Default ~> Maybe](_.default.just)
+    override def coproducts[Z](f: (Default ~> Maybe) => Stream[Z]): Default[Z] =
+      instance { f(choose).head }
+    // .head is safe for Default because at least one thing is chosen
   }
 
 }

@@ -10,7 +10,7 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Codivide in terms of a single, generic, method. */
-trait CodivideX[F[_]] extends Codivide[F] {
+trait Codividez[F[_]] extends Codivide[F] {
   import Cops._
 
   def codivideX[Z, L <: TList, FL <: TList](
@@ -42,6 +42,6 @@ trait CodivideX[F[_]] extends Codivide[F] {
     codivideX(LazyProd(a1, a2, a3, a4))(z => from4(f(z)))
 
 }
-object CodivideX {
-  @inline def apply[F[_]](implicit i: CodivideX[F]): CodivideX[F] = i
+object Codividez {
+  @inline def apply[F[_]](implicit i: Codividez[F]): Codividez[F] = i
 }
