@@ -24,7 +24,7 @@ object Default {
   implicit val string: Default[String]   = instance("")
   implicit val boolean: Default[Boolean] = instance(false)
 
-  implicit val Derived: Derived[Default] = new CovariantDerived[Default] {
+  implicit val Derivedz: Derivedz[Default] = new CovariantDerivedz[Default] {
     val extract = λ[Default ~> Id](_.default)
     override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
       instance { f(extract) }

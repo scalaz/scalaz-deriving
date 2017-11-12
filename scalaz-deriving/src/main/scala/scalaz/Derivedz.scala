@@ -16,30 +16,32 @@ import Scalaz._
  * Typeclass Derivation for products, coproducts and AnyVal.
  *
  * Typeclasses with parameters in contravariant position (e.g. encoders,
- * comparators) should implement this typeclass with ContravariantDerived.
+ * comparators) should implement this typeclass with ContravariantDerivedz.
  *
  * Typeclasses with parameters in covariant position (e.g. decoders, data
- * generators) should implement this typeclass with CovariantDerived.
+ * generators) should implement this typeclass with CovariantDerivedz.
  *
  * Typeclasses with a mix of contravariant and covariant position methods (e.g.
  * a "format" that combines an encoder and a decoder) may implement this
  * typeclass directly but such constructs are usually best split into two parts,
  * with an implicit to create the combination where required.
  */
-trait Derived[F[_]]
-    extends CoapplicativeCodivide[F]
-    with ApplicativeDivisible[F]
-object Derived {
+trait Derivedz[F[_]] extends Derived[F] {
+
+  // TODO: the invariant generic API
+
+}
+object Derivedz {
   @inline def apply[F[_]](
-    implicit i: Derived[F]
-  ): Derived[F] = i
+    implicit i: Derivedz[F]
+  ): Derivedz[F] = i
 
   import Scalaz._
   import Maybe.Just
 
   // should really be on the companion of Equal
-  implicit val Equal: Derived[Equal] =
-    new ContravariantDerived[Equal] {
+  implicit val Equal: Derivedz[Equal] =
+    new ContravariantDerivedz[Equal] {
       def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
         ProductX.and(f)(z1, z2).all {
           case (p1, p2) => p1.tc.equal(p1.value, p2.value)
@@ -57,8 +59,8 @@ object Derived {
 
 }
 
-trait ContravariantDerived[F[_]]
-    extends Derived[F]
+trait ContravariantDerivedz[F[_]]
+    extends Derivedz[F]
     with Codividez[F]
     with Divisiblez[F] {
 
@@ -97,14 +99,14 @@ trait ContravariantDerived[F[_]]
   }
 
 }
-object ContravariantDerived {
+object ContravariantDerivedz {
   @inline def apply[F[_]](
-    implicit i: ContravariantDerived[F]
-  ): ContravariantDerived[F] = i
+    implicit i: ContravariantDerivedz[F]
+  ): ContravariantDerivedz[F] = i
 }
 
-trait CovariantDerived[F[_]]
-    extends Derived[F]
+trait CovariantDerivedz[F[_]]
+    extends Derivedz[F]
     with Coapplicativez[F]
     with Applicativez[F] {
 
@@ -127,8 +129,8 @@ trait CovariantDerived[F[_]]
     products(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
 
 }
-object CovariantDerived {
+object CovariantDerivedz {
   @inline def apply[F[_]](
-    implicit i: CovariantDerived[F]
-  ): CovariantDerived[F] = i
+    implicit i: CovariantDerivedz[F]
+  ): CovariantDerivedz[F] = i
 }

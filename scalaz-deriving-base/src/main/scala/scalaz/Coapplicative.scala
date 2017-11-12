@@ -1,5 +1,5 @@
 // Copyright: 2017 Sam Halliday
-// License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+// License: https://opensource.org/licenses/BSD-3-Clause
 
 package scalaz
 

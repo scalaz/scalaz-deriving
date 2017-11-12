@@ -12,9 +12,12 @@ val stalactite = (project in file("stalactite-macro")).settings(
 )
 
 // extensions to scalaz7.2
-val productive = (project in file("scalaz-productive")).settings(
+val scalaz = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
-  name := "scalaz-productive",
+  name := "scalaz-deriving-base",
+  licenses := Seq(
+    ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
+  ),
   libraryDependencies ++= Seq(
     "com.chuusai" %% "shapeless"   % "2.3.2",
     "org.scalaz"  %% "scalaz-core" % "7.2.16"
@@ -23,7 +26,7 @@ val productive = (project in file("scalaz-productive")).settings(
 
 val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
-    productive
+    scalaz
   )
   .settings(
     KindProjector,
