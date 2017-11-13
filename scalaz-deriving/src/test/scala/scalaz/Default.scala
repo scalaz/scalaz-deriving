@@ -24,15 +24,15 @@ object Default {
   implicit val boolean: Default[Boolean] = instance(false)
 
   implicit val Derivez: Derivez[Default] =
-    new CovariantDerivez[Default, NonEmptyList] {
+    new CovariantDerivez[Default, Id] {
       val extract = λ[Default ~> Id](_.default)
       override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
         instance { f(extract) }
 
-      val choose = λ[Default ~> NonEmptyList](d => NonEmptyList(d.default))
+      val choose = λ[Default ~> Id](_.default)
       override def coproducts[Z](
-        f: (Default ~> NonEmptyList) => NonEmptyList[Z]
-      ): Default[Z] = instance { f(choose).head }
+        f: (Default ~> Id) => Id[Z]
+      ): Default[Z] = instance { f(choose) }
     }
 
 }

@@ -252,13 +252,13 @@ implementing `..apply100`, we provide generic variants using the
 library. The equivalent implementations for arbitrary arity are
 
 ```scala
-  implicit val Default: Derivez[Default] =
-    new CovariantDerivez[Default, Nel] {
+  implicit val Derivez: Derivez[Default] =
+    new CovariantDerivez[Default, Id] {
       val extract = λ[Default ~> Id](_.default)
       override def products[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(extract) }
 
-      val choose = λ[Default ~> Nel](d => Nel(d.default))
-      override def coproducts[Z](f: (Default ~> Nel) => Nel[Z]): Default[Z] = instance { f(choose).head }
+      val choose = λ[Default ~> Id](_.default)
+      override def coproducts[Z](f: (Default ~> Id) => Id[Z]): Default[Z] = instance { f(choose) }
     }
 
   implicit val Equal: Derivez[Equal] = new ContravariantDerivez[Equal] {
@@ -275,4 +275,4 @@ library. The equivalent implementations for arbitrary arity are
   }
 ```
 
-The API is currently in flux and support for typeclasses that require labels (such as `Show` and encoders / decoders) is coming shortly.
+The API is currently in flux and support for typeclasses that require labels (e.g. `Show` / encoders / decoders) is coming soon.

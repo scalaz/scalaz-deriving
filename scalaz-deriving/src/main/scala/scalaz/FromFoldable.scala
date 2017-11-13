@@ -7,14 +7,11 @@ import scala.{ inline }
 
 import Scalaz._
 
-/** Better than CanBuildFrom but still hacky as hell */
-trait FromFoldable[F[_]] {
-  def fromFoldable[G[_]: Foldable1, A](g: G[A]): F[A]
-}
-object FromFoldable {
-  @inline def apply[F[_]](implicit i: FromFoldable[F]): FromFoldable[F] = i
-}
-
+/**
+ * Better than CanBuildFrom but still hacky as hell.
+ *
+ * See https://github.com/scalaz/scalaz/issues/1513
+ */
 trait FromFoldable1[F[_]] {
   def fromFoldable1[G[_]: Foldable1, A](g: G[A]): F[A]
 }
@@ -27,6 +24,7 @@ object FromFoldable1 {
       g.index(0).toMaybe
   }
 
+  // lazy but maybe OneAnd EStream would be better...
   implicit val estream: FromFoldable1[EphemeralStream] =
     new FromFoldable1[EphemeralStream] {
       override def fromFoldable1[G[_]: Foldable1, A](
@@ -35,6 +33,7 @@ object FromFoldable1 {
         g.toEphemeralStream
     }
 
+  // eager
   implicit val nel: FromFoldable1[NonEmptyList] =
     new FromFoldable1[NonEmptyList] {
       override def fromFoldable1[G[_]: Foldable1, A](
@@ -49,6 +48,7 @@ object FromFoldable1 {
       override def fromFoldable1[G[_]: Foldable1, A](
         g: G[A]
       ): Id[A] =
-        g.toNel.head
+        g.index(0).get
+      // .get is safe, see https://github.com/scalaz/scalaz/issues/1517
     }
 }

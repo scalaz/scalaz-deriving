@@ -66,10 +66,16 @@ package recadt {
   object Leaf {
     implicit val equal: Equal[Leaf] =
       Derivez[Equal].xderiving1((v: String) => Leaf(v), _.value)
+    implicit val default: Default[Leaf] =
+      Derivez[Default].xderiving1((v: String) => Leaf(v), _.value)
   }
   object Branch {
     implicit val equal: Equal[Branch] =
       Derivez[Equal]
+        .xderiving2((left: ATree, right: ATree) => Branch(left, right),
+                    b => (b.left, b.right))
+    implicit val default: Default[Branch] =
+      Derivez[Default]
         .xderiving2((left: ATree, right: ATree) => Branch(left, right),
                     b => (b.left, b.right))
   }
@@ -85,6 +91,8 @@ package recadt {
 
     implicit val equal: Equal[ATree] =
       Derivez[Equal].xcoderiving2(to, from)
+    implicit val default: Default[ATree] =
+      Derivez[Default].xcoderiving2(to, from)
   }
 
 }
@@ -100,10 +108,17 @@ package recgadt {
   object GLeaf {
     implicit def equal[A: Equal]: Equal[GLeaf[A]] =
       Derivez[Equal].xderiving1((v: A) => GLeaf(v), _.value)
+    implicit def default[A: Default]: Default[GLeaf[A]] =
+      Derivez[Default].xderiving1((v: A) => GLeaf(v), _.value)
   }
   object GBranch {
     implicit def equal[A: Equal]: Equal[GBranch[A]] =
       Derivez[Equal].xderiving2(
+        (left: GTree[A], right: GTree[A]) => GBranch(left, right),
+        b => (b.left, b.right)
+      )
+    implicit def default[A: Default]: Default[GBranch[A]] =
+      Derivez[Default].xderiving2(
         (left: GTree[A], right: GTree[A]) => GBranch(left, right),
         b => (b.left, b.right)
       )
@@ -120,6 +135,8 @@ package recgadt {
 
     implicit def equal[A: Equal]: Equal[GTree[A]] =
       Derivez[Equal].xcoderiving2(to, from)
+    implicit def default[A: Default]: Default[GTree[A]] =
+      Derivez[Default].xcoderiving2(to, from)
   }
 
 }
