@@ -196,15 +196,15 @@ These typeclasses are a formalism for deriving covariant typeclasses for
 products / coproducts, and contravariant typeclasses for products / coproducts,
 respectively.
 
-`Derived` and its two helper implementations, `CovariantDerived` and
-`ContravariantDerived` make it easy to define the derivation. For example, for a
+`Derives` and its two helper implementations, `CovariantDerives` and
+`ContravariantDerives` make it easy to define the derivation. For example, for a
 covariant typeclass `Default`
 
 ```scala
 trait Default[A] { def default: A }
 object Default {
-  implicit val Derived: Derived[Default] =
-    new CovariantDerived[Default] {
+  implicit val Derives: Derives[Default] =
+    new CovariantDerives[Default] {
       override def point[A](a: => A): Default[A] = instance(a)
       override def apply2[A1, A2, Z](a1: => Default[A1], a2: => Default[A2])(
         f: (A1, A2) => Z
@@ -222,7 +222,7 @@ object Default {
 and a contravariant typeclass, `Equal`
 
 ```scala
-  implicit val Derived: Derived[Equal] = new ContravariantDerived[Equal] {
+  implicit val Derives: Derives[Equal] = new ContravariantDerives[Equal] {
     override def divide2[A1, A2, Z](a1: => Equal[A1], a2: => Equal[A2])(
       f: Z => (A1, A2)
     ): Equal[Z] = { (z1, z2) =>
@@ -246,35 +246,33 @@ and a contravariant typeclass, `Equal`
   }
 ```
 
-However, `Derived` is limited to products and coproducts of arity 4. Rather than
+However, `Derives` is limited to products and coproducts of arity 4. Rather than
 implementing `..apply100`, we provide generic variants using the
 [iotaz](https://github.com/frees-io/iota) high performance generic programming
 library. The equivalent implementations for arbitrary arity are
 
 ```scala
-  implicit val Default: Derivedz[Default] = new CovariantDerivedz[Default] {
-    val extract = λ[Default ~> Id](_.default)
-    override def products[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(extract) }
+  implicit val Default: Derivez[Default] =
+    new CovariantDerivez[Default, Nel] {
+      val extract = λ[Default ~> Id](_.default)
+      override def products[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(extract) }
 
-    val choose = λ[Default ~> Maybe](_.default.just)
-    override def coproducts[Z](f: (Default ~> Maybe) => Stream[Z]): Default[Z] = instance { f(choose).head }
-  }
+      val choose = λ[Default ~> Nel](d => Nel(d.default))
+      override def coproducts[Z](f: (Default ~> Nel) => Nel[Z]): Default[Z] = instance { f(choose).head }
+    }
 
-  implicit val Equal: Derivedz[Equal] =
-    new ContravariantDerivedz[Equal] {
-      def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
-        ProductX.and(f)(z1, z2).all {
-          case (p1, p2) => p1.tc.equal(p1.value, p2.value)
-        }
-      }
+  implicit val Equal: Derivez[Equal] = new ContravariantDerivez[Equal] {
+    def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
+      ProductX.and(f)(z1, z2).all { case (p1, p2) => p1.tc.equal(p1.value, p2.value) }
+    }
 
-      def coproducts[Z](f: Z => CoproductX[Equal]): Equal[Z] = {
-        (z1: Z, z2: Z) => CoproductX.and(f)(z1, z2) match {
-          case Just((p1, p2)) => p1.tc.equal(p1.value, p2.value)
-          case _              => false
-        }
+    def coproducts[Z](f: Z => CoproductX[Equal]): Equal[Z] = {
+      (z1: Z, z2: Z) => CoproductX.and(f)(z1, z2) match {
+        case Just((p1, p2)) => p1.tc.equal(p1.value, p2.value)
+        case _              => false
       }
     }
+  }
 ```
 
 The API is currently in flux and support for typeclasses that require labels (such as `Show` and encoders / decoders) is coming shortly.

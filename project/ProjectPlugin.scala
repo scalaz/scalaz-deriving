@@ -15,6 +15,16 @@ object ProjectKeys {
       "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
   def KindProjector =
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
+
+  def extraScalacOptions(scalaVersion: String) =
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, 12)) =>
+        Seq("-Ywarn-unused:patvars,imports,privates,locals")
+      // explicits and (linted = imports,privates,locals,implicits) has far too
+      // many false positives (implementations and implicit evidence)
+      case _ => Nil
+    }
+
 }
 
 object ProjectPlugin extends AutoPlugin {
@@ -75,16 +85,7 @@ object ProjectPlugin extends AutoPlugin {
     ),
     // weird false positives...
     scalacOptions -= "-Ywarn-dead-code",
-    scalacOptions in (Compile, compile) ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 12)) if sys.env.get("CI").isDefined =>
-          // very annoying during local dev
-          Seq("-Ywarn-unused:explicits,patvars,imports,privates,locals")
-        // linted = imports,privates,locals,implicits
-        // but has far too many false positives with implicit evidence
-        case _ => Nil
-      }
-    },
+    scalacOptions ++= extraScalacOptions(scalaVersion.value),
     wartremoverWarnings in (Compile, compile) := Seq(
       Wart.FinalCaseClass,
       Wart.ExplicitImplicitTypes

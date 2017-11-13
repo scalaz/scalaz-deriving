@@ -3,7 +3,7 @@
 
 package scalaz
 
-import scala.collection.immutable.{ Seq, Stream, Vector }
+import scala.collection.immutable.{ Seq, Vector }
 
 import iotaz._
 import iotaz.TList._
@@ -84,27 +84,34 @@ object Prods {
 }
 
 object Cops {
-  // TODO: return a G[Cop[L]]... I don't know how to turn a Stream[G[?]] into
-  // G[?] (seems to need a way of turning a Seq into a G), needs Unfoldable?
-  def mapMaybe[T[_], G[_]: Foldable, L <: TList, TL <: TList](
+  def mapMaybe[A, T[_], G[_]: Monad: FromFoldable1, L <: TList, TL <: TList](
     tcs: Prod[TL]
   )(f: T ~> G)(
     implicit
+    // TODO: evidence for being non empty
     ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]
-  ): Stream[Cop[L]] =
-    tcs.values
+  ): G[Cop[L]] = {
+    val list = tcs.values
       .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
-      .toStream
+      .toList
+
+    NonEmptyList
+      .nel(list.head, list.tail.toIList) // .head is safe because non-empty
       .zipWithIndex
-      .flatMap {
+      .traverse {
         case (v, i) =>
-          f(v.value).toStream.map { y =>
+          // FIXME: this is happening eagerly, it should be lazy
+          f(v.value).map { y =>
             Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
           }
       }
+      .flatMap { es =>
+        FromFoldable1[G].fromFoldable1(es)
+      }
+  }
 
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
   def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {

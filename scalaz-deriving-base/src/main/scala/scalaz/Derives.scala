@@ -8,15 +8,15 @@ import scala.{ inline }
 import shapeless.{ Cached, Lazy }
 
 /** Invariant derivation of products and coproducts of limited arity. */
-trait Derived[F[_]]
+trait Derives[F[_]]
     extends CoapplicativeCodivide[F]
     with ApplicativeDivisible[F]
-object Derived {
+object Derives {
   @inline def apply[F[_]](
-    implicit i: Derived[F]
-  ): Derived[F] = i
+    implicit i: Derives[F]
+  ): Derives[F] = i
 
-  implicit val Equal: Derived[Equal] = new ContravariantDerived[Equal] {
+  implicit val Equal: Derives[Equal] = new ContravariantDerives[Equal] {
     override def divide2[A1, A2, Z](a1: => Equal[A1], a2: => Equal[A2])(
       f: Z => (A1, A2)
     ): Equal[Z] = { (z1, z2) =>
@@ -41,25 +41,25 @@ object Derived {
   }
 }
 
-trait ContravariantDerived[F[_]]
-    extends Derived[F]
+trait ContravariantDerives[F[_]]
+    extends Derives[F]
     with Codivide[F]
     with LazyDivisible[F]
-object ContravariantDerived {
+object ContravariantDerives {
   @inline def apply[F[_]](
-    implicit i: ContravariantDerived[F]
-  ): ContravariantDerived[F] = i
+    implicit i: ContravariantDerives[F]
+  ): ContravariantDerives[F] = i
 }
 
-trait CovariantDerived[F[_]]
-    extends Derived[F]
+trait CovariantDerives[F[_]]
+    extends Derives[F]
     with Coapplicative[F]
     with LazyApplicative[F]
     with DangerousApplicative[F]
-object CovariantDerived {
+object CovariantDerives {
   @inline def apply[F[_]](
-    implicit i: CovariantDerived[F]
-  ): CovariantDerived[F] = i
+    implicit i: CovariantDerives[F]
+  ): CovariantDerives[F] = i
 }
 
 trait ApplyDivide[F[_]] extends InvariantFunctor[F] {

@@ -21,9 +21,10 @@ object Default {
   implicit val string: Default[String]   = instance("")
   implicit val boolean: Default[Boolean] = instance(false)
 
-  implicit val Derived: Derived[Default] =
-    new CovariantDerived[Default] {
+  implicit val Derives: Derives[Default] =
+    new CovariantDerives[Default] {
       override def point[A](a: => A): Default[A] = instance(a)
+      // TODO: implement using ap
       override def apply2[A1, A2, Z](a1: => Default[A1], a2: => Default[A2])(
         f: (A1, A2) => Z
       ): Default[Z] = instance(f(a1.default, a2.default))

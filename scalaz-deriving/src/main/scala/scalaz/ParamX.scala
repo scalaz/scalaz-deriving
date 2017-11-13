@@ -11,7 +11,7 @@ import scala.{ Int }
  * The type of value is hidden, but since the types align we can apply value to
  * tc.
  *
- * If you require labels you must use LabelledDerived.
+ * If you require labels you must use LabelledDerives.
  */
 sealed abstract class ParamX[F[_]] {
   type T

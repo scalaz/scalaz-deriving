@@ -6,7 +6,6 @@ package scalaz
 import java.lang.String
 
 import scala.{ inline, Boolean, Int }
-import scala.collection.immutable.Stream
 
 import Scalaz._
 
@@ -24,15 +23,16 @@ object Default {
   implicit val string: Default[String]   = instance("")
   implicit val boolean: Default[Boolean] = instance(false)
 
-  implicit val Derivedz: Derivedz[Default] = new CovariantDerivedz[Default] {
-    val extract = λ[Default ~> Id](_.default)
-    override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
-      instance { f(extract) }
+  implicit val Derivez: Derivez[Default] =
+    new CovariantDerivez[Default, NonEmptyList] {
+      val extract = λ[Default ~> Id](_.default)
+      override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
+        instance { f(extract) }
 
-    val choose = λ[Default ~> Maybe](_.default.just)
-    override def coproducts[Z](f: (Default ~> Maybe) => Stream[Z]): Default[Z] =
-      instance { f(choose).head }
-    // .head is safe for Default because at least one thing is chosen
-  }
+      val choose = λ[Default ~> NonEmptyList](d => NonEmptyList(d.default))
+      override def coproducts[Z](
+        f: (Default ~> NonEmptyList) => NonEmptyList[Z]
+      ): Default[Z] = instance { f(choose).head }
+    }
 
 }

@@ -3,13 +3,13 @@
 
 package scalaz
 
-import java.lang.String
+//import java.lang.String
 
 import org.scalatest._
 
 import examples.adt._
-import examples.recadt._
-import examples.recgadt._
+//import examples.recadt._
+//import examples.recgadt._
 
 class CovariantSpec extends FlatSpec with NonImplicitAssertions {
   import Matchers._
@@ -22,6 +22,8 @@ class CovariantSpec extends FlatSpec with NonImplicitAssertions {
     Default[Foo].default should equal(Bar(""))
   }
 
+  // Default for a recursive ADT is a dumb idea
+  /*
   "recursive products" should "behave as expected" in {
     Default[Leaf].default should equal(Leaf(""))
   }
@@ -37,5 +39,6 @@ class CovariantSpec extends FlatSpec with NonImplicitAssertions {
   "recursive GADT coproducts" should "behave as expected" in {
     Default[GTree[String]].default should equal(GLeaf(""))
   }
+ */
 
 }

@@ -22,6 +22,10 @@ class CovariantSpec extends FlatSpec with NonImplicitAssertions {
     Default[Foo].default should equal(Bar(""))
   }
 
+  // Default for a recursive ADT is a dumb idea It only works by accident here
+  // because of the ordering of the source code case classes! Try using \/- as
+  // the choice, or swap the case classes around and watch the world explode
+  // with an infinite loop.
   "recursive products" should "behave as expected" in {
     Default[Leaf].default should equal(Leaf(""))
   }
