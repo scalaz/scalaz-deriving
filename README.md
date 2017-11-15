@@ -180,8 +180,7 @@ libraryDependencies += "com.fommil" %% "stalactite" % "<version + 0.0.1>-SNAPSHO
 
 # `scalaz-deriving`
 
-`scalaz-deriving` adds new typeclasses to `scalaz` and will be included in
-scalaz 7.3.x:
+`scalaz-deriving` adds new typeclasses to `scalaz` and will be included in scalaz 7.3.x:
 
 | Typeclass         | method      | given          | signature         | returns |
 |-------------------|-------------|----------------|-------------------|---------|
@@ -192,39 +191,32 @@ scalaz 7.3.x:
 
 with `apply3` and `apply4` defined in terms of `apply2`, etc.
 
-Read these type signatures like "if given an `F` for `A1` and an `F` for `A2`,
-and a way to decompose a `Z` into `(A1, A2)`, then we can get an `F[Z]`" now say
-that for `F = Equal` and consider that `Z => (A1, A2)` is splitting a two
-parameter case class, or `Z => A1 \/ A2` is splitting up a two element `sealed
-trait`.
+These typeclasses are a formalism to derive both covariant (writer) and contravariant (reader) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
 
-These typeclasses are a formalism for deriving covariant typeclasses for
-products / coproducts, and contravariant typeclasses for products / coproducts,
-respectively.
+We provide generic variants (unlimited arity) using the [iotaz](https://github.com/frees-io/iota) high performance generic programming library.
 
-`Derives` and its two helper implementations, `CovariantDerives` and
-`ContravariantDerives`, make it easy to define the derivation up to the fixed
-arity of 4. Rather than implementing all arities, e.g. `...apply100`, we provide
-generic variants using the [iotaz](https://github.com/frees-io/iota) high
-performance generic programming library.
-
-The only interface that a typeclass author needs to implement is one of the
-following (depending on whether your typeclass has its methods parameters in
-contravariant or covariant position):
+A typeclass author will implement one of the following interfaces:
 
 ```scala
-abstract class ContravariantDerivez[F[_]] {
-  def productz[Z](f: Z =*> F): F[Z]
-  def coproductz[Z](f: Z =+> F): F[Z]
+abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1] extends Derivez[F] {
+  def productz[Z](f: (F ~> Id) => Z): F[Z]
+  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
 }
 
-abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1] {
-  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
-  def productz[Z](f: (F ~> Id) => Z): F[Z]
+abstract class ContravariantDerivez[F[_]] extends Derivez[F] {
+  def productz[Z, G[_]: Foldable](f: Z =*> G): F[Z]
+  def coproductz[Z](f: Z =+> Maybe): F[Z]
 }
 ```
 
-For example, for a covariant typeclass `Default`, write
+`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a `Monad` of your choice that can be built from a `Foldable1`), returning a `Z`. The coproduct `F[A]` are evaluated lazily to avoid computation (at least the first two are evaluated [because of #1516](https://github.com/scalaz/scalaz/issues/1516)).
+
+The operators `=*>` and `=+>` are introduced by this library:
+
+- `=*>` takes a `Z` or `(Z, Z)`, returning a `Foldable` of `A`s and their corresponding `F[A]`.
+- `=+>` takes a `Z`, returning an `A` and its corresponding `F[A]`, or a `Maybe` if given `(Z, Z)`.
+
+For example, for a covariant typeclass `Default`:
 
 ```scala
 trait Default[A] {
@@ -239,9 +231,9 @@ object Default {
   }
 ```
 
-which is the typeclass' `Functor`, giving us `xmap` and `map` for free.
+which also defines `Functor[Default]`, giving us `.xmap` and `.map` for free.
 
-And for a contravariant typeclass, `Equal` write:
+For a contravariant typeclass, `Equal` write:
 
 ```scala
 trait Equal[F] {
@@ -261,7 +253,6 @@ object Equal {
 }
 ```
 
-which is the typeclasses' `InvariantFunctor`, giving us `xmap` and `contramap` for free.
+which defines `InvariantFunctor[Equal]`, giving us `.xmap` and `.contramap` for free.
 
-The API is currently in flux and support for typeclasses that require labels
-(e.g. `Show` / encoders / decoders) is coming soon.
+The API is currently in flux and support for typeclasses that require labels (e.g. `Show` / encoders / decoders) is coming soon.
