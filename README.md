@@ -183,96 +183,85 @@ libraryDependencies += "com.fommil" %% "stalactite" % "<version + 0.0.1>-SNAPSHO
 `scalaz-deriving` adds new typeclasses to `scalaz` and will be included in
 scalaz 7.3.x:
 
-| Typeclass         | method      | given          | signature         |
-|-------------------|-------------|----------------|-------------------|
-|`LazyApplicative`  | `apply2`    | `F[A1], F[A2]` | `(A1, A2) => Z`   |
-|`Coapplicative`    | `coapply2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` |
-|`LazyDivisible`    | `divide2`   | `F[A1], F[A2]` | `Z => (A1, A2)`   |
-|`Codivide`         | `codivide2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` |
+| Typeclass         | method      | given          | signature         | returns |
+|-------------------|-------------|----------------|-------------------|---------|
+|`LazyApplicative`  | `apply2`    | `F[A1], F[A2]` | `(A1, A2) => Z`   | `F[Z]`  |
+|`Coapplicative`    | `coapply2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` | `F[Z]`  |
+|`LazyDivisible`    | `divide2`   | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
+|`Codivide`         | `codivide2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
 
 with `apply3` and `apply4` defined in terms of `apply2`, etc.
+
+Read these type signatures like "if given an `F` for `A1` and an `F` for `A2`,
+and a way to decompose a `Z` into `(A1, A2)`, then we can get an `F[Z]`" now say
+that for `F = Equal` and consider that `Z => (A1, A2)` is splitting a two
+parameter case class, or `Z => A1 \/ A2` is splitting up a two element `sealed
+trait`.
 
 These typeclasses are a formalism for deriving covariant typeclasses for
 products / coproducts, and contravariant typeclasses for products / coproducts,
 respectively.
 
 `Derives` and its two helper implementations, `CovariantDerives` and
-`ContravariantDerives` make it easy to define the derivation. For example, for a
-covariant typeclass `Default`
+`ContravariantDerives`, make it easy to define the derivation up to the fixed
+arity of 4. Rather than implementing all arities, e.g. `...apply100`, we provide
+generic variants using the [iotaz](https://github.com/frees-io/iota) high
+performance generic programming library.
+
+The only interface that a typeclass author needs to implement is one of the
+following (depending on whether your typeclass has its methods parameters in
+contravariant or covariant position):
 
 ```scala
-trait Default[A] { def default: A }
-object Default {
-  implicit val Derives: Derives[Default] =
-    new CovariantDerives[Default] {
-      override def point[A](a: => A): Default[A] = instance(a)
-      override def apply2[A1, A2, Z](a1: => Default[A1], a2: => Default[A2])(
-        f: (A1, A2) => Z
-      ): Default[Z] = instance(f(a1.default, a2.default))
+abstract class ContravariantDerivez[F[_]] {
+  def productz[Z](f: Z =*> F): F[Z]
+  def coproductz[Z](f: Z =+> F): F[Z]
+}
 
-      override def coapply1[Z, A1](a1: => Default[A1])(f: A1 => Z): Default[Z] =
-        instance(f(a1.default))
-      override def coapply2[Z, A1, A2](a1: => Default[A1], a2: => Default[A2])(
-        f: A1 \/ A2 => Z
-      ): Default[Z] = instance(f(-\/(a1.default)))
-    }
+abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1] {
+  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
+  def productz[Z](f: (F ~> Id) => Z): F[Z]
 }
 ```
 
-and a contravariant typeclass, `Equal`
+For example, for a covariant typeclass `Default`, write
 
 ```scala
-  implicit val Derives: Derives[Equal] = new ContravariantDerives[Equal] {
-    override def divide2[A1, A2, Z](a1: => Equal[A1], a2: => Equal[A2])(
-      f: Z => (A1, A2)
-    ): Equal[Z] = { (z1, z2) =>
-      val (s1, s2) = f(z1)
-      val (t1, t2) = f(z2)
-      a1.equal(s1, t1) && a2.equal(s2, t2)
-    }
-    override def conquer[A]: Equal[A] = ((_, _) => true)
-
-    override def codivide1[Z, A1](a1: => Equal[A1])(f: Z => A1): Equal[Z] =
-      ((z1, z2) => a1.equal(f(z1), f(z2)))
-    override def codivide2[Z, A1, A2](a1: => Equal[A1], a2: => Equal[A2])(
-      f: Z => A1 \/ A2
-    ): Equal[Z] = { (z1, z2) =>
-      (f(z1), f(z2)) match {
-        case (-\/(s), -\/(t)) => a1.equal(s, t)
-        case (\/-(s), \/-(t)) => a2.equal(s, t)
-        case _                => false
-      }
-    }
+trait Default[A] {
+  def default: A
+}
+object Default {
+  ...
+  implicit val Derivez: CovariantDerivez[Default] = new CovariantDerivez[Default, Id] {
+    val choose = λ[Default ~> Id](_.default)
+    override def productz[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(choose) }
+    override def coproductz[Z](f: (Default ~> Id) => Id[Z]): Default[Z] = instance { f(choose) }
   }
 ```
 
-However, `Derives` is limited to products and coproducts of arity 4. Rather than
-implementing `..apply100`, we provide generic variants using the
-[iotaz](https://github.com/frees-io/iota) high performance generic programming
-library. The equivalent implementations for arbitrary arity are
+which is the typeclass' `Functor`, giving us `xmap` and `map` for free.
+
+And for a contravariant typeclass, `Equal` write:
 
 ```scala
-  implicit val Derivez: Derivez[Default] =
-    new CovariantDerivez[Default, Id] {
-      val extract = λ[Default ~> Id](_.default)
-      override def products[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(extract) }
-
-      val choose = λ[Default ~> Id](_.default)
-      override def coproducts[Z](f: (Default ~> Id) => Id[Z]): Default[Z] = instance { f(choose) }
+trait Equal[F] {
+  def equal(a1: F, a2: F): Boolean
+}
+object Equal {
+  ...
+  implicit val Derivez: ContravariantDerivez[Equal] = new ContravariantDerivez[Equal] {
+    def productz[Z, G[_]: Foldable](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
+      f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
     }
 
-  implicit val Equal: Derivez[Equal] = new ContravariantDerivez[Equal] {
-    def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
-      ProductX.and(f)(z1, z2).all { case (p1, p2) => p1.tc.equal(p1.value, p2.value) }
-    }
-
-    def coproducts[Z](f: Z => CoproductX[Equal]): Equal[Z] = {
-      (z1: Z, z2: Z) => CoproductX.and(f)(z1, z2) match {
-        case Just((p1, p2)) => p1.tc.equal(p1.value, p2.value)
-        case _              => false
-      }
+    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
+      f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }.getOrElse(false)
     }
   }
+}
 ```
 
-The API is currently in flux and support for typeclasses that require labels (e.g. `Show` / encoders / decoders) is coming soon.
+which is the typeclasses' `InvariantFunctor`, giving us `xmap` and `contramap` for free.
+
+The API is currently in flux and support for typeclasses that require labels
+(e.g. `Show` / encoders / decoders) is coming soon.

@@ -55,7 +55,7 @@ trait CovariantDerives[F[_]]
     extends Derives[F]
     with Coapplicative[F]
     with LazyApplicative[F]
-    with DangerousApplicative[F]
+//with DangerousApplicative[F]
 object CovariantDerives {
   @inline def apply[F[_]](
     implicit i: CovariantDerives[F]

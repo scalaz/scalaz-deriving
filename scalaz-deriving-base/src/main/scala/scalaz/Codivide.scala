@@ -28,7 +28,7 @@ trait Codivide[F[_]] extends CoapplicativeCodivide[F] {
     val a234: F[A2 \/ (A3 \/ A4)] = codivide2(a2, a34)(identity)
     codivide2(a1, a234)(f)
   }
-  // ... codivideX
+  // ... codivideN
 
   final def codividing2[Z, A1, A2](
     f: Z => A1 \/ A2

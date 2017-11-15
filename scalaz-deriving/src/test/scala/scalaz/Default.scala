@@ -25,14 +25,11 @@ object Default {
 
   implicit val Derivez: Derivez[Default] =
     new CovariantDerivez[Default, Id] {
-      val extract = λ[Default ~> Id](_.default)
-      override def products[Z](f: (Default ~> Id) => Z): Default[Z] =
-        instance { f(extract) }
-
       val choose = λ[Default ~> Id](_.default)
-      override def coproducts[Z](
-        f: (Default ~> Id) => Id[Z]
-      ): Default[Z] = instance { f(choose) }
+      override def productz[Z](f: (Default ~> Id) => Z): Default[Z] =
+        instance { f(choose) }
+      override def coproductz[Z](f: (Default ~> Id) => Id[Z]): Default[Z] =
+        instance { f(choose) }
     }
 
 }

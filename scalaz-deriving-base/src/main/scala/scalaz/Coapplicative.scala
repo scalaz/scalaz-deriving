@@ -22,12 +22,12 @@ trait Coapplicative[F[_]] extends CoapplicativeCodivide[F] {
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
   ): F[Z] =
     coapply2(a1, either2(a2, either2(a3, a4)))(f)
-  // ... coapplyX
+  // ... coapplyN
 
-  // equivalent of tupleX
+  // equivalent of tupleN
   def either2[A1, A2](a1: => F[A1], a2: => F[A2]): F[A1 \/ A2] =
     coapply2(a1, a2)(identity)
-  // ... eitherX
+  // ... eitherN
 
   final def coapplying1[Z, A1](
     f: A1 => Z

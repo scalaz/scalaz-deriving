@@ -3,7 +3,7 @@
 
 package scalaz
 
-import scala.{ inline }
+import scala.{ inline, Any }
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
@@ -26,8 +26,12 @@ import Scalaz._
  * with an implicit to create the combination where required.
  */
 trait Derivez[F[_]] extends Derives[F] {
+  // although we don't leave the G as a free parameter, it is a useful reminder
+  // to the author of the instance of what they receive after providing a Z.
+  type =*>[Z, G[_]] = ArityExists[Z, F, G]
+  type =+>[Z, G[_]] = ArityExists1[Z, F, G]
 
-  // TODO: the invariant generic API
+  // TODO: the invariant generic API and tests at that level
 
 }
 object Derivez {
@@ -35,66 +39,78 @@ object Derivez {
     implicit i: Derivez[F]
   ): Derivez[F] = i
 
-  import Scalaz._
-  import Maybe.Just
-
   // should really be on the companion of Equal
-  implicit val Equal: Derivez[Equal] =
+  implicit val Equal: ContravariantDerivez[Equal] =
     new ContravariantDerivez[Equal] {
-      def products[Z](f: Z => ProductX[Equal]): Equal[Z] = { (z1: Z, z2: Z) =>
-        ProductX.and(f)(z1, z2).all {
-          case (p1, p2) => p1.tc.equal(p1.value, p2.value)
-        }
+      def productz[Z, G[_]: Foldable](f: Z =*> G): Equal[Z] = {
+        (z1: Z, z2: Z) =>
+          f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
       }
 
-      def coproducts[Z](f: Z => CoproductX[Equal]): Equal[Z] = {
-        (z1: Z, z2: Z) =>
-          CoproductX.and(f)(z1, z2) match {
-            case Just((p1, p2)) => p1.tc.equal(p1.value, p2.value)
-            case _              => false
-          }
+      def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
+        f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
+          .getOrElse(false)
       }
     }
 
 }
 
-trait ContravariantDerivez[F[_]]
+abstract class ContravariantDerivez[F[_]]
     extends Derivez[F]
     with Codividez[F]
     with Divisiblez[F] {
 
-  // FIXME in light of the covariant case, can we remove ProductX / CoproductX
-  // from the API and deal in existentials?
-  def coproducts[Z](f: Z => CoproductX[F]): F[Z]
-  def products[Z](f: Z => ProductX[F]): F[Z]
+  def productz[Z, G[_]: Foldable](f: Z =*> G): F[Z]
+  def coproductz[Z](f: Z =+> Maybe): F[Z]
 
-  final def codivideX[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Z => Cop[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = coproducts { z =>
-    val co = f(z)
-    val tc = tcs.values(co.index).asInstanceOf[Name[F[scala.Any]]]
-    val v  = co.value
-    CoproductX(co.index, ParamX(v, tc.value))
-  }
-
-  final def divideX[Z, L <: TList, FL <: TList](
+  final def dividez[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Z => Prod[L]
   )(
     implicit
     ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = products { z =>
-    ProductX(
-      IList.fromList((f(z).values zip tcs.values).map { tcv =>
-        ParamX(tcv._1, tcv._2.asInstanceOf[Name[F[scala.Any]]].value)
-      }(scala.collection.breakOut))
-    )
+  ): F[Z] = productz {
+    import /~\.T2
+    import scala.collection.immutable.List
+    new (Z =*> List) {
+      def apply(z: Z): List[F /~\ Id] =
+        (f(z).values zip tcs.values).map { tcv =>
+          /~\(tcv._2.asInstanceOf[Name[F[Any]]].value, tcv._1)
+        }(scala.collection.breakOut)
+      def apply(z1: Z, z2: Z): List[F /~\ T2] =
+        (f(z1).values zip f(z2).values zip tcs.values).map { tcv =>
+          val ((v1, v2), tc) = tcv
+          /~\(tc.asInstanceOf[Name[F[Any]]].value, v1, v2)
+        }(scala.collection.breakOut)
+    }
+  }
+
+  final def codividez[Z, L <: TList, FL <: TList](
+    tcs: Prod[FL]
+  )(
+    f: Z => Cop[L]
+  )(
+    implicit
+    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = coproductz {
+    import /~\.T2
+    new (Z =+> Maybe) {
+      def apply(z: Z): F /~\ Id = {
+        val co = f(z)
+        val tc = tcs.values(co.index).asInstanceOf[Name[F[Any]]]
+        /~\(tc.value, co.value)
+      }
+      def apply(z1: Z, z2: Z): Maybe[F /~\ T2] = {
+        val co1 = f(z1)
+        val co2 = f(z2)
+        if (co1.index != co2.index) Maybe.empty
+        else {
+          val tc = tcs.values(co1.index).asInstanceOf[Name[F[Any]]]
+          Maybe.just(/~\(tc.value, co1.value, co2.value))
+        }
+      }
+    }
   }
 
 }
@@ -109,22 +125,22 @@ abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
     with Coapplicativez[F]
     with Applicativez[F] {
 
-  def coproducts[Z](f: (F ~> G) => G[Z]): F[Z]
-  def products[Z](f: (F ~> Id) => Z): F[Z]
+  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
+  def productz[Z](f: (F ~> Id) => Z): F[Z]
 
-  final def coapplyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+  final def coapplyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Cop[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] =
-    coproducts((faa: (F ~> G)) => Cops.mapMaybe(tcs)(faa).map(f))
+    coproductz((faa: (F ~> G)) => Cops.mapMaybe(tcs)(faa).map(f))
 
-  final def applyX[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+  final def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Prod[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] =
-    products(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
+    productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
 
 }
 object CovariantDerivez {

@@ -88,7 +88,7 @@ object Cops {
     tcs: Prod[TL]
   )(f: T ~> G)(
     implicit
-    // TODO: evidence for being non empty
+    // needs evidence for being non empty
     ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.

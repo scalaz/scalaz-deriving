@@ -7,17 +7,6 @@ import scala.{ inline }
 
 import shapeless.{ Cached, Lazy }
 
-// redefinition of Applicative in terms of apply2
-trait DangerousApplicative[F[_]] extends Applicative[F] {
-  override def ap[A, B](fa: => F[A])(f: => F[A => B]): F[B] =
-    apply2(fa, f)((a, abc) => abc(a))
-
-  // DANGEROUS: scala does not enforce the abstractness of this method
-  override def apply2[A1, A2, Z](a1: => F[A1], a2: => F[A2])(
-    f: (A1, A2) => Z
-  ): F[Z]
-}
-
 // a variant of Applicative introducing the new hierarchy. May be merged into
 // Applicative in scalaz7.3
 trait LazyApplicative[F[_]]

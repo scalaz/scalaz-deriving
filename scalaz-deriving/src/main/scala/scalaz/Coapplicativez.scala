@@ -14,7 +14,7 @@ import iotaz.TList.Op.{ Map => ƒ }
 trait Coapplicativez[F[_]] extends Coapplicative[F] {
   import Cops._
 
-  def coapplyX[Z, L <: TList, FL <: TList](
+  def coapplyz[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     f: Cop[L] => Z
@@ -25,13 +25,13 @@ trait Coapplicativez[F[_]] extends Coapplicative[F] {
 
   override def coapply1[Z, A1](a1: => F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil
-    coapplyX(LazyProd(a1))((c: Cop[L]) => f(to1(c)))
+    coapplyz(LazyProd(a1))((c: Cop[L]) => f(to1(c)))
   }
   override def coapply2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
     f: A1 \/ A2 => Z
   ): F[Z] = {
     type L = A1 :: A2 :: TNil
-    coapplyX(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)))
+    coapplyz(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)))
   }
   override def coapply3[Z, A1, A2, A3](a1: => F[A1],
                                        a2: => F[A2],
@@ -39,7 +39,7 @@ trait Coapplicativez[F[_]] extends Coapplicative[F] {
     f: A1 \/ (A2 \/ A3) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: TNil
-    coapplyX(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
+    coapplyz(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
   }
   override def coapply4[Z, A1, A2, A3, A4](a1: => F[A1],
                                            a2: => F[A2],
@@ -48,7 +48,7 @@ trait Coapplicativez[F[_]] extends Coapplicative[F] {
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
-    coapplyX(LazyProd(a1, a2, a3, a4))((c: Cop[L]) => f(to4(c)))
+    coapplyz(LazyProd(a1, a2, a3, a4))((c: Cop[L]) => f(to4(c)))
   }
 
 }
