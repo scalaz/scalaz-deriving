@@ -191,7 +191,7 @@ libraryDependencies += "com.fommil" %% "stalactite" % "<version + 0.0.1>-SNAPSHO
 
 with `apply3` and `apply4` defined in terms of `apply2`, etc.
 
-These typeclasses are a formalism to derive both covariant (writer) and contravariant (reader) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
+These typeclasses are a formalism to derive both covariant (reader) and contravariant (writer) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
 
 We provide generic variants (unlimited arity) using the [iotaz](https://github.com/frees-io/iota) high performance generic programming library.
 
