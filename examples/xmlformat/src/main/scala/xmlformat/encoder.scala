@@ -133,7 +133,6 @@ object Encoder {
   implicit val finiteDuration: Encoder[FiniteDuration] =
     long.contramap[FiniteDuration](_.toMillis)
 
-  // safe use of asInstanceOf because we are provided implicit
   // evidence that T is a subtype of Traversable.
   implicit def traversable[T[a] <: Traversable[a], A: Encoder]
     : Encoder[T[A]] = { ss =>

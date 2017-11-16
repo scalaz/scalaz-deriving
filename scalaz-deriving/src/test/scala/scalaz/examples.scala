@@ -9,6 +9,8 @@ import scala.{ Boolean, Int }
 import scalaz._
 import Scalaz._
 
+// TODO: tests should use the Derivez API
+
 package adt {
   // this is the user's code
   sealed trait Foo

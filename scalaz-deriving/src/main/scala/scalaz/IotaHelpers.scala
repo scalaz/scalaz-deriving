@@ -89,6 +89,7 @@ object Cops {
   )(f: T ~> G)(
     implicit
     // needs evidence for being non empty
+    // https://github.com/frees-io/iota/issues/91
     ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
