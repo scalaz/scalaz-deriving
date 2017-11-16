@@ -26,17 +26,15 @@ class CovariantSpec extends FlatSpec with NonImplicitAssertions {
     Default[Leaf].default should equal(Leaf(""))
   }
 
+  "recursive coproducts" should "behave as expected" in {
+    Default[ATree].default should equal(Leaf(""))
+  }
+
   "recursive GADT products" should "behave as expected" in {
     Default[GLeaf[String]].default should equal(GLeaf(""))
   }
 
-  // disabled due to eager evaluation in Cops.mapMaybe
-  // https://github.com/scalaz/scalaz/issues/1515
-  // https://github.com/scalaz/scalaz/issues/1516
-  "recursive coproducts" should "behave as expected" ignore {
-    Default[ATree].default should equal(Leaf(""))
-  }
-  "recursive GADT coproducts" should "behave as expected" ignore {
+  "recursive GADT coproducts" should "behave as expected" in {
     Default[GTree[String]].default should equal(GLeaf(""))
   }
 

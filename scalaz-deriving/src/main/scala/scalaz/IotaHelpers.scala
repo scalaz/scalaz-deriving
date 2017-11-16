@@ -93,27 +93,23 @@ object Cops {
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]
-  ): G[Cop[L]] = {
+  ): G[Cop[L]] =
     // until https://github.com/scalaz/scalaz/issues/1515 is resolved we have to
     // use stdlib Stream which means always evaluating at least one element.
-    val stream = tcs.values
+    tcs.values
       .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
       .toStream
-
-    // OneAnd evaluates both the head and the tail, which means we evaluate more
-    // lazy typeclass instances than we should (relevant for recursive ADTs).
-    // For Stream, this means we evaluate the first TWO elements:
-    // https://github.com/scalaz/scalaz/issues/1516
-    OneAnd(stream.head, stream.tail) // from the non-empty evidence
-    .indexed.traverse {
-      case (i, v) =>
-        f(v.value).map { y =>
-          Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
-        }
-    }.flatMap { s =>
-      FromFoldable1[G].fromFoldable1(s)
-    }
-  }
+      .indexed
+      .traverse {
+        case (i, v) =>
+          f(v.value).map { y =>
+            Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
+          }
+      }
+      .flatMap { s =>
+        val loa = LazyOneAnd(s.head, s.tail) // from the non-empty evidence
+        FromFoldable1[G].fromFoldable1(loa)
+      }
 
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
   def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {

@@ -209,7 +209,7 @@ abstract class ContravariantDerivez[F[_]] extends Derivez[F] {
 }
 ```
 
-`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a `Monad` of your choice that can be built from a `Foldable1`), returning a `Z`. The coproduct `F[A]` are evaluated lazily to avoid computation (at least the first two are evaluated [because of #1516](https://github.com/scalaz/scalaz/issues/1516)).
+`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a `Monad` of your choice that can be built from a `Foldable1`), returning a `Z`. The coproduct `F[A]` are evaluated lazily to avoid computation (at least the first is evaluated [because of #1515](https://github.com/scalaz/scalaz/issues/1515)).
 
 The operators `=*>` and `=+>` are introduced by this library:
 
