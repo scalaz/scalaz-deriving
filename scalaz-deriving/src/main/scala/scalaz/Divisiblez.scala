@@ -6,6 +6,7 @@ package scalaz
 import scala.{ inline }
 
 import iotaz.{ Prod, TList, TNil }
+import iotaz.TList.::
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
@@ -26,7 +27,7 @@ trait Divisiblez[F[_]] extends LazyDivisible[F] {
     dividez[Z, TNil, TNil](empty)(_ => empty)
 
   override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
-    dividez(Prod(Value(a1)))(z => from1T(f(z)))
+    dividez(Prod(Value(a1)))(z => Prod[A1 :: TNil](f(z)))
 
   override def divide2[A1, A2, Z](a1: => F[A1],
                                   a2: => F[A2])(f: Z => (A1, A2)): F[Z] =

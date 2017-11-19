@@ -56,6 +56,26 @@ object Derivez {
     implicit i: Derivez[F]
   ): Derivez[F] = i
 
+  /**
+   * Generate, for a given case class, object, or sealed trait `A` a call to
+   * relevant `Derivez` method to produce an `F[A]`.
+   *
+   * There is no magic in this macro, it is pure boilerplate generation. e.g.
+   * for `case class Foo(s: String, i: Int)` and `Equal`, the following is
+   * generated:
+   *
+   * {{{
+   * val G = ProdGen.gen[Foo]
+   * val tcs = Need(implicitly[Equal[String]]) :: Need(implicitly[Equal[Int]]) :: TNil
+   * Derivez.xproductz(tcs)(G.to, G.from)
+   * }}}
+   *
+   * And similarly for a sealed trait (but instead calling `CopGen.gen` and
+   * `xcoproductz`).
+   */
+  def gen[F[_], A]: F[A] = scala.Predef.???
+  // TODO: blackbox macro for case classes / objects and sealed traits
+
   // should really be on the companion of Equal
   implicit val Equal: ContravariantDerivez[Equal] =
     new ContravariantDerivez[Equal] {

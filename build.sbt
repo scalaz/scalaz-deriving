@@ -32,7 +32,8 @@ val deriving = (project in file("scalaz-deriving"))
     KindProjector,
     name := "scalaz-deriving",
     libraryDependencies ++= Seq(
-      "io.frees" %% "iotaz-core" % "0.3.2"
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+      "io.frees"       %% "iotaz-core"    % "0.3.2"
     )
   )
 

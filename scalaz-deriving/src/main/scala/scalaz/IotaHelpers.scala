@@ -3,6 +3,8 @@
 
 package scalaz
 
+import java.lang.String
+
 import scala.collection.immutable.{ Seq, Vector }
 
 import iotaz._
@@ -11,6 +13,68 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 import Scalaz._
+
+sealed abstract class ProdGen[A] {
+  type Repr <: TList
+  type Labels <: TList
+
+  def from(a: A): Prod[Repr]
+  def to(r: Prod[Repr]): A
+  def labels: Prod[Labels]
+}
+object ProdGen {
+  type Aux[A, R <: TList, L <: TList] = ProdGen[A] {
+    type Repr   = R
+    type Labels = L
+  }
+  def apply[A, R <: TList, L <: TList](
+    f: A => Prod[R],
+    t: Prod[R] => A,
+    n: Prod[L]
+  )(
+    implicit ev: λ[a => String] ƒ R ↦ L
+  ): Aux[A, R, L] = new ProdGen[A] {
+    type Repr   = R
+    type Labels = L
+    def from(a: A): Prod[Repr] = f(a)
+    def to(r: Prod[Repr]): A   = t(r)
+    def labels: Prod[Labels]   = n
+  }
+
+  def gen[A, R <: TList, L <: TList]: ProdGen.Aux[A, R, L] =
+    macro IotaMacros.prodGen[A, R, L]
+}
+
+sealed abstract class CopGen[A] {
+  type Repr <: TList
+  type Labels <: TList
+
+  def from(a: A): Cop[Repr]
+  def to(r: Cop[Repr]): A
+  def labels: Prod[Labels]
+}
+object CopGen {
+  type Aux[A, R <: TList, L <: TList] = CopGen[A] {
+    type Repr   = R
+    type Labels = L
+  }
+  def apply[A, R <: TList, L <: TList](
+    f: A => Cop[R],
+    t: Cop[R] => A,
+    n: Prod[L]
+  )(
+    implicit ev: λ[a => String] ƒ R ↦ L
+  ): Aux[A, R, L] = new CopGen[A] {
+    type Repr   = R
+    type Labels = L
+    def from(a: A): Cop[Repr] = f(a)
+    def to(r: Cop[Repr]): A   = t(r)
+    def labels: Prod[Labels]  = n
+  }
+
+  def gen[A, R <: TList, L <: TList]: CopGen.Aux[A, R, L] =
+    macro IotaMacros.copGen[A, R, L]
+}
 
 // unintentional joke about the state of northern irish politics...
 object LazyProd {
@@ -51,8 +115,6 @@ object Prods {
 
   val empty: Prod[TNil] = Prod()
 
-  def from1T[A1](a: A1): Prod[A1 :: TNil] =
-    Prod.unsafeApply(Vector(a))
   def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
     Prod.unsafeApply(Vector(e._1, e._2))
   def from3T[A1, A2, A3](e: (A1, A2, A3)): Prod[A1 :: A2 :: A3 :: TNil] =
