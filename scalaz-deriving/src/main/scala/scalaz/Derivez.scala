@@ -65,16 +65,15 @@ object Derivez {
    * generated:
    *
    * {{{
-   * val G = ProdGen.gen[Foo]
-   * val tcs = Need(implicitly[Equal[String]]) :: Need(implicitly[Equal[Int]]) :: TNil
-   * Derivez.xproductz(tcs)(G.to, G.from)
+   * val gen = ProdGen.gen[Foo]
+   * val tcs = Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
+   * Derivez.xproductz(tcs)(gen.to, gen.from)
    * }}}
    *
    * And similarly for a sealed trait (but instead calling `CopGen.gen` and
    * `xcoproductz`).
    */
-  def gen[F[_], A]: F[A] = scala.Predef.???
-  // TODO: blackbox macro for case classes / objects and sealed traits
+  def gen[F[_], A]: F[A] = macro DerivezMacros.gen[F, A]
 
   // should really be on the companion of Equal
   implicit val Equal: ContravariantDerivez[Equal] =

@@ -6,12 +6,10 @@ package scalaz
 import scala._
 import scala.reflect.macros.blackbox
 
-import iotaz._
-
 final class IotaMacros(val c: blackbox.Context) {
   import c.universe._
 
-  def prodGen[A, R <: TList, L <: TList](
+  def prodGen[A, R <: iotaz.TList, L <: iotaz.TList](
     implicit
     evA: c.WeakTypeTag[A],
     evR: c.WeakTypeTag[R],
@@ -23,7 +21,7 @@ final class IotaMacros(val c: blackbox.Context) {
 
     val aSym = A.typeSymbol
 
-    val Prod = weakTypeOf[Prod[_]].typeSymbol
+    val Prod = weakTypeOf[iotaz.Prod[_]].typeSymbol
 
     if (aSym.isModuleClass) {
       q"""
@@ -58,8 +56,7 @@ final class IotaMacros(val c: blackbox.Context) {
       c.abort(c.enclosingPosition, "macro only works for classes")
   }
 
-  // FIXME: the return type is not checked, e.g. if subtypes are mixed up.
-  def copGen[A, R <: TList, L <: TList](
+  def copGen[A, R <: iotaz.TList, L <: iotaz.TList](
     implicit
     evA: c.WeakTypeTag[A],
     evR: c.WeakTypeTag[R],
@@ -71,20 +68,44 @@ final class IotaMacros(val c: blackbox.Context) {
 
     val aSym = A.typeSymbol.asClass
 
-    val Prod = weakTypeOf[Prod[_]].typeSymbol
-    val Cop  = weakTypeOf[Cop[_]].typeSymbol
+    val Prod = weakTypeOf[iotaz.Prod[_]].typeSymbol
+    val Cop  = weakTypeOf[iotaz.Cop[_]].typeSymbol
 
     if (!aSym.isSealed)
       c.abort(c.enclosingPosition, "only supports sealed traits / classes")
     else {
-      // ordering is ill-defined
+      // ordering is ill-defined, we use source ordering
       val subs =
-        aSym.asClass.knownDirectSubclasses.toList //.sortBy(_.name.toString)
+        aSym.asClass.knownDirectSubclasses.toList
+          .map(_.asClass)
+          .sortBy(_.pos.start)
+
+      // we need to reconstruct the TList so the compiler can confirm that the
+      // order of subs matches the order in R. Ignores type parameters.
+
+      def deconstructTCons(t: Type): List[Type] = {
+        val args = t.typeArgs
+        if (args.isEmpty) Nil
+        else {
+          val List(head, tail) = args
+          head.typeConstructor :: deconstructTCons(tail)
+        }
+      }
+      val provided   = deconstructTCons(R)
+      val calculated = subs.map(_.toTypeConstructor)
+      (provided zip calculated).map {
+        case (r, s) =>
+          if (!(r =:= s))
+            c.abort(
+              c.enclosingPosition,
+              s"sealed trait parameters are out of order: provided $provided does not match calculated $calculated at $r =:= $s"
+            )
+      }
 
       // should probably generate an Inject instead of like this
       val fromParts = subs.zipWithIndex.map {
         case (sub, i) =>
-          val t = sub.asClass.toType
+          val t = sub.toType
           cq"c: $t => ${Cop.companion}.unsafeApply[$R, $t]($i, c)"
       }
       val labelParts = subs.map(sub => sub.name.toString)
