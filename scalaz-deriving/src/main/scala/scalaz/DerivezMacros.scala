@@ -37,7 +37,23 @@ final class DerivezMacros(val c: blackbox.Context) {
       aSym.asClass.knownDirectSubclasses.toList
         .map(_.asClass)
         .sortBy(_.pos.start)
-        .map(_.toType)
+        .map { cl =>
+          // this block is needed to handle the type parameter on a GADT
+          val t = cl.toType
+          val args = t.typeArgs.map { a =>
+            val sym = a.typeSymbol
+            val tSym = A
+              .find(_.typeSymbol.name == sym.name)
+              .getOrElse(
+                c.abort(
+                  c.enclosingPosition,
+                  s"type parameters on case classes ($t[${t.typeArgs}]) are not supported unless they are on the sealed trait ($A)"
+                )
+              )
+            a.substituteTypes(List(sym), List(tSym))
+          }
+          appliedType(t, args)
+        }
     } else {
       A.decls.collect {
         case m: MethodSymbol if m.isCaseAccessor =>

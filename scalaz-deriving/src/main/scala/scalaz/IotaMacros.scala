@@ -91,7 +91,7 @@ final class IotaMacros(val c: blackbox.Context) {
           head.typeConstructor :: deconstructTCons(tail)
         }
       }
-      val provided   = deconstructTCons(R)
+      val provided   = deconstructTCons(R.dealias)
       val calculated = subs.map(_.toTypeConstructor)
       (provided zip calculated).map {
         case (r, s) =>
