@@ -25,7 +25,6 @@ final class DerivezMacros(val c: blackbox.Context) {
     val Name   = weakTypeOf[scalaz.Name[_]].typeConstructor
     val String = weakTypeOf[java.lang.String]
 
-    // TODO: support type parameters
     def tlist(parts: List[Type]) =
       parts
         .foldRight(TNil) { (el, els) =>

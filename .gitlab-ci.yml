@@ -15,6 +15,10 @@ build_job:
   except:
     - master
   script:
+    - if $(git grep -qE "TODO|FIXME" *) ; then
+        echo "Please remove TODO or FIXME." ;
+        exit 1 ;
+      fi
     - sbt ";checks ;+test:compile ;+doc ;+test"
 
 deploy_job:
