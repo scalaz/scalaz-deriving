@@ -26,10 +26,12 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
 
 val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
-    scalaz
+    scalaz,
+    stalactite % "test"
   )
   .settings(
     KindProjector,
+    MacroParadise,
     name := "scalaz-deriving",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",

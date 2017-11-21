@@ -19,7 +19,7 @@ There are two parts to this library:
 ## Usage
 
 ```scala
-import stalactite._
+import scalaz.deriving
 
 @deriving(Encoder, Decoder)
 case class Bar(s: String, b: Boolean)

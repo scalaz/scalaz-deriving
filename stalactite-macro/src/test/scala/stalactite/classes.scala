@@ -6,7 +6,7 @@ package stalactite.examples
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
 
-import stalactite.deriving
+import scalaz.deriving
 import stalactite.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
 

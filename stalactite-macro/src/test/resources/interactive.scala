@@ -2,7 +2,7 @@
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 import play.api.libs.json._
-import stalactite._
+import scalaz.deriving
 
 package wibble {
   @deriving(Format)

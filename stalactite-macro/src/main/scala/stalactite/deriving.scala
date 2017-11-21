@@ -231,14 +231,6 @@ class DerivingMacros(val c: Context) extends BackCompat {
     )
   }
 
-  private def defaultTarget(term: TreeTermName): TreeTermName =
-    TreeTermName(term.tree match {
-      case Ident(name) =>
-        Select(Ident(TermName(s"Derived$name")), TermName("gen"))
-      case Select(qual, name) =>
-        Select(Select(qual, TermName(s"Derived$name")), TermName("gen"))
-    })
-
   private def toGen(target: TreeTermName): Tree =
     if (isIde) Literal(Constant(null)) else target.tree
 
@@ -253,6 +245,91 @@ class DerivingMacros(val c: Context) extends BackCompat {
           AnyValDesc(anyval.name, name, TreeTypeName(tpt))
       }.headOption
     }
+
+  private def toDerivezGen(
+    typeclass: TermAndType,
+    clazzTypeTree: Tree
+  ): Tree =
+    if (isIde) Literal(Constant(null))
+    else
+      TypeApply(
+        Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scalaz")),
+                      TermName("Derivez")),
+               TermName("gen")),
+        List(typeclass.cons.tree, clazzTypeTree)
+      )
+
+  private def genDerivezClassImplicitVal(
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
+      toDerivezGen(typeclass, Ident(c.name))
+    )
+
+  private def genDerivezObjectImplicitVal(
+    memberName: TermName,
+    typeclass: TermAndType,
+    comp: ModuleDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      AppliedTypeTree(
+        typeclass.cons.tree,
+        List(SingletonTypeTree(Ident(comp.name.toTermName)))
+      ),
+      toDerivezGen(typeclass, SingletonTypeTree(Ident(comp.name.toTermName)))
+    )
+
+  private def genDerivezClassImplicitDef(
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef,
+    tparams: List[TypeDef]
+  ) = {
+    val implicits =
+      if (isIde) Nil
+      else
+        List(
+          tparams.zipWithIndex.map {
+            case (t, i) =>
+              ValDef(
+                Modifiers(Flag.IMPLICIT | Flag.PARAM),
+                TermName(s"evidence$$$i"),
+                AppliedTypeTree(typeclass.cons.tree, List(Ident(t.name))),
+                EmptyTree
+              )
+          }
+        )
+
+    DefDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      tparams,
+      implicits,
+      AppliedTypeTree(
+        typeclass.cons.tree,
+        List(
+          AppliedTypeTree(
+            Ident(c.name),
+            tparams.map(tp => Ident(tp.name))
+          )
+        )
+      ),
+      toDerivezGen(
+        typeclass,
+        AppliedTypeTree(
+          Ident(c.name),
+          tparams.map(tp => Ident(tp.name))
+        )
+      )
+    )
+  }
 
   private def genClassImplicitVal(
     target: TreeTermName,
@@ -474,6 +551,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
   private sealed trait Target
   private case class Standard(value: TreeTermName)     extends Target
   private case class LeftInferred(value: TreeTermName) extends Target
+  private case object Derivez                          extends Target
 
   private def update(config: Config,
                      typeclasses: List[ModuleSymbol],
@@ -498,14 +576,28 @@ class DerivingMacros(val c: Context) extends BackCompat {
         val target = config.targets.get(s"$fqn.Aux") match {
           case Some(aux) => LeftInferred(parseToTermTree(aux))
           case None =>
-            val to = config.targets
+            config.targets
               .get(fqn)
               .map(parseToTermTree)
-              .getOrElse(defaultTarget(typeclass.term))
-            Standard(to)
+              .map(Standard(_))
+              .getOrElse(Derivez)
         }
 
         (clazz, target) match {
+          case (Some(c), Derivez) =>
+            (anyVal(c), c.tparams) match {
+              case (Some(vt), Nil) =>
+                genValueClassImplicitVal(memberName, typeclass, c, vt)
+              case (Some(vt), tparams) =>
+                genValueClassImplicitDef(memberName, typeclass, c, tparams, vt)
+              case (None, Nil) =>
+                genDerivezClassImplicitVal(memberName, typeclass, c)
+              case (None, tparams) =>
+                genDerivezClassImplicitDef(memberName, typeclass, c, tparams)
+            }
+          case (None, Derivez) =>
+            genDerivezObjectImplicitVal(memberName, typeclass, comp)
+
           case (Some(c), Standard(to)) =>
             (anyVal(c), c.tparams) match {
               case (Some(vt), Nil) =>

@@ -8,8 +8,6 @@ import java.lang.String
 import xmlformat._
 import xmlformat.DecoderUtils._
 
-import stalactite._
-
 import scalaz._
 import Scalaz._
 
