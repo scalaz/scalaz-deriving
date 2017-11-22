@@ -38,27 +38,15 @@ object ProjectPlugin extends AutoPlugin {
 
   override def buildSettings =
     Seq(
-      version := {
-        val dyn = dynverGitDescribeOutput.value.version(dynverCurrentDate.value)
-        val isSnapshot = dynverGitDescribeOutput.value.isSnapshot
-        if (!isSnapshot) dyn
-        else {
-          val NewVer = "(\\d+)[.](\\d+)[.](\\d+)-alpha0".r
-          val SemVer = "(\\d+)[.](\\d+)[.](\\d+)-?.*".r // accounts for M1 / RC
-          dyn.replaceAll("[+].*", "") match {
-            case NewVer(major, minor, patch) => s"$major.$minor.$patch-SNAPSHOT"
-            case SemVer(major, minor, patch) =>
-              s"$major.$minor.${patch.toInt + 1}-SNAPSHOT"
-            case other => "0.0.1-SNAPSHOT"
-          }
-        }
-      },
       organization := "com.fommil",
       crossScalaVersions := Seq("2.12.4", "2.11.11"),
       scalaVersion := crossScalaVersions.value.head,
       sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
-      licenses := Seq(LGPL3)
+      licenses := Seq(LGPL3),
+      scalafmtOnCompile := true,
+      scalafmtConfig := file("project/scalafmt.conf"),
+      scalafmtVersion := "1.3.0"
     ) ++ addCommandAlias("fmt", "all sbt:scalafmt scalafmt test:scalafmt") ++ addCommandAlias(
       "checks",
       "all scalafmt::test test:scalafmt::test sbt:scalafmt::test headerCheck test:headerCheck")
@@ -109,9 +97,6 @@ object ProjectPlugin extends AutoPlugin {
     wartremoverWarnings in (Test, compile) := Seq(
       Wart.FinalCaseClass
     ),
-    scalafmtOnCompile in ThisBuild := true,
-    scalafmtConfig in ThisBuild := file("project/scalafmt.conf"),
-    scalafmtVersion in ThisBuild := "1.3.0",
     scalacOptions in (Compile, console) -= "-Xfatal-warnings",
     initialCommands in (Compile, console) := Seq(
       "java.lang.String",
