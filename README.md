@@ -16,12 +16,13 @@ There are two independent, complementary, parts to this library:
 - [`@deriving` Macro Annotation](#deriving-macro-annotation)
     - [Usage](#usage)
         - [Derivation Backends](#derivation-backends)
-        - [`Derived` Style](#derived-style)
-        - [`.Aux` Derivation](#aux-derivation)
+            - [`Derived` Style](#derived-style)
+            - [`.Aux` Derivation](#aux-derivation)
 - [`scalaz-deriving`](#scalaz-deriving)
 - [Installation](#installation)
     - [IntelliJ Users](#intellij-users)
     - [Maven Central](#maven-central)
+    - [Caveats](#caveats)
 
 <!-- markdown-toc end -->
 
@@ -78,7 +79,7 @@ The `targets` config file is plain text with one line per wiring, formatted: `fq
 
 The `defaults` config file is plain text with one line per typeclass that you wish to **always** be derived. This is best reserved for performance optimisations, e.g. avoiding multiple `shapeless.Generic` derivations, rather than for feature-based typeclasses.
 
-### `Derived` Style
+#### `Derived` Style
 
 If you are writing a [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), or custom macro, please follow this convention:
 
@@ -91,7 +92,7 @@ object DerivedFoo {
 }
 ```
 
-### `.Aux` Derivation
+#### `.Aux` Derivation
 
 If you would prefer to let the compiler infer the type
 
@@ -218,17 +219,24 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 ## Maven Central
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving_2.12)
 
-The artefacts are independent and may be installed separately. The `@deriving` macro requires that the `macro-paradise` compiler plugin is installed:
+The artefacts are independent and may be installed separately. The `@deriving` macro requires that the [macro paradise](https://docs.scala-lang.org/overviews/macros/paradise.html) compiler plugin is installed:
 
 ```scala
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 libraryDependencies ++= Seq(
-  "com.fommil" %% "deriving-macro" % "<version>",
+  "com.fommil" %% "deriving" % "<version>",
   "com.fommil" %% "scalaz-deriving" % "<version>"
 )
 ```
 
 Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
+
+## Caveats
+
+The macro that generates the [iotaz](https://github.com/frees-io/iota) representation is very primitive and does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47) and contributors would be very welcome to help with this effort.
+
+Macro annotations do not work in ENSIME and Scala IDE. The generated methods are visible after a compile but you may still experience strangeness in files that use the `@deriving` macro. This will be addressed by [rewriting `@deriving` as a compiler plugin](https://gitlab.com/fommil/scalaz-deriving/issues/41).
+
