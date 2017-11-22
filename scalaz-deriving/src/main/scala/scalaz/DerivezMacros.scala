@@ -73,13 +73,13 @@ final class DerivezMacros(val c: blackbox.Context) {
       q"""
        val gen = _root_.scalaz.CopGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Derivez[$F].xcoproductz(tcs)(gen.to, gen.from)
+       _root_.scalaz.Derivez[$F].xcoproductz(tcs, gen.labels)(gen.to, gen.from)
        """
     } else {
       q"""
        val gen = _root_.scalaz.ProdGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Derivez[$F].xproductz(tcs)(gen.to, gen.from)
+       _root_.scalaz.Derivez[$F].xproductz(tcs, gen.labels)(gen.to, gen.from)
        """
     }
   }

@@ -3,6 +3,8 @@
 
 package scalaz
 
+import java.lang.String
+
 import scala.{ Option, Some }
 
 import Scalaz._
@@ -24,17 +26,15 @@ object /~\ {
   def unapply[A[_], B[_]](p: A /~\ B): Option[(A[p.T], B[p.T])] =
     Some((p.a, p.b))
 
-  def apply[A[_], Z](az: => A[Z], z: => Z): Aux[A, Id, Z] = new /~\[A, Id] {
-    type T = Z
-    def a: A[Z] = az
-    def b: Z    = z
-  }
   type T2[Z] = (Z, Z)
-  def apply[A[_], Z](az: => A[Z], z1: => Z, z2: => Z): Aux[A, T2, Z] =
-    new /~\[A, T2] {
+  type L1[Z] = (String, Z)
+  type L2[Z] = (String, Z, Z)
+
+  def apply[A[_], B[_], Z](az: => A[Z], bz: => B[Z]): Aux[A, B, Z] =
+    new /~\[A, B] {
       type T = Z
-      def a: A[Z]   = az
-      def b: (Z, Z) = (z1, z2)
+      def a: A[Z] = az
+      def b: B[Z] = bz
     }
 }
 
@@ -46,15 +46,25 @@ abstract class ArityExists[Z, F[_], G[_]] {
   import /~\.T2
   def apply(z: Z): G[F /~\ Id]
   def apply(z1: Z, z2: Z): G[F /~\ T2]
-  // could keep going...
 }
 
-/**
- * ArityExists but with special cased arity 1.
- */
+/** ArityExists with labels */
+abstract class LabelledArityExists[Z, F[_], G[_]] {
+  import /~\.{ L1, L2 }
+  def apply(z: Z): G[F /~\ L1]
+  def apply(z1: Z, z2: Z): G[F /~\ L2]
+}
+
+/** ArityExists but with special cased arity 1. */
 abstract class ArityExists1[Z, F[_], G[_]] {
   import /~\.T2
   def apply(z: Z): F /~\ Id
   def apply(z1: Z, z2: Z): G[F /~\ T2]
-  // could keep going...
+}
+
+/** ArityExists1 with Labels. */
+abstract class LabelledArityExists1[Z, F[_], G[_]] {
+  import /~\.{ L1, L2 }
+  def apply(z: Z): F /~\ L1
+  def apply(z1: Z, z2: Z): G[F /~\ L2]
 }

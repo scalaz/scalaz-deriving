@@ -7,12 +7,17 @@ import java.lang.String
 
 import org.scalatest._
 
+import examples.anyvals._
 import examples.adt._
 import examples.recadt._
 import examples.recgadt._
 
 class CovariantSpec extends FlatSpec with NonImplicitAssertions {
   import Matchers._
+
+  "anyvals" should "behave as expected" in {
+    Default[Thing].default should equal(Thing(""))
+  }
 
   "products" should "behave as expected" in {
     Default[Faz].default should equal(Faz(false, 0))

@@ -7,6 +7,7 @@ import java.lang.String
 
 import org.scalatest._
 
+import examples.anyvals._
 import examples.adt._
 import examples.recadt._
 import examples.recgadt._
@@ -18,6 +19,11 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz
   val faz: Foo = Faz(true, 1)
+
+  "anyvals" should "behave as expected" in {
+    assert(Thing("greetings") === Thing("greetings"))
+    assert(Thing("greetings") /== Thing("blessings"))
+  }
 
   "products" should "behave as expected" in {
     assert(Bar("hello") === Bar("hello"))

@@ -3,7 +3,9 @@
 
 package scalaz
 
-import scala.{ inline, Any }
+import java.lang.String
+
+import scala.{ inline }
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
@@ -15,40 +17,41 @@ import Scalaz._
  * Typeclass Derivation for products, coproducts and AnyVal.
  *
  * Typeclasses with parameters in contravariant position (e.g. encoders,
- * comparators) should implement this typeclass with ContravariantDerivez.
+ * comparators) should implement this typeclass with
+ * LabelledContravariantDerivez or ContravariantDerivez.
  *
  * Typeclasses with parameters in covariant position (e.g. decoders, data
- * generators) should implement this typeclass with CovariantDerivez.
+ * generators) should implement this typeclass with LabelledCovariantDerivez or
+ * CovariantDerivez.
  *
  * Typeclasses with a mix of contravariant and covariant position methods (e.g.
  * a "format" that combines an encoder and a decoder) may implement this
  * typeclass directly but such constructs are usually best split into two parts,
  * with an implicit to create the combination where required.
  */
-trait Derivez[F[_]] extends Derives[F] {
-  // although we don't leave the G as a free parameter, it is a useful reminder
-  // to the author of the instance of what they receive after providing a Z.
-  type =*>[Z, G[_]] = ArityExists[Z, F, G]
-  type =+>[Z, G[_]] = ArityExists1[Z, F, G]
-
-  def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+trait Derivez[F[_]] extends InvariantFunctor[F] {
+  def xproductz[Z, L <: TList, FL <: TList, N <: TList](
+    tcs: Prod[FL],
+    labels: Prod[N]
   )(
     f: Prod[L] => Z,
     g: Z => Prod[L]
   )(
     implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
+    ev2: λ[a => String] ƒ L ↦ N
   ): F[Z]
 
-  def xcoproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
+    tcs: Prod[FL],
+    labels: Prod[N]
   )(
     f: Cop[L] => Z,
     g: Z => Cop[L]
   )(
     implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
+    ev2: λ[a => String] ƒ L ↦ N
   ): F[Z]
 }
 object Derivez {
@@ -67,7 +70,7 @@ object Derivez {
    * {{{
    * val gen = ProdGen.gen[Foo]
    * val tcs = Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
-   * Derivez.xproductz(tcs)(gen.to, gen.from)
+   * Derivez.xproductz(tcs, gen.labels)(gen.to, gen.from)
    * }}}
    *
    * And similarly for a sealed trait (but instead calling `CopGen.gen` and
@@ -76,9 +79,9 @@ object Derivez {
   def gen[F[_], A]: F[A] = macro DerivezMacros.gen[F, A]
 
   // should really be on the companion of Equal
-  implicit val Equal: ContravariantDerivez[Equal] =
+  implicit val EqualDerivez: ContravariantDerivez[Equal] =
     new ContravariantDerivez[Equal] {
-      def productz[Z, G[_]: Foldable](f: Z =*> G): Equal[Z] = {
+      def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = {
         (z1: Z, z2: Z) =>
           f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
       }
@@ -89,138 +92,21 @@ object Derivez {
       }
     }
 
-}
-
-abstract class ContravariantDerivez[F[_]]
-    extends Derivez[F]
-    with Codividez[F]
-    with Divisiblez[F] {
-
-  def productz[Z, G[_]: Foldable](f: Z =*> G): F[Z]
-  def coproductz[Z](f: Z =+> Maybe): F[Z]
-
-  final def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = dividez(tcs)(g)
-
-  final def dividez[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Z => Prod[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = productz {
-    import /~\.T2
-    import scala.collection.immutable.List
-    new (Z =*> List) {
-      def apply(z: Z): List[F /~\ Id] =
-        (f(z).values zip tcs.values).map { tcv =>
-          /~\(tcv._2.asInstanceOf[Name[F[Any]]].value, tcv._1)
-        }(scala.collection.breakOut)
-      def apply(z1: Z, z2: Z): List[F /~\ T2] =
-        (f(z1).values zip f(z2).values zip tcs.values).map { tcv =>
-          val ((v1, v2), tc) = tcv
-          /~\(tc.asInstanceOf[Name[F[Any]]].value, v1, v2)
-        }(scala.collection.breakOut)
-    }
-  }
-
-  final def xcoproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = codividez(tcs)(g)
-
-  final def codividez[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Z => Cop[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = coproductz {
-    import /~\.T2
-    new (Z =+> Maybe) {
-      def apply(z: Z): F /~\ Id = {
-        val co = f(z)
-        val tc = tcs.values(co.index).asInstanceOf[Name[F[Any]]]
-        /~\(tc.value, co.value)
+  implicit val ShowDerivez: LabelledContravariantDerivez[Show] =
+    new LabelledContravariantDerivez[Show] {
+      def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
+        r.show(f(b))
       }
-      def apply(z1: Z, z2: Z): Maybe[F /~\ T2] = {
-        val co1 = f(z1)
-        val co2 = f(z2)
-        if (co1.index != co2.index) Maybe.empty
-        else {
-          val tc = tcs.values(co1.index).asInstanceOf[Name[F[Any]]]
-          Maybe.just(/~\(tc.value, co1.value, co2.value))
+      def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
+        "(" +: f(z).map {
+          case fa /~\ ((label, a)) => label +: "=" +: fa.show(a)
+        }.intercalate(",") :+ ")"
+      }
+      def coproductz[Z](f: Z =+> Maybe): Show[Z] = Show.show { z: Z =>
+        f(z) match {
+          case fa /~\ ((label, a)) => label +: fa.show(a)
         }
       }
     }
-  }
 
-}
-object ContravariantDerivez {
-  @inline def apply[F[_]](
-    implicit i: ContravariantDerivez[F]
-  ): ContravariantDerivez[F] = i
-}
-
-abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
-    extends Derivez[F]
-    with Coapplicativez[F]
-    with Applicativez[F] {
-
-  def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
-
-  final def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = applyz(tcs)(f)
-
-  final def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
-    f: Prod[L] => Z
-  )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] =
-    productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
-
-  final def xcoproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
-  )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
-  )(
-    implicit
-    ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = coapplyz(tcs)(f)
-
-  final def coapplyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
-    f: Cop[L] => Z
-  )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] =
-    coproductz((faa: (F ~> G)) => Cops.mapMaybe(tcs)(faa).map(f))
-
-}
-object CovariantDerivez {
-  @inline def apply[F[_], G[_]: Monad: FromFoldable1](
-    implicit i: CovariantDerivez[F, G]
-  ): CovariantDerivez[F, G] = i
 }
