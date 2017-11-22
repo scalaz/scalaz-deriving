@@ -1,4 +1,5 @@
 val deriving = (project in file("deriving-macro")).settings(
+  name := "deriving-macro",
   MacroParadise,
   libraryDependencies ++= Seq(
     "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",

@@ -219,7 +219,7 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 ## Maven Central
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12)
 
 The artefacts are independent and may be installed separately. The `@deriving` macro requires that the [macro paradise](https://docs.scala-lang.org/overviews/macros/paradise.html) compiler plugin is installed:
 
@@ -227,7 +227,7 @@ The artefacts are independent and may be installed separately. The `@deriving` m
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 libraryDependencies ++= Seq(
-  "com.fommil" %% "deriving" % "<version>",
+  "com.fommil" %% "deriving-macro" % "<version>",
   "com.fommil" %% "scalaz-deriving" % "<version>"
 )
 ```

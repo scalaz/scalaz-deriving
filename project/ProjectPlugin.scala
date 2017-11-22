@@ -8,6 +8,7 @@ import fommil.SensiblePlugin.autoImport._
 import fommil.SonatypePlugin.autoImport._
 import wartremover.WartRemover.autoImport._
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
+import sbtdynver.DynVerPlugin.autoImport._
 
 object ProjectKeys {
   def MacroParadise =
@@ -37,6 +38,21 @@ object ProjectPlugin extends AutoPlugin {
 
   override def buildSettings =
     Seq(
+      version := {
+        val dyn = dynverGitDescribeOutput.value.version(dynverCurrentDate.value)
+        val isSnapshot = dynverGitDescribeOutput.value.isSnapshot
+        if (!isSnapshot) dyn
+        else {
+          val NewVer = "(\\d+)[.](\\d+)[.](\\d+)-alpha0".r
+          val SemVer = "(\\d+)[.](\\d+)[.](\\d+)-?.*".r // accounts for M1 / RC
+          dyn.replaceAll("[+].*", "") match {
+            case NewVer(major, minor, patch) => s"$major.$minor.$patch-SNAPSHOT"
+            case SemVer(major, minor, patch) =>
+              s"$major.$minor.${patch.toInt + 1}-SNAPSHOT"
+            case other => "0.0.1-SNAPSHOT"
+          }
+        }
+      },
       organization := "com.fommil",
       crossScalaVersions := Seq("2.12.4", "2.11.11"),
       scalaVersion := crossScalaVersions.value.head,
