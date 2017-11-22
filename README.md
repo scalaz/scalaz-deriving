@@ -1,31 +1,42 @@
-`scalaz-deriving` makes it convenient to derive typeclasses for specific data
-types. The benefits are:
+`scalaz-deriving` makes it convenient to derive typeclasses for specific data types. The benefits are:
 
 - much faster compiles (never deeper than one `case class`)
 - faster runtime (less object allocation)
 - simpler implicit rules (less time fighting the compiler)
 - cleaner compiler errors (know where an implicit is missing)
 
-There are two parts to this library:
+There are two independent, complementary, parts to this library:
 
-- a `@deriving` macro for removing the boilerplate from semi-auto typeclass
-  derivation with [shapeless](http://fommil.com/scalax15/),
-  [magnolia](http://magnolia.work/) and hand-rolled macros.
-- `scalaz-deriving` an experimental and principled way for typeclass authors to
-  define generic typeclasses with a clean API and no macro magic.
+- a `@deriving` macro annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`).
+- `scalaz-deriving`, a principled way for typeclass authors to define generic typeclasses through a clean API and no macro magic.
 
-# Deriving Macro
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
+
+- [`@deriving` Macro Annotation](#deriving-macro-annotation)
+    - [Usage](#usage)
+        - [Derivation Backends](#derivation-backends)
+        - [`Derived` Style](#derived-style)
+        - [`.Aux` Derivation](#aux-derivation)
+- [`scalaz-deriving`](#scalaz-deriving)
+- [Installation](#installation)
+    - [IntelliJ Users](#intellij-users)
+    - [Maven Central](#maven-central)
+
+<!-- markdown-toc end -->
+
+# `@deriving` Macro Annotation
 
 ## Usage
 
-```scala
-import scalaz.deriving
+The `@deriving` annotation simplifies the *semi-auto* pattern, whereby implicit evidence is explicitly added to data type companions, rather than being inferred at the point of use (known as *full-auto*). In short,
 
-@deriving(Encoder, Decoder)
+```scala
+@scalaz.deriving(Encoder, Decoder)
 case class Bar(s: String, b: Boolean)
 ```
 
-expanding to
+expands to
 
 ```scala
 case class Bar(s: String, b: Boolean)
@@ -35,52 +46,50 @@ object Bar {
 }
 ```
 
-Also supports:
+The annotation also supports:
 
-- type parameters (will use `implicit def`)
+- type parameters (using `implicit def` rather than `implicit val`)
 - `sealed trait` and `object`
 - `extends AnyVal` (if the typeclass `TC[A]` has a `def xmap[B](f: A => B, g: B => A): TC[B]` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
 
-### Standard Derivation
+### Derivation Backends
 
-The macro expansion only works if a semi-auto derivation method exists
-for your typeclass. The following pattern of writing typeclasses is
-strongly recommended:
+The default expansion is to generate a call to `scalaz.Derivez.gen[TC, A]`, which expands into:
 
 ```scala
-@typeclass trait Foo[A] {
-  // put your methods here
-}
-object Foo extends FooLowPriority {
-  // put your stdlib instances here
-}
-trait FooLowPriority {
-  // put your slow derivations here (e.g. those that take a lot of evidence)
+val gen = scalaz.ProdGen.gen[Foo]
+val tcs = iotaz.Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
+scalaz.Derivez.xproductz(tcs, gen.labels)(gen.to, gen.from)
+```
+
+We provide wirings for several popular libraries out-of-the-box (e.g. `play.json.Format`) and you can provide your own project-specific wirings by setting up your build to point to your configuration files, e.g.
+
+```scala
+scalacOptions ++= {
+  val dir = (baseDirectory in ThisBuild).value / "project"
+  Seq(
+    s"-Xmacro-settings:deriving.targets=$dir/deriving-targets.conf",
+    s"-Xmacro-settings:deriving.defaults=$dir/deriving-defaults.conf"
+  )
 }
 ```
 
-and in a separate file put your generic derivation, which is opt-in
-and not automatically derived
+The `targets` config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`.
+
+The `defaults` config file is plain text with one line per typeclass that you wish to **always** be derived. This is best reserved for performance optimisations, e.g. avoiding multiple `shapeless.Generic` derivations, rather than for feature-based typeclasses.
+
+### `Derived` Style
+
+If you are writing a [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), or custom macro, please follow this convention:
 
 ```scala
+@typeclass trait Foo[A] { ... }
+
 trait DerivedFoo[A] extends Foo[A]
 object DerivedFoo {
-  def gen[A]: DerivedFoo[A] = ???
+  def gen: DerivedFoo[A] = ???
 }
 ```
-
-This pattern requires no further imports from users of your
-typeclasses at their use point as `gen` can make use of the
-`DerivedFoo` implicit scope when recursing.
-
-You may choose to implement `gen` with your own macro (e.g. as
-`play-json` does) or, recommended, with shapeless such as described
-in [Shapeless for Mortals](http://fommil.com/scalax15/). A yasnippet
-template for an encoder is available
-at
-[semiencoder](https://github.com/fommil/dotfiles/blob/master/.emacs.d/snippets/scala-mode/semiencoder).
-
-We plan on simplifying the process of generic derivation in #4.
 
 ### `.Aux` Derivation
 
@@ -100,87 +109,15 @@ object Bar {
 }
 ```
 
-(note that the type is not bound on the LHS, allowing for complex types), you can do so by creating a `.Aux` rule (see customisation below). Note that because these derivations are typically "flat", we do not require implicit evidence for the typeclass for all type parameters. e.g. for
+(note that the type is not bound on the LHS, allowing for complex types), you can do so by creating a `.Aux` rule in the config file, similar to the included rule:
 
-```scala
-@deriving(Generic)
-final case class Gaz[T](t: T)
 ```
-
-we generate
-
-```scala
-object Gaz {
-  implicit def generic[T] = Generic[Gaz[T]]
-}
-```
-
-not
-
-```scala
-object Gaz {
-  implicit def generic[T: Generic] = Generic[Gaz[T]]
-}
-```
-
-### Custom
-
-We provide wirings for several popular libraries out-of-the-box in
-=stalactite.conf= (and will accept Merge Requests to add more).
-
-You can provide your own project-specific wirings by setting up your
-build to point to your configuration files, e.g.
-
-```scala
-scalacOptions ++= {
-  val dir = (baseDirectory in ThisBuild).value / "project"
-  Seq(
-    s"-Xmacro-settings:stalactite.targets=$dir/stalactite-targets.conf",
-    s"-Xmacro-settings:stalactite.defaults=$dir/stalactite-defaults.conf"
-  )
-}
-```
-
-The `targets` config file is plain text with one line per wiring,
-formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method` for standard
-mappings, or `fqn.TypeClass.Aux=fqn.DerivedTypeClass.method` for
-`.Aux` rules.
-
-The `defaults` config file is plain text with one line per default
-typeclass. Use the `fqn.TypeClass` name, special patterns (such as
-`.Aux`) will be picked up correctly from the `targets` config.
-
-## Installation
-
-### IntelliJ Users
-
-Stalactite will work out-of-the box once [#388 is merged and released](https://github.com/JetBrains/intellij-scala/pull/388).
-
-Until then, you can install this
-[Custom Scala Plugin](https://github.com/fommil/stalactite/releases/download/v0.0.2/scala-plugin.zip).
-
-### Maven Central
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/stalactite_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/stalactite_2.12)
-
-```scala
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-
-libraryDependencies += "com.fommil" %% "stalactite" % "<version>"
-```
-
-### Snapshots
-
-```scala
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-
-resolvers += Resolver.sonatypeRepo("snapshots")
-libraryDependencies += "com.fommil" %% "stalactite" % "<version + 0.0.1>-SNAPSHOT"
+shapeless.Generic.Aux=shapeless.Generic.apply
 ```
 
 # `scalaz-deriving`
 
-`scalaz-deriving` adds new typeclasses to `scalaz` and will be included in scalaz 7.3.x:
+`scalaz-deriving` adds new typeclasses to `scalaz`:
 
 | Typeclass         | method      | given          | signature         | returns |
 |-------------------|-------------|----------------|-------------------|---------|
@@ -204,16 +141,16 @@ abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1] extends Derive
 }
 
 abstract class ContravariantDerivez[F[_]] extends Derivez[F] {
-  def productz[Z, G[_]: Foldable](f: Z =*> G): F[Z]
+  def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
   def coproductz[Z](f: Z =+> Maybe): F[Z]
 }
 ```
 
-`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a `Monad` of your choice that can be built from a `Foldable1`), returning a `Z`. The coproduct `F[A]` are evaluated lazily to avoid computation (at least the first is evaluated [because of #1515](https://github.com/scalaz/scalaz/issues/1515)).
+`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a non-empty `Monad` of your choice).
 
-The operators `=*>` and `=+>` are introduced by this library:
+The operators `=*>` and `=+>` are introduced by this library and are used for contravariant derivation:
 
-- `=*>` takes a `Z` or `(Z, Z)`, returning a `Foldable` of `A`s and their corresponding `F[A]`.
+- `=*>` takes a `Z` or `(Z, Z)`, returning a `Traverse` of `A`s and their corresponding `F[A]`.
 - `=+>` takes a `Z`, returning an `A` and its corresponding `F[A]`, or a `Maybe` if given `(Z, Z)`.
 
 For example, for a covariant typeclass `Default`:
@@ -255,4 +192,43 @@ object Equal {
 
 which defines `InvariantFunctor[Equal]`, giving us `.xmap` and `.contramap` for free.
 
-The API is currently in flux and support for typeclasses that require labels (e.g. `Show` / encoders / decoders) is coming soon.
+If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDerivez` variants:
+
+```scala
+implicit val ShowDerivez: LabelledContravariantDerivez[Show] = new LabelledContravariantDerivez[Show] {
+  def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
+    r.show(f(b))
+  }
+  def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
+    "(" +: f(z).map { case fa /~\ ((label, a)) => label +: "=" +: fa.show(a) }.intercalate(",") :+ ")"
+  }
+  def coproductz[Z](f: Z =+> Maybe): Show[Z] = Show.show { z: Z =>
+    f(z) match { case fa /~\ ((label, a)) => label +: fa.show(a) }
+  }
+}
+```
+
+Note that `contramap` (and `map`) are not provided automatically by these variants so must be implemented. The calls to `=*>` and `=+>` return a subtely different response than the non-label variants, with the `label` easily extracted with a pattern match.
+
+# Installation
+
+## IntelliJ Users
+
+`@deriving` will work out-of-the box if you are using the nightly plugin release.
+
+## Maven Central
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12)
+
+The artefacts are independent and may be installed separately. The `@deriving` macro requires that the `macro-paradise` compiler plugin is installed:
+
+```scala
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+
+libraryDependencies ++= Seq(
+  "com.fommil" %% "deriving-macro" % "<version>",
+  "com.fommil" %% "scalaz-deriving" % "<version>"
+)
+```
+
+Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.

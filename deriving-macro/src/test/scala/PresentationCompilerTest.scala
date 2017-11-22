@@ -1,7 +1,7 @@
 // Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package stalagtite
+package scalaz
 
 import org.scalatest._
 import Matchers._

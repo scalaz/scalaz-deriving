@@ -1,13 +1,13 @@
 // Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package stalactite.examples
+package testing.classes
 
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
 
 import scalaz.deriving
-import stalactite.typeclasses.{ Cobar => B, _ }
+import testing.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
 
 import play.api.libs.json
@@ -28,7 +28,7 @@ object Bar {
 }
 
 @deriving(Cofoo)
-private[examples] final case class Par(s: String)
+private[testing] final case class Par(s: String)
 
 // can't do json.Format: https://github.com/playframework/play-json/issues/93
 @deriving(Cofoo, B)

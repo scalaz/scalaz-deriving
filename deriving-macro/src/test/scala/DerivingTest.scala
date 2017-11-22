@@ -1,7 +1,7 @@
 // Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package stalactite.tests
+package tests
 
 import java.lang.String
 
@@ -11,25 +11,25 @@ import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
 import shapeless.{ the, Generic, LabelledGeneric }
-import stalactite.examples._
-import stalactite.typeclasses._
+import testing.classes._
+import testing.typeclasses._
 
 import Cofoo.ops._
 
-class StalactiteTest extends FlatSpec {
+class DerivingTest extends FlatSpec {
 
   "@deriving" should "support case classes" in {
-    the[Cofoo[Foo]] shouldBe Foo.`stalactite.typeclasses.Cofoo`
+    the[Cofoo[Foo]] shouldBe Foo.`testing.typeclasses.Cofoo`
     the[Cofoo[Foo]] should not equal null
   }
 
   it should "support typeclasses in the same compilation unit" in {
-    the[Wibble[Foo]] shouldBe Foo.`stalactite.examples.Wibble`
+    the[Wibble[Foo]] shouldBe Foo.`testing.classes.Wibble`
     the[Wibble[Foo]] should not equal null
   }
 
   it should "support case classes with a companion" in {
-    the[Cofoo[Bar]] shouldBe Bar.`stalactite.typeclasses.Cofoo`
+    the[Cofoo[Bar]] shouldBe Bar.`testing.typeclasses.Cofoo`
     the[Cofoo[Bar]] should not equal null
   }
 
@@ -38,28 +38,27 @@ class StalactiteTest extends FlatSpec {
     Gaz.`play.api.libs.json.Format`[String] should not equal null
   }
 
-  // https://github.com/fommil/stalactite/issues/3
   // it should "support HKT typeclasses" in {
   //   // also doubles as a test of FQN handling
 
-  //   the[stalactite.typeclasses.a.Cobaz[Gaz]] should not equal null
-  //   Gaz.`stalactite.typeclasses.a.Cobaz` should not equal null
+  //   the[testing.typeclasses.a.Cobaz[Gaz]] should not equal null
+  //   Gaz.`testing.typeclasses.a.Cobaz` should not equal null
 
-  //   the[stalactite.typeclasses.b.Cobaz[Gaz]] should not equal null
-  //   Gaz.`stalactite.typeclasses.b.Cobaz` should not equal null
+  //   the[testing.typeclasses.b.Cobaz[Gaz]] should not equal null
+  //   Gaz.`testing.typeclasses.b.Cobaz` should not equal null
   // }
 
   it should "support sealed traits" in {
-    the[Cofoo[Baz]] shouldBe Baz.`stalactite.typeclasses.Cofoo`
+    the[Cofoo[Baz]] shouldBe Baz.`testing.typeclasses.Cofoo`
     the[Cofoo[Baz]] should not equal null
-    the[Cobar[Baz]] shouldBe Baz.`stalactite.typeclasses.Cobar`
+    the[Cobar[Baz]] shouldBe Baz.`testing.typeclasses.Cobar`
     the[Cobar[Baz]] should not equal null
   }
 
   it should "special case AnyVal" in {
     the[Cofoo[Anyz]] should not equal null
 
-    the[Cofoo[Anyz]] shouldBe Anyz.`stalactite.typeclasses.Cofoo`
+    the[Cofoo[Anyz]] shouldBe Anyz.`testing.typeclasses.Cofoo`
 
     Anyz("wibble").toFoo shouldBe "exercised the xmap codepath"
 
@@ -87,7 +86,7 @@ class StalactiteTest extends FlatSpec {
   }
 
   it should "support user-provided rules" in {
-    the[Cobar[Foo]] shouldBe Foo.`stalactite.typeclasses.Cobar`
+    the[Cobar[Foo]] shouldBe Foo.`testing.typeclasses.Cobar`
     the[Cobar[Foo]] should not equal null
   }
 
@@ -104,8 +103,6 @@ class StalactiteTest extends FlatSpec {
   }
 
   it should "support the .Aux pattern on parameterised classes" in {
-    // we can't expect theSameInstanceAs to hold without
-    // https://gitlab.com/fommil/stalactite/issues/35
     Gaz.`shapeless.Generic`[String] should not equal null
     val g = Generic[Gaz[String]]
     g shouldBe an[Generic.Aux[Gaz[String], g.Repr]]
@@ -122,10 +119,10 @@ class StalactiteTest extends FlatSpec {
   }
 }
 
-// @stalactite.deriving(Cobar)
+// @scalaz.deriving(Cobar)
 // class ElZilcho(s: String)
 
 // AnyVal cannot be defined in a test
 // should fail with "value xmap is not a member of ..."
-//@stalactite.deriving(Cobar)
+//@scalaz.deriving(Cobar)
 //class Bad(val s: String) extends scala.AnyVal

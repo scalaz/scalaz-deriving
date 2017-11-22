@@ -1,7 +1,7 @@
 // Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package stalactite
+package scalaz
 
 import java.lang.String
 
@@ -80,7 +80,7 @@ object DerivingMacros extends BackCompat {
 
   private lazy val defaultTargets: Result[Stringy] =
     for {
-      s <- readResource("/stalactite.conf")
+      s <- readResource("/deriving.conf")
       c <- parseProperties(s)
     } yield c
 
@@ -177,8 +177,8 @@ class DerivingMacros(val c: Context) extends BackCompat {
 
   private def readConfig(): Either[String, Config] =
     for {
-      targets  <- DerivingMacros.targets(getParam("stalactite.targets"))
-      defaults <- DerivingMacros.defaults(getParam("stalactite.defaults"))
+      targets  <- DerivingMacros.targets(getParam("deriving.targets"))
+      defaults <- DerivingMacros.defaults(getParam("deriving.defaults"))
     } yield
       Config(
         targets,
@@ -549,7 +549,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
 
   /* typeclass patterns supported */
   private sealed trait Target
-  private case class Standard(value: TreeTermName)     extends Target
+  private case class Derived(value: TreeTermName)      extends Target
   private case class LeftInferred(value: TreeTermName) extends Target
   private case object Derivez                          extends Target
 
@@ -579,7 +579,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
             config.targets
               .get(fqn)
               .map(parseToTermTree)
-              .map(Standard(_))
+              .map(Derived(_))
               .getOrElse(Derivez)
         }
 
@@ -598,7 +598,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
           case (None, Derivez) =>
             genDerivezObjectImplicitVal(memberName, typeclass, comp)
 
-          case (Some(c), Standard(to)) =>
+          case (Some(c), Derived(to)) =>
             (anyVal(c), c.tparams) match {
               case (Some(vt), Nil) =>
                 genValueClassImplicitVal(memberName, typeclass, c, vt)
@@ -609,7 +609,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
               case (None, tparams) =>
                 genClassImplicitDef(to, memberName, typeclass, c, tparams)
             }
-          case (None, Standard(to)) =>
+          case (None, Derived(to)) =>
             genObjectImplicitVal(to, memberName, typeclass, comp)
 
           case (Some(c), LeftInferred(to)) =>
@@ -654,7 +654,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
   def generateImplicits(annottees: c.Expr[Any]*): c.Expr[Any] = {
     val config = readConfig().fold(
       error => {
-        c.error(c.prefix.tree.pos, s"Failed to parse stalactite config: $error")
+        c.error(c.prefix.tree.pos, s"Failed to parse deriving config: $error")
         Config()
       },
       success => success

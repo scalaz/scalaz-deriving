@@ -40,7 +40,7 @@ object ProjectPlugin extends AutoPlugin {
       organization := "com.fommil",
       crossScalaVersions := Seq("2.12.4", "2.11.11"),
       scalaVersion := crossScalaVersions.value.head,
-      sonatypeGithost := (Gitlab, "fommil", "stalactite"),
+      sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3)
     ) ++ addCommandAlias("fmt", "all sbt:scalafmt scalafmt test:scalafmt") ++ addCommandAlias(
@@ -51,8 +51,8 @@ object ProjectPlugin extends AutoPlugin {
     scalacOptions in Test ++= {
       val dir = (baseDirectory in ThisBuild).value / "project"
       Seq(
-        s"-Xmacro-settings:stalactite.targets=$dir/stalactite-targets.conf",
-        s"-Xmacro-settings:stalactite.defaults=$dir/stalactite-defaults.conf"
+        s"-Xmacro-settings:deriving.targets=$dir/deriving-targets.conf",
+        s"-Xmacro-settings:deriving.defaults=$dir/deriving-defaults.conf"
       )
     },
     javaOptions in Test ++= {

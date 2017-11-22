@@ -1,4 +1,4 @@
-val stalactite = (project in file("stalactite-macro")).settings(
+val deriving = (project in file("deriving-macro")).settings(
   MacroParadise,
   libraryDependencies ++= Seq(
     "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
@@ -24,10 +24,10 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
   )
 )
 
-val deriving = (project in file("scalaz-deriving"))
+val derivez = (project in file("scalaz-deriving"))
   .dependsOn(
     scalaz,
-    stalactite % "test"
+    deriving % "test"
   )
   .settings(
     KindProjector,
@@ -40,7 +40,7 @@ val deriving = (project in file("scalaz-deriving"))
   )
 
 val xmlformat = (project in file("examples/xmlformat"))
-  .dependsOn(stalactite)
+  .dependsOn(deriving)
   .settings(
     MacroParadise,
     scalacOptions -= "-Yno-imports",
