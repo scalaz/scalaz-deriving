@@ -236,6 +236,8 @@ Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("sn
 
 ## Caveats
 
+`scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided.
+
 The macro that generates the [iotaz](https://github.com/frees-io/iota) representation is very primitive and does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47) and contributors would be very welcome to help with this effort.
 
 Macro annotations do not work in ENSIME and Scala IDE. The generated methods are visible after a compile but you may still experience strangeness in files that use the `@deriving` macro. This will be addressed by [rewriting `@deriving` as a compiler plugin](https://gitlab.com/fommil/scalaz-deriving/issues/41).
