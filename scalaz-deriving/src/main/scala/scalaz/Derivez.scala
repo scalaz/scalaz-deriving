@@ -5,7 +5,7 @@ package scalaz
 
 import java.lang.String
 
-import scala.{ inline }
+import scala.{ inline, AnyRef }
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
@@ -83,12 +83,20 @@ object Derivez {
     new ContravariantDerivez[Equal] {
       def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = {
         (z1: Z, z2: Z) =>
-          f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
+          (z1.asInstanceOf[AnyRef] eq z2.asInstanceOf[AnyRef]) ||
+          f(z1, z2).all {
+            case fa /~\ ((a1, a2)) =>
+              (a1.asInstanceOf[AnyRef] eq a2.asInstanceOf[AnyRef]) ||
+                fa.equal(a1, a2)
+          }
       }
 
       def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
-        f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
-          .getOrElse(false)
+        (z1.asInstanceOf[AnyRef] eq z2.asInstanceOf[AnyRef]) || f(z1, z2).map {
+          case fa /~\ ((a1, a2)) =>
+            (a1.asInstanceOf[AnyRef] eq a2.asInstanceOf[AnyRef]) ||
+              fa.equal(a1, a2)
+        }.getOrElse(false)
       }
     }
 

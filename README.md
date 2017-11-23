@@ -194,9 +194,7 @@ If your typeclass requires access to labels (e.g. names of `case class` and `sea
 
 ```scala
 implicit val ShowDerivez: LabelledContravariantDerivez[Show] = new LabelledContravariantDerivez[Show] {
-  def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
-    r.show(f(b))
-  }
+  def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b => r.show(f(b)) }
   def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
     "(" +: f(z).map { case fa /~\ ((label, a)) => label +: "=" +: fa.show(a) }.intercalate(",") :+ ")"
   }
