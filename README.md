@@ -14,10 +14,9 @@ There are two independent, complementary, parts to this library:
 **Table of Contents**
 
 - [`@deriving` Macro Annotation](#deriving-macro-annotation)
-    - [Usage](#usage)
-        - [Derivation Backends](#derivation-backends)
-            - [`Derived` Style](#derived-style)
-            - [`.Aux` Derivation](#aux-derivation)
+    - [Backends](#backends)
+        - [`Derived` Style](#derived-style)
+        - [`.Aux` Derivation](#aux-derivation)
 - [`scalaz-deriving`](#scalaz-deriving)
 - [Installation](#installation)
     - [IntelliJ Users](#intellij-users)
@@ -27,8 +26,6 @@ There are two independent, complementary, parts to this library:
 <!-- markdown-toc end -->
 
 # `@deriving` Macro Annotation
-
-## Usage
 
 The `@deriving` annotation simplifies the *semi-auto* pattern, whereby implicit evidence is explicitly added to data type companions, rather than being inferred at the point of use (known as *full-auto*). In short,
 
@@ -53,9 +50,9 @@ The annotation also supports:
 - `sealed trait` and `object`
 - `extends AnyVal` (if the typeclass `TC[A]` has a `def xmap[B](f: A => B, g: B => A): TC[B]` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
 
-### Derivation Backends
+## Backends
 
-The default expansion is to generate a call to `scalaz.Derivez.gen[TC, A]`, which expands into:
+The default expansion is to generate a call to `scalaz.Derivez.gen[TC, A]`, which (if installed) expands into:
 
 ```scala
 val gen = scalaz.ProdGen.gen[Foo]
@@ -79,7 +76,7 @@ The `targets` config file is plain text with one line per wiring, formatted: `fq
 
 The `defaults` config file is plain text with one line per typeclass that you wish to **always** be derived. This is best reserved for performance optimisations, e.g. avoiding multiple `shapeless.Generic` derivations, rather than for feature-based typeclasses.
 
-#### `Derived` Style
+### `Derived` Style
 
 If you are writing a [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), or custom macro, please follow this convention:
 
@@ -92,7 +89,7 @@ object DerivedFoo {
 }
 ```
 
-#### `.Aux` Derivation
+### `.Aux` Derivation
 
 If you would prefer to let the compiler infer the type
 
@@ -180,7 +177,7 @@ trait Equal[F] {
 object Equal {
   ...
   implicit val Derivez: ContravariantDerivez[Equal] = new ContravariantDerivez[Equal] {
-    def productz[Z, G[_]: Foldable](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
+    def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
       f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
     }
 
