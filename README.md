@@ -1,14 +1,15 @@
-`scalaz-deriving` makes it convenient to derive typeclasses for specific data types. The benefits are:
+`scalaz-deriving` derive typeclasses instances for your data types. The benefits are:
 
-- much faster compiles (never deeper than one `case class`)
-- faster runtime (less object allocation)
+- [much faster compiles](https://github.com/propensive/magnolia/pull/45)
+- [faster runtime](https://github.com/fosskers/scalaz-and-cats/pull/4)
 - simpler implicit rules (less time fighting the compiler)
 - cleaner compiler errors (know where an implicit is missing)
+- easy to write derivation logic for your own typeclasses
 
-There are two independent, complementary, parts to this library:
+There are two independent and complementary parts to this library:
 
 - a `@deriving` macro annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`).
-- `scalaz-deriving`, a principled way for typeclass authors to define generic typeclasses through a clean API and no macro magic.
+- `scalaz-deriving`, a principled way for typeclass authors to define typeclass derivations, plus derivations for some `scalaz-core` typeclasses (e.g. `Equal`, `Show`).
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
