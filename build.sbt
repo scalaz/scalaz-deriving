@@ -60,3 +60,23 @@ val xmlformat = (project in file("examples/xmlformat"))
 // root project
 publishLocal := {}
 publish := {}
+
+// WORKAROUND: until https://github.com/scalameta/scalafmt/issues/1081
+def latestScalafmt = "1.3.0+14-910a2ed5"
+commands += Command.args("scalafmt", "scalafmt CLI") {
+  case (state, args) =>
+    val Right(scalafmt) =
+      org.scalafmt.bootstrap.ScalafmtBootstrap.fromVersion(latestScalafmt)
+    scalafmt.main(
+      List(
+        "--config",
+        "project/scalafmt.conf",
+        "--git",
+        "true",
+        "--exclude",
+        "deriving-macro/src/test/resources",
+        "--non-interactive"
+      ) ++: args
+    )
+    state
+}

@@ -3,7 +3,7 @@
 
 package scalaz
 
-import scala.{Either, Left, Right}
+import scala.{ Either, Left, Right }
 
 trait BackCompat {
   private[scalaz] implicit class EitherBackCompat[L, R](e: Either[L, R]) {
