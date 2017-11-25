@@ -30,7 +30,7 @@ object /~\ {
   type L1[Z] = (String, Z)
   type L2[Z] = (String, Z, Z)
 
-  def apply[A[_], B[_], Z](az: => A[Z], bz: => B[Z]): Aux[A, B, Z] =
+  def apply[A[_], B[_], Z](az: =>A[Z], bz: =>B[Z]): Aux[A, B, Z] =
     new /~\[A, B] {
       type T = Z
       def a: A[Z] = az

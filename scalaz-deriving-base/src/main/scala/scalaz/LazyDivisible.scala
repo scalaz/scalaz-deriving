@@ -14,18 +14,18 @@ trait LazyDivide[F[_]] extends Contravariant[F] with ApplyDivide[F] {
 
   final def divide1[A1, Z](a1: F[A1])(f: Z => A1): F[Z] = contramap(a1)(f)
 
-  def divide2[A1, A2, Z](a1: => F[A1], a2: => F[A2])(f: Z => (A1, A2)): F[Z]
-  def divide3[A1, A2, A3, Z](a1: => F[A1], a2: => F[A2], a3: => F[A3])(
+  def divide2[A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(f: Z => (A1, A2)): F[Z]
+  def divide3[A1, A2, A3, Z](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: Z => (A1, A2, A3)
   ): F[Z] =
     divide2(tuple2(a1, a2), a3) { z =>
       val t = f(z)
       ((t._1, t._2), t._3)
     }
-  def divide4[A1, A2, A3, A4, Z](a1: => F[A1],
-                                 a2: => F[A2],
-                                 a3: => F[A3],
-                                 a4: => F[A4])(
+  def divide4[A1, A2, A3, A4, Z](a1: =>F[A1],
+                                 a2: =>F[A2],
+                                 a3: =>F[A3],
+                                 a4: =>F[A4])(
     f: Z => (A1, A2, A3, A4)
   ): F[Z] =
     divide2(tuple2(a1, a2), tuple2(a3, a4)) { z =>
@@ -33,7 +33,7 @@ trait LazyDivide[F[_]] extends Contravariant[F] with ApplyDivide[F] {
       ((t._1, t._2), (t._3, t._4))
     }
 
-  def tuple2[A1, A2](a1: => F[A1], a2: => F[A2]): F[(A1, A2)] =
+  def tuple2[A1, A2](a1: =>F[A1], a2: =>F[A2]): F[(A1, A2)] =
     divide2(a1, a2)(identity)
 
   final def dividing1[A1, Z](
@@ -60,21 +60,21 @@ trait LazyDivide[F[_]] extends Contravariant[F] with ApplyDivide[F] {
 
   // ApplyDivide impl
   override final def xproduct2[Z, A1, A2](
-    a1: => F[A1],
-    a2: => F[A2]
+    a1: =>F[A1],
+    a2: =>F[A2]
   )(f: (A1, A2) => Z, g: Z => (A1, A2)): F[Z] =
     divide2(a1, a2)(g)
-  override final def xproduct3[Z, A1, A2, A3](a1: => F[A1],
-                                              a2: => F[A2],
-                                              a3: => F[A3])(
+  override final def xproduct3[Z, A1, A2, A3](a1: =>F[A1],
+                                              a2: =>F[A2],
+                                              a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z] = divide3(a1, a2, a3)(g)
   override final def xproduct4[Z, A1, A2, A3, A4](
-    a1: => F[A1],
-    a2: => F[A2],
-    a3: => F[A3],
-    a4: => F[A4]
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
   )(f: (A1, A2, A3, A4) => Z, g: Z => (A1, A2, A3, A4)): F[Z] =
     divide4(a1, a2, a3, a4)(g)
 
@@ -92,7 +92,7 @@ trait LazyDivisible[F[_]] extends LazyDivide[F] with ApplicativeDivisible[F] {
     divide2(conquer[Unit], fa)(c => ((), f(c)))
 
   // ApplicativeDivisible impl
-  override final def xproduct0[Z](z: => Z): F[Z] = conquer
+  override final def xproduct0[Z](z: =>Z): F[Z] = conquer
 }
 object LazyDivisible {
   @inline def apply[F[_]](implicit i: LazyDivisible[F]): LazyDivisible[F] = i
@@ -107,7 +107,7 @@ object LazyDivisible {
   implicit val tcdShow: LazyDivisible[L[Show, ?]] =
     new LazyDivisible[L[Show, ?]] {
       def conquer[A]: L[Show, A] = Solo(Show.shows(_ => ""))
-      def divide2[A, B, C](fa: => L[Show, A], fb: => L[Show, B])(
+      def divide2[A, B, C](fa: =>L[Show, A], fb: =>L[Show, B])(
         f: C => (A, B)
       ): L[Show, C] = Solo(
         Show.shows { c =>

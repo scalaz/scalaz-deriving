@@ -8,12 +8,12 @@ import scala.{ Boolean, Int, None, Some }
 import scalaz.std.option.{ none, optionMonoid, some }
 
 // WORKAROUND: https://github.com/scalaz/scalaz/issues/1516
-final class LazyOneAnd[F[_], A](h: => A, t: => F[A]) {
+final class LazyOneAnd[F[_], A](h: =>A, t: =>F[A]) {
   def head: A    = h
   def tail: F[A] = t
 }
 object LazyOneAnd {
-  def apply[F[_], A](h: => A, t: => F[A]): LazyOneAnd[F, A] =
+  def apply[F[_], A](h: =>A, t: =>F[A]): LazyOneAnd[F, A] =
     new LazyOneAnd(h, t)
 
   implicit def Traverse1[F[_]](
@@ -65,7 +65,7 @@ object LazyOneAnd {
 
       override def foldMapRight1[A, B](
         fa: LazyOneAnd[F, A]
-      )(z: A => B)(f: (A, => B) => B) =
+      )(z: A => B)(f: (A, =>B) => B) =
         (F.foldRight(fa.tail, none[B])(
           (a, ob) => ob map (f(a, _)) orElse some(z(a))
         )
@@ -82,7 +82,7 @@ object LazyOneAnd {
         M.append(f(fa.head), F.foldMap(fa.tail)(f))
 
       override def foldRight[A, B](fa: LazyOneAnd[F, A],
-                                   z: => B)(f: (A, => B) => B) =
+                                   z: =>B)(f: (A, =>B) => B) =
         f(fa.head, F.foldRight(fa.tail, z)(f))
 
       override def foldLeft[A, B](fa: LazyOneAnd[F, A], z: B)(f: (B, A) => B) =

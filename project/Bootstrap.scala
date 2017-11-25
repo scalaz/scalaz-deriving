@@ -95,7 +95,7 @@ object ScalafmtBootstrap {
         case \/-(file)                                   => Some(file)
       }
 
-    val urls                    = jars.map(f => new java.net.URL(s"file://$f"))
+    val urls                    = jars.map(_.toURI.toURL)
     val classLoader             = new URLClassLoader(urls.toArray, null)
     val reflectiveDynamicAccess = new ReflectiveDynamicAccess(classLoader)
     val loadedClass =

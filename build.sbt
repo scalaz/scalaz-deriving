@@ -62,11 +62,10 @@ publishLocal := {}
 publish := {}
 
 // WORKAROUND: until https://github.com/scalameta/scalafmt/issues/1081
-def latestScalafmt = "1.3.0+14-910a2ed5"
-commands += Command.args("scalafmt", "scalafmt CLI") {
+commands += Command.args("fmt", "scalafmt CLI") {
   case (state, args) =>
     val Right(scalafmt) =
-      org.scalafmt.bootstrap.ScalafmtBootstrap.fromVersion(latestScalafmt)
+      org.scalafmt.bootstrap.ScalafmtBootstrap.fromVersion("1.3.0-16-49815ab4")
     scalafmt.main(
       List(
         "--config",

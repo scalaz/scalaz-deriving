@@ -78,20 +78,20 @@ object CopGen {
 
 // unintentional joke about the state of northern irish politics...
 object LazyProd {
-  def apply[A1](a1: => A1): Prod[Name[A1] :: TNil] = Prod(Need(a1))
-  def apply[A1, A2](a1: => A1, a2: => A2): Prod[Name[A1] :: Name[A2] :: TNil] =
+  def apply[A1](a1: =>A1): Prod[Name[A1] :: TNil] = Prod(Need(a1))
+  def apply[A1, A2](a1: =>A1, a2: =>A2): Prod[Name[A1] :: Name[A2] :: TNil] =
     Prod(Need(a1), Need(a2))
   def apply[A1, A2, A3](
-    a1: => A1,
-    a2: => A2,
-    a3: => A3
+    a1: =>A1,
+    a2: =>A2,
+    a3: =>A3
   ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil] =
     Prod(Need(a1), Need(a2), Need(a3))
   def apply[A1, A2, A3, A4](
-    a1: => A1,
-    a2: => A2,
-    a3: => A3,
-    a4: => A4
+    a1: =>A1,
+    a2: =>A2,
+    a3: =>A3,
+    a4: =>A4
   ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil] =
     Prod(Need(a1), Need(a2), Need(a3), Need(a4))
 }

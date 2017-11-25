@@ -15,7 +15,7 @@ trait Default[A] {
 }
 object Default {
   @inline def apply[A](implicit i: Default[A]): Default[A] = i
-  @inline def instance[A](a: => A): Default[A] = new Default[A] {
+  @inline def instance[A](a: =>A): Default[A] = new Default[A] {
     override def default: A = a
   }
 

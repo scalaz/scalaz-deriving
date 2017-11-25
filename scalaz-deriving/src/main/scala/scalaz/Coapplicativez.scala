@@ -23,28 +23,26 @@ trait Coapplicativez[F[_]] extends Coapplicative[F] {
     ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z]
 
-  override def coapply1[Z, A1](a1: => F[A1])(f: A1 => Z): F[Z] = {
+  override def coapply1[Z, A1](a1: =>F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil
     coapplyz(LazyProd(a1))((c: Cop[L]) => f(to1(c)))
   }
-  override def coapply2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
+  override def coapply2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: A1 \/ A2 => Z
   ): F[Z] = {
     type L = A1 :: A2 :: TNil
     coapplyz(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)))
   }
-  override def coapply3[Z, A1, A2, A3](a1: => F[A1],
-                                       a2: => F[A2],
-                                       a3: => F[A3])(
+  override def coapply3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: A1 \/ (A2 \/ A3) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: TNil
     coapplyz(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
   }
-  override def coapply4[Z, A1, A2, A3, A4](a1: => F[A1],
-                                           a2: => F[A2],
-                                           a3: => F[A3],
-                                           a4: => F[A4])(
+  override def coapply4[Z, A1, A2, A3, A4](a1: =>F[A1],
+                                           a2: =>F[A2],
+                                           a3: =>F[A3],
+                                           a4: =>F[A4])(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil

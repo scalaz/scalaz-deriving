@@ -23,10 +23,10 @@ trait Applicativez[F[_]] extends LazyApplicative[F] {
     ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z]
 
-  override def ap[A, B](fa: => F[A])(f: => F[A => B]): F[B] =
+  override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =
     apply2(fa, f)((a, abc) => abc(a))
 
-  override def point[Z](z: => Z): F[Z] =
+  override def point[Z](z: =>Z): F[Z] =
     applyz[Z, TNil, TNil](empty)(_ => z)
 
   override def map[A1, Z](a1: F[A1])(f: A1 => Z): F[Z] = {
@@ -34,22 +34,22 @@ trait Applicativez[F[_]] extends LazyApplicative[F] {
     applyz(Prod(Value(a1)))((a: Prod[L]) => f(to1T(a)))
   }
 
-  override def apply2[A1, A2, Z](a1: => F[A1], a2: => F[A2])(
+  override def apply2[A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: TNil
     applyz(LazyProd(a1, a2))((as: Prod[L]) => f tupled to2T(as))
   }
-  override def apply3[A1, A2, A3, Z](a1: => F[A1], a2: => F[A2], a3: => F[A3])(
+  override def apply3[A1, A2, A3, Z](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: TNil
     applyz(LazyProd(a1, a2, a3))((as: Prod[L]) => f tupled to3T(as))
   }
-  override def apply4[A1, A2, A3, A4, Z](a1: => F[A1],
-                                         a2: => F[A2],
-                                         a3: => F[A3],
-                                         a4: => F[A4])(
+  override def apply4[A1, A2, A3, A4, Z](a1: =>F[A1],
+                                         a2: =>F[A2],
+                                         a3: =>F[A3],
+                                         a4: =>F[A4])(
     f: (A1, A2, A3, A4) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil

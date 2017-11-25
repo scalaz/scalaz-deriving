@@ -35,23 +35,21 @@ trait LazyApplicative[F[_]]
   // ... applyingX
 
   // ApplicativeDivisible impl
-  final override def xproduct0[Z](z: => Z): F[Z] = pure(z)
+  final override def xproduct0[Z](z: =>Z): F[Z] = pure(z)
   override def xproduct2[Z, A1, A2](
-    a1: => F[A1],
-    a2: => F[A2]
+    a1: =>F[A1],
+    a2: =>F[A2]
   )(f: (A1, A2) => Z, g: Z => (A1, A2)): F[Z] =
     apply2(a1, a2)(f)
-  override def xproduct3[Z, A1, A2, A3](a1: => F[A1],
-                                        a2: => F[A2],
-                                        a3: => F[A3])(
+  override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z] = apply3(a1, a2, a3)(f)
   override def xproduct4[Z, A1, A2, A3, A4](
-    a1: => F[A1],
-    a2: => F[A2],
-    a3: => F[A3],
-    a4: => F[A4]
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
   )(f: (A1, A2, A3, A4) => Z, g: Z => (A1, A2, A3, A4)): F[Z] =
     apply4(a1, a2, a3, a4)(f)
 

@@ -10,18 +10,18 @@ import shapeless.{ Cached, Lazy }
 
 /** Coproduct analogue of Divide */
 trait Codivide[F[_]] extends CoapplicativeCodivide[F] {
-  def codivide1[Z, A1](a1: => F[A1])(f: Z => A1): F[Z]
-  def codivide2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(f: Z => A1 \/ A2): F[Z]
-  def codivide3[Z, A1, A2, A3](a1: => F[A1], a2: => F[A2], a3: => F[A3])(
+  def codivide1[Z, A1](a1: =>F[A1])(f: Z => A1): F[Z]
+  def codivide2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: Z => A1 \/ A2): F[Z]
+  def codivide3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: Z => A1 \/ (A2 \/ A3)
   ): F[Z] = {
     val a23: F[A2 \/ A3] = codivide2(a2, a3)(identity)
     codivide2(a1, a23)(f)
   }
-  def codivide4[Z, A1, A2, A3, A4](a1: => F[A1],
-                                   a2: => F[A2],
-                                   a3: => F[A3],
-                                   a4: => F[A4])(
+  def codivide4[Z, A1, A2, A3, A4](a1: =>F[A1],
+                                   a2: =>F[A2],
+                                   a3: =>F[A3],
+                                   a4: =>F[A4])(
     f: Z => A1 \/ (A2 \/ (A3 \/ A4))
   ): F[Z] = {
     val a34: F[A3 \/ A4]          = codivide2(a3, a4)(identity)
@@ -52,26 +52,26 @@ trait Codivide[F[_]] extends CoapplicativeCodivide[F] {
               fa4.value.value)(f)
   // ... codividingX
 
-  override final def xcoproduct1[Z, A1](a1: => F[A1])(
+  override final def xcoproduct1[Z, A1](a1: =>F[A1])(
     f: A1 => Z,
     g: Z => A1
   ): F[Z] = codivide1(a1)(g)
 
-  override final def xcoproduct2[Z, A1, A2](a1: => F[A1], a2: => F[A2])(
+  override final def xcoproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1 \/ A2) => Z,
     g: Z => (A1 \/ A2)
   ): F[Z] = codivide2(a1, a2)(g)
-  override final def xcoproduct3[Z, A1, A2, A3](a1: => F[A1],
-                                                a2: => F[A2],
-                                                a3: => F[A3])(
+  override final def xcoproduct3[Z, A1, A2, A3](a1: =>F[A1],
+                                                a2: =>F[A2],
+                                                a3: =>F[A3])(
     f: (A1 \/ (A2 \/ A3)) => Z,
     g: Z => (A1 \/ (A2 \/ A3))
   ): F[Z] = codivide3(a1, a2, a3)(g)
   override final def xcoproduct4[Z, A1, A2, A3, A4](
-    a1: => F[A1],
-    a2: => F[A2],
-    a3: => F[A3],
-    a4: => F[A4]
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
   )(f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
     g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))): F[Z] = codivide4(a1, a2, a3, a4)(g)
 

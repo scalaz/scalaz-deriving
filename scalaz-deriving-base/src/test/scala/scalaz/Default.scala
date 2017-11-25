@@ -13,7 +13,7 @@ trait Default[A] {
 }
 object Default {
   @inline def apply[A](implicit i: Default[A]): Default[A] = i
-  @inline def instance[A](a: => A): Default[A] = new Default[A] {
+  @inline def instance[A](a: =>A): Default[A] = new Default[A] {
     override def default: A = a
   }
 
@@ -23,14 +23,14 @@ object Default {
 
   implicit val Derives: CovariantDerives[Default] =
     new CovariantDerives[Default] {
-      override def point[A](a: => A): Default[A] = instance(a)
-      override def ap[A, B](fa: => Default[A])(
-        f: => Default[A => B]
+      override def point[A](a: =>A): Default[A] = instance(a)
+      override def ap[A, B](fa: =>Default[A])(
+        f: =>Default[A => B]
       ): Default[B] = instance(f.default(fa.default))
 
-      override def coapply1[Z, A1](a1: => Default[A1])(f: A1 => Z): Default[Z] =
+      override def coapply1[Z, A1](a1: =>Default[A1])(f: A1 => Z): Default[Z] =
         instance(f(a1.default))
-      override def coapply2[Z, A1, A2](a1: => Default[A1], a2: => Default[A2])(
+      override def coapply2[Z, A1, A2](a1: =>Default[A1], a2: =>Default[A2])(
         f: A1 \/ A2 => Z
       ): Default[Z] = instance(f(-\/(a1.default)))
 
