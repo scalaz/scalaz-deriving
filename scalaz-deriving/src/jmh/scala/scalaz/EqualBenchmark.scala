@@ -30,22 +30,40 @@ object Foo {
 }
 @Input(Scope.Benchmark)
 class Data {
-  val zas = IList.fromList(Stream.continually(random[Fooz]).take(100).toList)
-  val zbs = IList.fromList(Stream.continually(random[Fooz]).take(100).toList)
+  val zas      = IList.fromList(Stream.continually(random[Fooz]).take(100).toList)
+  val zas_copy = IList.fromList(zas.toList)
+  val zbs      = IList.fromList(Stream.continually(random[Fooz]).take(100).toList)
 
-  val as = IList.fromList(Stream.continually(random[Foo]).take(100).toList)
-  val bs = IList.fromList(Stream.continually(random[Foo]).take(100).toList)
+  val as      = IList.fromList(Stream.continually(random[Foo]).take(100).toList)
+  val as_copy = IList.fromList(as.toList)
+  val bs      = IList.fromList(Stream.continually(random[Foo]).take(100).toList)
 }
 
 // derivez/jmh:run -i 5 -wi 15 -f1 -t10 .*EqualBenchmark
 class EqualBenchmark {
 
   @Benchmark
-  def derivingEqual(data: Data): Boolean =
+  def derivingDiffEqual(data: Data): Boolean =
     data.zas === data.zbs
 
   @Benchmark
-  def manualEqual(data: Data): Boolean =
+  def derivingIdenticalEqual(data: Data): Boolean =
+    data.zas === data.zas
+
+  @Benchmark
+  def derivingSameEqual(data: Data): Boolean =
+    data.zas === data.zas_copy
+
+  @Benchmark
+  def manualDiffEqual(data: Data): Boolean =
     data.as === data.bs
+
+  @Benchmark
+  def manualIdenticalEqual(data: Data): Boolean =
+    data.as === data.as
+
+  @Benchmark
+  def manualSameEqual(data: Data): Boolean =
+    data.as === data.as_copy
 
 }
