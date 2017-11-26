@@ -39,7 +39,7 @@ object ProjectPlugin extends AutoPlugin {
   override def buildSettings =
     Seq(
       organization := "com.fommil",
-      crossScalaVersions := Seq("2.12.4", "2.11.11"),
+      crossScalaVersions := Seq("2.12.4", "2.11.12"),
       scalaVersion := crossScalaVersions.value.head,
       sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
