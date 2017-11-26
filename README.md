@@ -1,4 +1,4 @@
-`scalaz-deriving` derive typeclasses instances for your data types. The benefits are:
+`scalaz-deriving` makes it easy to derive typeclass instances for your data types. The benefits are:
 
 - [much faster compiles](https://github.com/propensive/magnolia/pull/45)
 - [faster runtime](https://github.com/fosskers/scalaz-and-cats/pull/4)
@@ -231,6 +231,8 @@ libraryDependencies ++= Seq(
 Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
 
 ## Caveats
+
+This is a beta release, missing important features, tracked in the [1.0 Milestone](https://gitlab.com/fommil/scalaz-deriving/milestones/1).
 
 `scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided.
 
