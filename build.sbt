@@ -9,7 +9,17 @@ val deriving = (project in file("deriving-macro")).settings(
     "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
     "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
     "com.typesafe.play"    %% "play-json"     % "2.6.7"            % "test"
-  )
+  ),
+  // Unfortunately, sbt puts test resources on the classpath in test:test
+  // but not test:compile for who-knows-what reason. We need resources on
+  // the classpath for our tests in order to verify that our macros can
+  // pull multiple deriving.conf files from the classpath, hence this
+  // workaround
+  compileOptions in (Test, compile) := {
+    val oldOptions = (compileOptions in (Test, compile)).value
+    val resDir     = (resourceDirectory in Test).value
+    oldOptions.withClasspath(oldOptions.classpath :+ resDir)
+  }
 )
 
 // extensions to scalaz7.2

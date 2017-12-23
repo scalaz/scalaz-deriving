@@ -4,6 +4,7 @@
 package scalaz
 
 import java.lang.String
+import java.net.URL
 
 import scala.{
   Any,
@@ -20,6 +21,7 @@ import scala.{
 import scala.Predef.{ wrapRefArray, ArrowAssoc }
 import scala.annotation.{ compileTimeOnly, StaticAnnotation }
 import scala.collection.immutable.{ ::, List, Map, Nil }
+import scala.collection.JavaConverters._
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
@@ -60,7 +62,7 @@ object DerivingMacros extends BackCompat {
   private val EmptyTargets: Result[Stringy] = Right(Map.empty)
   private def targets(path: Option[String]): Result[Stringy] =
     for {
-      d <- defaultTargets
+      d <- classpathTargets
       u <- path.fold(EmptyTargets)(user)
     } yield (d ++ u)
 
@@ -78,11 +80,24 @@ object DerivingMacros extends BackCompat {
         calculated
     }
 
-  private lazy val defaultTargets: Result[Stringy] =
-    for {
-      s <- readResource("/deriving.conf")
-      c <- parseProperties(s)
-    } yield c
+  private lazy val classpathTargets: Result[Stringy] = {
+    val resources =
+      getClass.getClassLoader.getResources("deriving.conf").asScala.toList
+    resources.map { resUrl =>
+      val resValue: Result[Stringy] = for {
+        s <- readResource(resUrl)
+        c <- parseProperties(s)
+      } yield c
+      resValue match {
+        case Left(err) => Left(s"$resUrl: $err")
+        case Right(v)  => Right(v: Stringy)
+      }
+    }.fold(EmptyTargets) {
+      case (Right(m1), Right(m2)) => Right(m1 ++ m2)
+      case (Left(e1), _)          => Left(e1)
+      case (_, Left(e2))          => Left(e2)
+    }
+  }
 
   private[this] def parseProperties(config: String): Result[Stringy] =
     try {
@@ -110,8 +125,8 @@ object DerivingMacros extends BackCompat {
   private[this] def readFile(file: String): Either[String, String] =
     readInputStream(new java.io.FileInputStream(file))
 
-  private[this] def readResource(res: String): Either[String, String] =
-    readInputStream(getClass.getResourceAsStream(res))
+  private[this] def readResource(resUrl: URL): Either[String, String] =
+    readInputStream(resUrl.openStream())
 
   private[this] def readInputStream(
     is: java.io.InputStream

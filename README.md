@@ -73,6 +73,8 @@ scalacOptions ++= {
 }
 ```
 
+If you are a library author, you can distribute a "deriving.conf" in the same format in your published artifacts and scalaz-deriving will find it.
+
 The `targets` config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`.
 
 The `defaults` config file is plain text with one line per typeclass that you wish to **always** be derived. This is best reserved for performance optimisations, e.g. avoiding multiple `shapeless.Generic` derivations, rather than for feature-based typeclasses.

@@ -44,6 +44,11 @@ object CustomCobar {
   ): Cobar[T] = new Cobar[T] {}
 }
 
+@typeclass trait CustomGen[T] {}
+object CustomGen {
+  def gen[T]: CustomGen[T] = new CustomGen[T] {}
+}
+
 package a {
   @typeclass trait Cobaz[T[_]] {}
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}

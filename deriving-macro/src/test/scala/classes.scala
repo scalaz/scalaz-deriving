@@ -48,3 +48,6 @@ final case class Gaz[T](t: T)
 object DerivedWibble {
   def gen[T]: Wibble[T] = new Wibble[T] {}
 }
+
+@deriving(CustomGen)
+final case class C(i: Int)
