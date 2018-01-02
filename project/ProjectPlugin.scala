@@ -8,6 +8,7 @@ import fommil.SensiblePlugin.autoImport._
 import fommil.SonatypePlugin.autoImport._
 import wartremover.WartRemover.autoImport._
 import sbtdynver.DynVerPlugin.autoImport._
+import org.scalafmt.sbt.ScalafmtPlugin, ScalafmtPlugin.autoImport._
 
 object ProjectKeys {
   def MacroParadise =
@@ -15,7 +16,7 @@ object ProjectKeys {
       "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
     )
   def KindProjector =
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5")
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -30,8 +31,9 @@ object ProjectKeys {
 
 object ProjectPlugin extends AutoPlugin {
 
-  override def requires = fommil.SensiblePlugin && fommil.SonatypePlugin
-  override def trigger  = allRequirements
+  override def requires =
+    fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin
+  override def trigger = allRequirements
 
   val autoImport = ProjectKeys
   import autoImport._
@@ -43,10 +45,12 @@ object ProjectPlugin extends AutoPlugin {
       scalaVersion := crossScalaVersions.value.head,
       sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
-      licenses := Seq(LGPL3)
-    ) ++ addCommandAlias("fmt", "all sbt:scalafmt scalafmt test:scalafmt") ++ addCommandAlias(
+      licenses := Seq(LGPL3),
+      startYear := Some(2017),
+      scalafmtConfig := Some(file("project/scalafmt.conf"))
+    ) ++ addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt") ++ addCommandAlias(
       "checks",
-      "all headerCheck test:headerCheck"
+      "all headerCheck test:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
     )
 
   override def projectSettings = Seq(

@@ -4,8 +4,8 @@ val deriving = (project in file("deriving-macro")).settings(
   libraryDependencies ++= Seq(
     "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
     "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-    "org.scalaz"           %% "scalaz-core"   % "7.2.17"           % "test",
-    "com.chuusai"          %% "shapeless"     % "2.3.2"            % "test",
+    "org.scalaz"           %% "scalaz-core"   % "7.2.18"           % "test",
+    "com.chuusai"          %% "shapeless"     % "2.3.3"            % "test",
     "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
     "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
     "com.typesafe.play"    %% "play-json"     % "2.6.7"            % "test"
@@ -30,8 +30,8 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
   ),
   libraryDependencies ++= Seq(
-    "com.chuusai" %% "shapeless"   % "2.3.2",
-    "org.scalaz"  %% "scalaz-core" % "7.2.17"
+    "com.chuusai" %% "shapeless"   % "2.3.3",
+    "org.scalaz"  %% "scalaz-core" % "7.2.18"
   )
 )
 
@@ -60,8 +60,8 @@ val xmlformat = (project in file("examples/xmlformat"))
     MacroParadise,
     scalacOptions -= "-Yno-imports",
     libraryDependencies ++= Seq(
-      "org.scalaz"             %% "scalaz-core" % "7.2.17",
-      "com.chuusai"            %% "shapeless"   % "2.3.2",
+      "org.scalaz"             %% "scalaz-core" % "7.2.18",
+      "com.chuusai"            %% "shapeless"   % "2.3.3",
       "com.github.mpilquist"   %% "simulacrum"  % "0.11.0",
       "org.scala-lang.modules" %% "scala-xml"   % "1.0.6"
     )
@@ -70,22 +70,3 @@ val xmlformat = (project in file("examples/xmlformat"))
 // root project
 publishLocal := {}
 publish := {}
-
-// WORKAROUND: until https://github.com/scalameta/scalafmt/issues/1081
-commands += Command.args("fmt", "scalafmt CLI") {
-  case (state, args) =>
-    val Right(scalafmt) =
-      org.scalafmt.bootstrap.ScalafmtBootstrap.fromVersion("1.3.0-16-49815ab4")
-    scalafmt.main(
-      List(
-        "--config",
-        "project/scalafmt.conf",
-        "--git",
-        "true",
-        "--exclude",
-        "deriving-macro/src/test/resources",
-        "--non-interactive"
-      ) ++: args
-    )
-    state
-}

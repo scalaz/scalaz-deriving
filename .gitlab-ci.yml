@@ -19,7 +19,7 @@ build_job:
         echo "Please remove TODO or FIXME." ;
         exit 1 ;
       fi
-    - sbt "fmt --test" ";+checks ;+test:compile ;+doc ;+test"
+    - sbt ";+checks ;+test:compile ;+doc ;+test"
 
 deploy_job:
   only:

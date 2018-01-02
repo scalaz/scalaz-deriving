@@ -1,4 +1,4 @@
-// Copyright: 2017 Sam Halliday
+// Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 package tests
@@ -110,6 +110,16 @@ class DerivingTest extends FlatSpec {
     Gaz.`shapeless.LabelledGeneric`[String] should not equal null
     val lg = LabelledGeneric[Gaz[String]]
     lg shouldBe an[LabelledGeneric.Aux[Gaz[String], lg.Repr]]
+  }
+
+  it should "support the .Aux pattern on objects" in {
+    Car.`shapeless.Generic` should not equal null
+    val g = Generic[Car.type]
+    g shouldBe an[Generic.Aux[Car.type, g.Repr]]
+
+    Car.`shapeless.LabelledGeneric` should not equal null
+    val lg = LabelledGeneric[Car.type]
+    lg shouldBe an[LabelledGeneric.Aux[Car.type, lg.Repr]]
   }
 
   it should "provide position information on failure" ignore {

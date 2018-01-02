@@ -1,4 +1,4 @@
-// Copyright: 2017 Sam Halliday
+// Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 package scalaz
@@ -464,10 +464,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
       )
     )
 
-  // https://github.com/milessabin/shapeless/issues/757 means that
-  // this is rarely useful, since derivation inside yourself (when you
-  // are your own companion) is problematic.
-  /*private def genAuxObjectImplicitVal(
+  private def genAuxObjectImplicitVal(
     target: TreeTermName,
     memberName: TermName,
     comp: ModuleDef
@@ -480,7 +477,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
         target.tree,
         List(SingletonTypeTree(Ident(comp.name.toTermName)))
       )
-    )*/
+    )
 
   // unlike getClassImplicitDef, we do not generate an implicit
   // parameter section (unless this turns out to be required).
@@ -635,8 +632,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
               case tparams    => genAuxClassImplicitDef(to, memberName, c, tparams)
             }
           case (None, LeftInferred(to @ _)) =>
-            // see documentation on genAuxObjectImplicitVal
-            EmptyTree
+            genAuxObjectImplicitVal(to, memberName, comp)
         }
     }
 
