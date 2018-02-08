@@ -1,25 +1,18 @@
+val scalazVersion    = "7.2.18"
+val shapelessVersion = "2.3.3"
+
 val deriving = (project in file("deriving-macro")).settings(
   name := "deriving-macro",
   MacroParadise,
   libraryDependencies ++= Seq(
     "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
     "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-    "org.scalaz"           %% "scalaz-core"   % "7.2.18"           % "test",
-    "com.chuusai"          %% "shapeless"     % "2.3.3"            % "test",
+    "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
+    "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
     "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
     "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
-    "com.typesafe.play"    %% "play-json"     % "2.6.7"            % "test"
-  ),
-  // Unfortunately, sbt puts test resources on the classpath in test:test
-  // but not test:compile for who-knows-what reason. We need resources on
-  // the classpath for our tests in order to verify that our macros can
-  // pull multiple deriving.conf files from the classpath, hence this
-  // workaround
-  compileOptions in (Test, compile) := {
-    val oldOptions = (compileOptions in (Test, compile)).value
-    val resDir     = (resourceDirectory in Test).value
-    oldOptions.withClasspath(oldOptions.classpath :+ resDir)
-  }
+    "com.typesafe.play"    %% "play-json"     % "2.6.8"            % "test"
+  )
 )
 
 // extensions to scalaz7.2
@@ -30,8 +23,8 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
   ),
   libraryDependencies ++= Seq(
-    "com.chuusai" %% "shapeless"   % "2.3.3",
-    "org.scalaz"  %% "scalaz-core" % "7.2.18"
+    "com.chuusai" %% "shapeless"   % shapelessVersion,
+    "org.scalaz"  %% "scalaz-core" % scalazVersion
   )
 )
 
@@ -59,9 +52,10 @@ val xmlformat = (project in file("examples/xmlformat"))
   .settings(
     MacroParadise,
     scalacOptions -= "-Yno-imports",
+    scalacOptions -= "-Yno-predef",
     libraryDependencies ++= Seq(
-      "org.scalaz"             %% "scalaz-core" % "7.2.18",
-      "com.chuusai"            %% "shapeless"   % "2.3.3",
+      "org.scalaz"             %% "scalaz-core" % scalazVersion,
+      "com.chuusai"            %% "shapeless"   % shapelessVersion,
       "com.github.mpilquist"   %% "simulacrum"  % "0.11.0",
       "org.scala-lang.modules" %% "scala-xml"   % "1.0.6"
     )

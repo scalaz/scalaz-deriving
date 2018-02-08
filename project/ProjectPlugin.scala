@@ -110,6 +110,12 @@ object ProjectPlugin extends AutoPlugin {
       "shapeless.{ :: => :*:, _ }",
       "scalaz._",
       "Scalaz._"
-    ).mkString("import ", ",", "")
+    ).mkString("import ", ",", ""),
+    // WORKAROUND: https://github.com/sbt/sbt/issues/3934
+    compileOptions in (Test, compile) := {
+      val oldOptions = (compileOptions in (Test, compile)).value
+      val resDir     = (resourceDirectory in Test).value
+      oldOptions.withClasspath(oldOptions.classpath :+ resDir)
+    }
   )
 }

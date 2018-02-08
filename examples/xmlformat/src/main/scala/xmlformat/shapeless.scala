@@ -47,9 +47,7 @@ object DerivedEncoder {
         }
     }
 
-  @java.lang.SuppressWarnings(scala.Array("org.wartremover.warts.Null"))
   implicit val cnil: DerivedEncoder[CNil] = null
-
   implicit def ccons[Key <: Symbol, Instance, Remaining <: Coproduct](
     implicit
     Key: Witness.Aux[Key],
@@ -105,7 +103,7 @@ object DerivedDecoder {
         .leftMap(
           _ |+| NonEmptyList(s"when decoding ${C}")
         )
-    @java.lang.SuppressWarnings(scala.Array("org.wartremover.warts.Throw"))
+
     override def fromXmlObject(xml: Map[String, NodeSeq]): Decoder.Decoded[A] =
       throw new java.lang.IllegalStateException
 

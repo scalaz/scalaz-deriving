@@ -3,49 +3,55 @@
 
 package xmlformat.examples
 
-import java.lang.String
-
-import xmlformat._
-import xmlformat.DecoderUtils._
-
 import scalaz._
-import Scalaz._
+import xmlformat._
 
-@deriving(Encoder, Decoder)
 final case class Optimal(thing: String) extends AnyVal
 
-@deriving(Encoder, Decoder) sealed trait SimpleTrait
-@deriving(Encoder, Decoder) final case class Foo(s: String) extends SimpleTrait
-@deriving(Encoder, Decoder) final case class Bar()          extends SimpleTrait
-@deriving(Encoder, Decoder) case object Caz                 extends SimpleTrait
+@deriving(XEncoder, XDecoder) sealed trait SimpleTrait
+@deriving(XEncoder, XDecoder) final case class Foo(s: String)
+    extends SimpleTrait
+@deriving(XEncoder, XDecoder) final case class Bar() extends SimpleTrait
+@deriving(XEncoder, XDecoder) case object Caz        extends SimpleTrait
 case object Baz extends SimpleTrait {
   // user-provided override on the companion
-  implicit val e: Encoder[Baz.type] = Encoder[String].contramap { _ =>
+  implicit val e: XEncoder[Baz.type] = XEncoder[String].contramap { _ =>
     "Baz!"
   }
-  implicit val d: Decoder[Baz.type] = Decoder[String].andThen {
-    case "Baz!" => Right(Baz)
-    case other  => Left(failure(s"that's no Baz! $other"))
+  implicit val d: XDecoder[Baz.type] = XDecoder[String].andThen {
+    case "Baz!" => \/-(Baz)
+    case other  => -\/(s"that's no Baz! $other")
   }
 }
-@deriving(Encoder, Decoder) final case class Faz(o: Option[String])
+@deriving(XEncoder, XDecoder) final case class Faz(o: Option[String])
     extends SimpleTrait
 
-@deriving(Encoder, Decoder) final case class Recursive(h: String,
-                                                       t: Option[Recursive] =
-                                                         None)
+@deriving(XEncoder, XDecoder) final case class Recursive(h: String,
+                                                         t: Option[Recursive] =
+                                                           None)
 
 object orphans {
-  implicit val e: Encoder[Foo] = Encoder[String].contramap(_.s)
-  implicit val d: Decoder[Foo] = Decoder[String].map(Foo(_))
+  implicit val e: XEncoder[Foo] = XEncoder[String].contramap(_.s)
+  implicit val d: XDecoder[Foo] = XDecoder[String].map(Foo(_))
 
-  implicit val ste: Encoder[SimpleTrait] = DerivedEncoder.gen
-  implicit val std: Decoder[SimpleTrait] = DerivedDecoder.gen
+  implicit val ste: XEncoder[SimpleTrait] = DerivedXEncoder.gen
+  implicit val std: XDecoder[SimpleTrait] = DerivedXDecoder.gen
 }
 
-@deriving(Encoder, Decoder) sealed abstract class AbstractThing(val id: String)
-@deriving(Encoder, Decoder) case object Wibble extends AbstractThing("wibble")
-@deriving(Encoder, Decoder) final case class Wobble(override val id: String)
+@deriving(XEncoder, XDecoder) sealed abstract class AbstractThing(
+  val id: String
+)
+@deriving(XEncoder, XDecoder) case object Wibble extends AbstractThing("wibble")
+@deriving(XEncoder, XDecoder) final case class Wobble(override val id: String)
     extends AbstractThing(id)
 
-@deriving(Encoder, Decoder) final case class MultiField(a: String, b: String)
+@deriving(XEncoder, XDecoder) sealed abstract class MultiFieldParent
+@deriving(XEncoder, XDecoder) final case class MultiField(
+  a: String,
+  b: String @@ XAttribute
+) extends MultiFieldParent
+
+@deriving(XEncoder, XDecoder) final case class MultiOptyField(
+  a: String,
+  b: Option[String] @@ XAttribute
+) extends MultiFieldParent
