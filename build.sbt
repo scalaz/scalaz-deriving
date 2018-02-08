@@ -47,7 +47,6 @@ val derivez = (project in file("scalaz-deriving"))
     MacroParadise,
     name := "scalaz-deriving",
     envVars in Jmh += ("RANDOM_DATA_GENERATOR_SEED" -> "0"),
-    envVars in NeoJmhPlugin.JmhInternal := (envVars in Jmh).value,
     libraryDependencies ++= Seq(
       "org.scala-lang"      % "scala-compiler"         % scalaVersion.value % "provided",
       "io.frees"            %% "iotaz-core"            % "0.3.4",
