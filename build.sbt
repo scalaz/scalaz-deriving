@@ -1,5 +1,13 @@
-val scalazVersion    = "7.2.18"
+val scalazVersion    = "7.2.19"
 val shapelessVersion = "2.3.3"
+
+addCommandAlias("cpl", "all compile test:compile")
+addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+addCommandAlias(
+  "check",
+  "all headerCheck test:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
+)
+addCommandAlias("lint", "all compile:scalafixCli test:scalafixCli")
 
 val deriving = (project in file("deriving-macro")).settings(
   name := "deriving-macro",
@@ -42,8 +50,8 @@ val derivez = (project in file("scalaz-deriving"))
     envVars in NeoJmhPlugin.JmhInternal := (envVars in Jmh).value,
     libraryDependencies ++= Seq(
       "org.scala-lang"      % "scala-compiler"         % scalaVersion.value % "provided",
-      "io.frees"            %% "iotaz-core"            % "0.3.3",
-      "com.danielasfregola" %% "random-data-generator" % "2.3" % "test,jmh"
+      "io.frees"            %% "iotaz-core"            % "0.3.4",
+      "com.danielasfregola" %% "random-data-generator" % "2.4" % "test,jmh"
     )
   )
 

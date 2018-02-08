@@ -6,9 +6,9 @@ import sbt.Keys._
 
 import fommil.SensiblePlugin.autoImport._
 import fommil.SonatypePlugin.autoImport._
-import wartremover.WartRemover.autoImport._
 import sbtdynver.DynVerPlugin.autoImport._
 import org.scalafmt.sbt.ScalafmtPlugin, ScalafmtPlugin.autoImport._
+import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 
 object ProjectKeys {
   def MacroParadise =
@@ -16,7 +16,7 @@ object ProjectKeys {
       "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
     )
   def KindProjector =
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.5")
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -47,13 +47,12 @@ object ProjectPlugin extends AutoPlugin {
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
       startYear := Some(2017),
-      scalafmtConfig := Some(file("project/scalafmt.conf"))
-    ) ++ addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt") ++ addCommandAlias(
-      "checks",
-      "all headerCheck test:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
+      scalafmtConfig := Some(file("project/scalafmt.conf")),
+      scalafixConfig := Some(file("project/scalafix.conf"))
     )
 
   override def projectSettings = Seq(
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
     scalacOptions in Test ++= {
       val dir = (baseDirectory in ThisBuild).value / "project"
       Seq(
@@ -92,13 +91,6 @@ object ProjectPlugin extends AutoPlugin {
     // weird false positives...
     scalacOptions -= "-Ywarn-dead-code",
     scalacOptions ++= extraScalacOptions(scalaVersion.value),
-    wartremoverWarnings in (Compile, compile) := Seq(
-      Wart.FinalCaseClass,
-      Wart.ExplicitImplicitTypes
-    ),
-    wartremoverWarnings in (Test, compile) := Seq(
-      Wart.FinalCaseClass
-    ),
     scalacOptions in (Compile, console) -= "-Xfatal-warnings",
     initialCommands in (Compile, console) := Seq(
       "java.lang.String",

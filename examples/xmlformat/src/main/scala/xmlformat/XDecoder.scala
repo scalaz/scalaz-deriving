@@ -29,7 +29,7 @@ object XDecoder extends XDecoderScalaz with XDecoderStdlib {
 
   type Out[A] = String \/ A
   object ops extends ToXDecoderOps {
-    implicit class XDecoderOps(val x: XNode) extends AnyVal {
+    implicit class XDecoderOps(private val x: XNode) extends AnyVal {
       def decode[A: XDecoder]: Out[A] = XDecoder[A].fromXml(x)
     }
   }

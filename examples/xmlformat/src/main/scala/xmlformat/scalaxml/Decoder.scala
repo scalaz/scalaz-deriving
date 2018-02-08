@@ -47,7 +47,7 @@ object Decoder {
 
   /** Convenient decoder to domain objects, via XNode */
   object ops extends ToDecoderOps {
-    implicit class DecoderOps(val t: xml.NodeSeq) extends AnyVal {
+    implicit class DecoderOps(private val t: xml.NodeSeq) extends AnyVal {
       def decode[A: XDecoder] =
         for {
           xnode <- Decoder[XNode].fromXml(t)
