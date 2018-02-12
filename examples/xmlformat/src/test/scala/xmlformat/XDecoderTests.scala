@@ -229,6 +229,15 @@ class XDecoderTests extends FreeSpec {
       XText("")
         .decode[SimpleTrait]
         .leftValue shouldBe "when decoding xmlformat.examples.SimpleTrait: unexpected []"
+
+      // sometimes XTags come through as XChildren with one element
+      XChildren(
+        IList(XTag(XAtom("Wibble"), IList.empty, XChildren(IList.empty)))
+      ).as[Wibble.type] shouldBe Wibble
+
+      XChildren(
+        IList(XTag(XAtom("Wibble"), IList.empty, XChildren(IList.empty)))
+      ).as[AbstractThing] shouldBe Wibble
     }
 
     "should support generic recursive ADTs" in {

@@ -5,7 +5,7 @@ package xmlformat
 
 import scala.reflect.ClassTag
 
-import scalaz.{ -\/, @@, \/, \/-, IList, INil }
+import scalaz.{ -\/, @@, \/, \/-, ICons, IList, INil }
 
 import shapeless.{ :: => :*:, _ }
 import shapeless.labelled._
@@ -42,8 +42,9 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder {
   trait PXDecoder[R] extends DerivedXDecoder[R]
   trait CXDecoder[R] extends DerivedXDecoder[R] {
     def from(x: IList[XTag] \/ XTag): Out[R] = x match {
-      case \/-(tag)  => coproduct(tag)
-      case -\/(list) => -\/(s"unexpected $list")
+      case \/-(tag)                => coproduct(tag)
+      case -\/(ICons(tag, INil())) => coproduct(tag)
+      case -\/(list)               => -\/(s"unexpected $list")
     }
     def coproduct(x: XTag): Out[R]
   }
