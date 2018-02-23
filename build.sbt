@@ -1,5 +1,6 @@
-val scalazVersion    = "7.2.19"
-val shapelessVersion = "2.3.3"
+val scalazVersion     = "7.2.19"
+val shapelessVersion  = "2.3.3"
+val simulacrumVersion = "0.12.0"
 
 addCommandAlias("cpl", "all compile test:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
@@ -18,7 +19,7 @@ val deriving = (project in file("deriving-macro")).settings(
     "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
     "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
     "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
-    "com.github.mpilquist" %% "simulacrum"    % "0.11.0"           % "test",
+    "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
     "com.typesafe.play"    %% "play-json"     % "2.6.8"            % "test"
   )
 )
@@ -51,7 +52,7 @@ val derivez = (project in file("scalaz-deriving"))
     dependencyClasspathAsJars in NeoJmhPlugin.JmhInternal ++= (fullClasspathAsJars in Jmh).value,
     libraryDependencies ++= Seq(
       "org.scala-lang"      % "scala-compiler"         % scalaVersion.value % "provided",
-      "io.frees"            %% "iotaz-core"            % "0.3.4",
+      "io.frees"            %% "iotaz-core"            % "0.3.6",
       "com.danielasfregola" %% "random-data-generator" % "2.4" % "test,jmh"
     )
   )
@@ -65,8 +66,8 @@ val xmlformat = (project in file("examples/xmlformat"))
     libraryDependencies ++= Seq(
       "org.scalaz"             %% "scalaz-core" % scalazVersion,
       "com.chuusai"            %% "shapeless"   % shapelessVersion,
-      "com.github.mpilquist"   %% "simulacrum"  % "0.11.0",
-      "org.scala-lang.modules" %% "scala-xml"   % "1.0.6"
+      "com.github.mpilquist"   %% "simulacrum"  % simulacrumVersion,
+      "org.scala-lang.modules" %% "scala-xml"   % "1.1.0"
     )
   )
 
