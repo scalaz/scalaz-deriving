@@ -24,7 +24,7 @@ object LazyOneAnd {
         fa: LazyOneAnd[F, A]
       )(f: A => G[B])(implicit G: Apply[G]) =
         G.applyApplicative
-          .traverse(fa.tail)(f andThen \/.left)(F)
+          .traverse(fa.tail)(f.andThen(\/.left))(F)
           .fold(
             ftl =>
               G.apply2(f(fa.head), ftl) {
@@ -61,15 +61,16 @@ object LazyOneAnd {
         }
 
       override def foldMap1[A, B: Semigroup](fa: LazyOneAnd[F, A])(f: A => B) =
-        foldMap(fa)(a => some(f(a))) getOrElse f(fa.head)
+        foldMap(fa)(a => some(f(a))).getOrElse(f(fa.head))
 
       override def foldMapRight1[A, B](
         fa: LazyOneAnd[F, A]
       )(z: A => B)(f: (A, =>B) => B) =
-        (F.foldRight(fa.tail, none[B])(
-          (a, ob) => ob map (f(a, _)) orElse some(z(a))
-        )
-          map (f(fa.head, _)) getOrElse z(fa.head))
+        F.foldRight(fa.tail, none[B])(
+            (a, ob) => ob.map(f(a, _)).orElse(some(z(a)))
+          )
+          .map(f(fa.head, _))
+          .getOrElse(z(fa.head))
 
       override def foldMapLeft1[A, B](
         fa: LazyOneAnd[F, A]

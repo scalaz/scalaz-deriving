@@ -95,9 +95,14 @@ trait XDecoderStdlib {
   }
 
   implicit def either[A: XDecoder, B: XDecoder]: XDecoder[Either[A, B]] = { x =>
-    XDecoder[A].fromXml(x).map(Left(_)) orElse XDecoder[B]
+    XDecoder[A]
       .fromXml(x)
-      .map(Right(_))
+      .map(Left(_))
+      .orElse(
+        XDecoder[B]
+          .fromXml(x)
+          .map(Right(_))
+      )
   }
 
   implicit def finite: XDecoder[FiniteDuration] = long.andThen { i =>
@@ -124,7 +129,7 @@ trait XDecoderStdlib {
           ICons(XTag(XString("value"), INil(), value), INil())
         )
         ) =>
-      K.fromXml(key) tuple V.fromXml(value)
+      K.fromXml(key).tuple(V.fromXml(value))
   }
   implicit def dict[K: XDecoder, V: XDecoder]: XDecoder[Map[K, V]] =
     ilist(XAtom("entry"))(dictEntry[K, V]).map(_.toList.toMap)

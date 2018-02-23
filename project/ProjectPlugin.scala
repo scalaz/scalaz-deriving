@@ -13,7 +13,7 @@ import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 object ProjectKeys {
   def MacroParadise =
     addCompilerPlugin(
-      "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full
+      ("org.scalamacros" % "paradise" % "2.1.1").cross(CrossVersion.full)
     )
   def KindProjector =
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")

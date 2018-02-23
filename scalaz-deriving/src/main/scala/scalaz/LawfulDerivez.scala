@@ -56,14 +56,19 @@ abstract class ContravariantDerivez[F[_]]
     import scala.collection.immutable.List
     new (Z =*> List) {
       def apply(z: Z): List[F /~\ Id] =
-        (g(z).values zip tcs.values).map { tcv =>
-          /~\[F, Id, Any](tcv._2.asInstanceOf[Name[F[Any]]].value, tcv._1)
-        }(scala.collection.breakOut)
+        g(z).values
+          .zip(tcs.values)
+          .map { tcv =>
+            /~\[F, Id, Any](tcv._2.asInstanceOf[Name[F[Any]]].value, tcv._1)
+          }(scala.collection.breakOut)
       def apply(z1: Z, z2: Z): List[F /~\ T2] =
-        (g(z1).values zip g(z2).values zip tcs.values).map { tcv =>
-          val ((v1, v2), tc) = tcv
-          /~\[F, T2, Any](tc.asInstanceOf[Name[F[Any]]].value, (v1, v2))
-        }(scala.collection.breakOut)
+        g(z1).values
+          .zip(g(z2).values)
+          .zip(tcs.values)
+          .map { tcv =>
+            val ((v1, v2), tc) = tcv
+            /~\[F, T2, Any](tc.asInstanceOf[Name[F[Any]]].value, (v1, v2))
+          }(scala.collection.breakOut)
     }
   }
 

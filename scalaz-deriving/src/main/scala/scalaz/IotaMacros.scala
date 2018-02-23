@@ -93,7 +93,7 @@ final class IotaMacros(val c: blackbox.Context) {
       }
       val provided   = deconstructTCons(R.dealias)
       val calculated = subs.map(_.toTypeConstructor)
-      (provided zip calculated).map {
+      provided.zip(calculated).map {
         case (r, s) =>
           if (!(r =:= s))
             c.abort(

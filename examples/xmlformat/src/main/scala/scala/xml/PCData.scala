@@ -14,7 +14,7 @@ import scala.Predef.augmentString
 
 class PCData(data: String) extends Atom[String](data) {
   override def buildString(sb: StringBuilder): StringBuilder =
-    sb append "<![CDATA[%s]]>".format(data)
+    sb.append("<![CDATA[%s]]>".format(data))
 }
 object PCData {
   def apply(data: String): PCData =
