@@ -21,8 +21,8 @@ class IotaHelpersSpec extends FlatSpec {
   "ProdGen" should "support case classes" in {
     val foo = Foo("hello", 13)
     val gen = ProdGen.gen[Foo, String :: Int :: TNil, String :: String :: TNil]
-    gen.to(gen.from(foo)) shouldBe foo
-    gen.labels.values shouldBe List("s", "ɩ")
+    gen.to(gen.from(foo)).shouldBe(foo)
+    gen.labels.values.shouldBe(List("s", "ɩ"))
   }
 
   case class Goo[A](s: String, a: A)
@@ -34,24 +34,24 @@ class IotaHelpersSpec extends FlatSpec {
       ProdGen.gen[Goo[Int], String :: Int :: TNil, String :: String :: TNil]
     val geni = gen[Int]
 
-    geni.to(geni.from(goo)) shouldBe goo
-    geni.labels.values shouldBe List("s", "a")
+    geni.to(geni.from(goo)).shouldBe(goo)
+    geni.labels.values.shouldBe(List("s", "a"))
   }
 
   object Bar
 
   it should "support objects" in {
     val gen = ProdGen.gen[Bar.type, TNil, TNil]
-    gen.to(gen.from(Bar)) shouldBe Bar
-    gen.labels.values shouldBe empty
+    gen.to(gen.from(Bar)).shouldBe(Bar)
+    gen.labels.values.shouldBe(empty)
   }
 
   case object CBar
 
   it should "support case objects" in {
     val gen = ProdGen.gen[CBar.type, TNil, TNil]
-    gen.to(gen.from(CBar)) shouldBe CBar
-    gen.labels.values shouldBe empty
+    gen.to(gen.from(CBar)).shouldBe(CBar)
+    gen.labels.values.shouldBe(empty)
   }
 
   sealed trait Traity1
@@ -66,12 +66,12 @@ class IotaHelpersSpec extends FlatSpec {
              String :: String :: TNil]
 
     val a = Traity1A("hello")
-    gen.to(gen.from(a)) shouldBe a
+    gen.to(gen.from(a)).shouldBe(a)
 
     val b = Traity1B
-    gen.to(gen.from(b)) shouldBe b
+    gen.to(gen.from(b)).shouldBe(b)
 
-    gen.labels.values shouldBe List("Traity1A", "Traity1B")
+    gen.labels.values.shouldBe(List("Traity1A", "Traity1B"))
   }
 
   sealed trait Traity2
@@ -86,19 +86,19 @@ class IotaHelpersSpec extends FlatSpec {
     val gen = genG[String]
 
     val a = Traity2A("hello")
-    gen.to(gen.from(a)) shouldBe a
+    gen.to(gen.from(a)).shouldBe(a)
 
     val b = Traity2B
-    gen.to(gen.from(b)) shouldBe b
+    gen.to(gen.from(b)).shouldBe(b)
 
-    gen.labels.values shouldBe List("Traity2A", "Traity2B")
+    gen.labels.values.shouldBe(List("Traity2A", "Traity2B"))
 
     val gena =
       CopGen
         .gen[Traity2, Traity2A[scala.Any] :: Traity2B.type :: TNil, String :: String :: TNil]
 
-    gena.to(gena.from(a)) shouldBe a
-    gena.to(gena.from(b)) shouldBe b
+    gena.to(gena.from(a)).shouldBe(a)
+    gena.to(gena.from(b)).shouldBe(b)
 
   }
 
@@ -111,12 +111,12 @@ class IotaHelpersSpec extends FlatSpec {
       CopGen.gen[ATree, Leaf :: Branch :: TNil, String :: String :: TNil]
 
     val a = Leaf("foo")
-    gen.to(gen.from(a)) shouldBe a
+    gen.to(gen.from(a)).shouldBe(a)
 
     val b = Branch(a, a)
-    gen.to(gen.from(b)) shouldBe b
+    gen.to(gen.from(b)).shouldBe(b)
 
-    gen.labels.values shouldBe List("Leaf", "Branch")
+    gen.labels.values.shouldBe(List("Leaf", "Branch"))
   }
 
   sealed trait GTree[A]
@@ -131,12 +131,12 @@ class IotaHelpersSpec extends FlatSpec {
     val gens = gen[String]
 
     val a = GLeaf("foo")
-    gens.to(gens.from(a)) shouldBe a
+    gens.to(gens.from(a)).shouldBe(a)
 
     val b = GBranch(a, a)
-    gens.to(gens.from(b)) shouldBe b
+    gens.to(gens.from(b)).shouldBe(b)
 
-    gen.labels.values shouldBe List("GLeaf", "GBranch")
+    gen.labels.values.shouldBe(List("GLeaf", "GBranch"))
   }
 
 }

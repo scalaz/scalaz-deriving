@@ -19,23 +19,23 @@ import Cofoo.ops._
 class DerivingTest extends FlatSpec {
 
   "@deriving" should "support case classes" in {
-    the[Cofoo[Foo]] shouldBe Foo.`testing.typeclasses.Cofoo`
-    the[Cofoo[Foo]] should not equal null
+    the[Cofoo[Foo]].shouldBe(Foo.`testing.typeclasses.Cofoo`)
+    (the[Cofoo[Foo]] should not).equal(null)
   }
 
   it should "support typeclasses in the same compilation unit" in {
-    the[Wibble[Foo]] shouldBe Foo.`testing.classes.Wibble`
-    the[Wibble[Foo]] should not equal null
+    the[Wibble[Foo]].shouldBe(Foo.`testing.classes.Wibble`)
+    (the[Wibble[Foo]] should not).equal(null)
   }
 
   it should "support case classes with a companion" in {
-    the[Cofoo[Bar]] shouldBe Bar.`testing.typeclasses.Cofoo`
-    the[Cofoo[Bar]] should not equal null
+    the[Cofoo[Bar]].shouldBe(Bar.`testing.typeclasses.Cofoo`)
+    (the[Cofoo[Bar]] should not).equal(null)
   }
 
   it should "support case classes with type parameters" in {
-    the[json.Format[Gaz[String]]] should not equal null
-    Gaz.`play.api.libs.json.Format`[String] should not equal null
+    (the[json.Format[Gaz[String]]] should not).equal(null)
+    (Gaz.`play.api.libs.json.Format`[String] should not).equal(null)
   }
 
   // it should "support HKT typeclasses" in {
@@ -49,31 +49,31 @@ class DerivingTest extends FlatSpec {
   // }
 
   it should "support sealed traits" in {
-    the[Cofoo[Baz]] shouldBe Baz.`testing.typeclasses.Cofoo`
-    the[Cofoo[Baz]] should not equal null
-    the[Cobar[Baz]] shouldBe Baz.`testing.typeclasses.Cobar`
-    the[Cobar[Baz]] should not equal null
+    the[Cofoo[Baz]].shouldBe(Baz.`testing.typeclasses.Cofoo`)
+    (the[Cofoo[Baz]] should not).equal(null)
+    the[Cobar[Baz]].shouldBe(Baz.`testing.typeclasses.Cobar`)
+    (the[Cobar[Baz]] should not).equal(null)
   }
 
   it should "special case AnyVal" in {
-    the[Cofoo[Anyz]] should not equal null
+    (the[Cofoo[Anyz]] should not).equal(null)
 
-    the[Cofoo[Anyz]] shouldBe Anyz.`testing.typeclasses.Cofoo`
+    the[Cofoo[Anyz]].shouldBe(Anyz.`testing.typeclasses.Cofoo`)
 
-    Anyz("wibble").toFoo shouldBe "exercised the xmap codepath"
+    Anyz("wibble").toFoo.shouldBe("exercised the xmap codepath")
 
-    new Anyzz("wobble").toFoo shouldBe "exercised the xmap codepath"
+    new Anyzz("wobble").toFoo.shouldBe("exercised the xmap codepath")
   }
 
   it should "special case AnyVal with type parameters" in {
     val e: Either[String, String] = Right("hello")
-    new Valuezz(e).toFoo shouldBe "exercised the xmap codepath"
+    new Valuezz(e).toFoo.shouldBe("exercised the xmap codepath")
   }
 
   it should "support AnyVal for typeclasses with an InvariantFunctor" in {
-    the[Cobar[Anyz]] should not equal null
+    (the[Cobar[Anyz]] should not).equal(null)
 
-    the[Cobar[Anyzz]] should not equal null
+    (the[Cobar[Anyzz]] should not).equal(null)
   }
 
   it should "fail to derive AnyVal that is not invariant" ignore {
@@ -81,45 +81,45 @@ class DerivingTest extends FlatSpec {
   }
 
   it should "support baked-in rules" in {
-    the[json.Format[Foo]] shouldBe Foo.`play.api.libs.json.Format`
-    the[json.Format[Foo]] should not equal null
+    the[json.Format[Foo]].shouldBe(Foo.`play.api.libs.json.Format`)
+    (the[json.Format[Foo]] should not).equal(null)
   }
 
   it should "support user-provided rules" in {
-    the[Cobar[Foo]] shouldBe Foo.`testing.typeclasses.Cobar`
-    the[Cobar[Foo]] should not equal null
+    the[Cobar[Foo]].shouldBe(Foo.`testing.typeclasses.Cobar`)
+    (the[Cobar[Foo]] should not).equal(null)
   }
 
   it should "support the .Aux pattern on regular classes" in {
-    Bar.`shapeless.Generic` should not equal null
+    (Bar.`shapeless.Generic` should not).equal(null)
     val g = Generic[Bar]
-    Bar.`shapeless.Generic` should be theSameInstanceAs (g)
-    g shouldBe an[Generic.Aux[Bar, g.Repr]]
+    (Bar.`shapeless.Generic` should be).theSameInstanceAs(g)
+    g.shouldBe(an[Generic.Aux[Bar, g.Repr]])
 
-    Bar.`shapeless.LabelledGeneric` should not equal null
+    (Bar.`shapeless.LabelledGeneric` should not).equal(null)
     val lg = LabelledGeneric[Bar]
-    Bar.`shapeless.LabelledGeneric` should be theSameInstanceAs (lg)
-    lg shouldBe an[LabelledGeneric.Aux[Bar, lg.Repr]]
+    (Bar.`shapeless.LabelledGeneric` should be).theSameInstanceAs(lg)
+    lg.shouldBe(an[LabelledGeneric.Aux[Bar, lg.Repr]])
   }
 
   it should "support the .Aux pattern on parameterised classes" in {
-    Gaz.`shapeless.Generic`[String] should not equal null
+    (Gaz.`shapeless.Generic`[String] should not).equal(null)
     val g = Generic[Gaz[String]]
-    g shouldBe an[Generic.Aux[Gaz[String], g.Repr]]
+    g.shouldBe(an[Generic.Aux[Gaz[String], g.Repr]])
 
-    Gaz.`shapeless.LabelledGeneric`[String] should not equal null
+    (Gaz.`shapeless.LabelledGeneric`[String] should not).equal(null)
     val lg = LabelledGeneric[Gaz[String]]
-    lg shouldBe an[LabelledGeneric.Aux[Gaz[String], lg.Repr]]
+    lg.shouldBe(an[LabelledGeneric.Aux[Gaz[String], lg.Repr]])
   }
 
   it should "support the .Aux pattern on objects" in {
-    Car.`shapeless.Generic` should not equal null
+    (Car.`shapeless.Generic` should not).equal(null)
     val g = Generic[Car.type]
-    g shouldBe an[Generic.Aux[Car.type, g.Repr]]
+    g.shouldBe(an[Generic.Aux[Car.type, g.Repr]])
 
-    Car.`shapeless.LabelledGeneric` should not equal null
+    (Car.`shapeless.LabelledGeneric` should not).equal(null)
     val lg = LabelledGeneric[Car.type]
-    lg shouldBe an[LabelledGeneric.Aux[Car.type, lg.Repr]]
+    lg.shouldBe(an[LabelledGeneric.Aux[Car.type, lg.Repr]])
   }
 
   it should "provide position information on failure" ignore {

@@ -13,14 +13,14 @@ class PresentationCompilerTest extends FlatSpec {
   "PresentationCompiler" should "not have errors" in withMrPlod(
     "interactive.scala"
   ) { mr =>
-    mr.messages shouldBe 'empty
+    mr.messages.shouldBe('empty)
   }
 
   it should "be able to perform type-at-point" ignore withMrPlod(
     "interactive.scala"
   ) { mr =>
-    mr.typeAtPoint('foo).value shouldBe "wibble.Foo"
-    mr.typeAtPoint('baz).value shouldBe "wibble.Baz"
-    mr.typeAtPoint('gaz).value shouldBe "wibble.Gaz[T]"
+    mr.typeAtPoint('foo).value.shouldBe("wibble.Foo")
+    mr.typeAtPoint('baz).value.shouldBe("wibble.Baz")
+    mr.typeAtPoint('gaz).value.shouldBe("wibble.Gaz[T]")
   }
 }

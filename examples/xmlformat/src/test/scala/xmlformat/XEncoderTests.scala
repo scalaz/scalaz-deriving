@@ -18,47 +18,47 @@ class XEncoderTests extends FreeSpec {
 
   "XNode Encoder" - {
     "should support Boolean" in {
-      true.toXml shouldBe XAtom("true")
-      false.toXml shouldBe XAtom("false")
+      true.toXml.shouldBe(XAtom("true"))
+      false.toXml.shouldBe(XAtom("false"))
     }
 
     "should support integers" in {
       val expected = XAtom("13")
 
-      13.toShort.toXml shouldBe expected
-      13.toInt.toXml shouldBe expected
-      13.toLong.toXml shouldBe expected
+      13.toShort.toXml.shouldBe(expected)
+      13.toInt.toXml.shouldBe(expected)
+      13.toLong.toXml.shouldBe(expected)
     }
 
     "should support floating point numbers" in {
       val expected = XAtom("0.1")
 
-      0.1.toFloat.toXml shouldBe expected
-      0.1.toDouble.toXml shouldBe expected
+      0.1.toFloat.toXml.shouldBe(expected)
+      0.1.toDouble.toXml.shouldBe(expected)
     }
 
     "should support single characters" in {
-      'c'.toXml shouldBe XText("c")
+      'c'.toXml.shouldBe(XText("c"))
     }
 
     "should support Strings" in {
-      "<wibble><wobble".toXml shouldBe XText("<wibble><wobble")
+      "<wibble><wobble".toXml.shouldBe(XText("<wibble><wobble"))
     }
 
     "should support Symbols" in {
-      'foo.toXml shouldBe XText("foo")
+      'foo.toXml.shouldBe(XText("foo"))
     }
 
     "should special-case Option" in {
-      (Some("hello"): Option[String]).toXml shouldBe XText("hello")
+      (Some("hello"): Option[String]).toXml.shouldBe(XText("hello"))
 
-      (None: Option[String]).toXml shouldBe XChildren(IList.empty)
+      (None: Option[String]).toXml.shouldBe(XChildren(IList.empty))
     }
 
     "should special-case Either" in {
-      (Left("hello"): Either[String, Int]).toXml shouldBe XText("hello")
+      (Left("hello"): Either[String, Int]).toXml.shouldBe(XText("hello"))
 
-      (Right(13): Either[String, Int]).toXml shouldBe XAtom("13")
+      (Right(13): Either[String, Int]).toXml.shouldBe(XAtom("13"))
     }
 
     "should support Traversables" in {
@@ -78,13 +78,13 @@ class XEncoderTests extends FreeSpec {
         )
       )
 
-      Seq(1, 2, 3).toXml shouldBe expected
-      ListSet(1, 2, 3).toXml should (be(expected) or be(legacy))
-      List(1, 2, 3).toXml shouldBe expected
+      Seq(1, 2, 3).toXml.shouldBe(expected)
+      ListSet(1, 2, 3).toXml should (be(expected).or(be(legacy)))
+      List(1, 2, 3).toXml.shouldBe(expected)
     }
 
     "should special case Map[Thing, OtherThing]" in {
-      Map(1 -> "a", 2 -> "b", 3 -> "c").toXml shouldBe
+      Map(1 -> "a", 2 -> "b", 3 -> "c").toXml.shouldBe(
         XChildren(
           IList(
             XTag(
@@ -119,83 +119,104 @@ class XEncoderTests extends FreeSpec {
             )
           )
         )
+      )
     }
 
     "should support NonEmptyList" in {
-      NonEmptyList.nels(1, 2, 3).toXml shouldBe
-        XChildren(
-          IList(
-            XTag(XAtom("value"), IList.empty, XAtom("1")),
-            XTag(XAtom("value"), IList.empty, XAtom("2")),
-            XTag(XAtom("value"), IList.empty, XAtom("3"))
+      NonEmptyList
+        .nels(1, 2, 3)
+        .toXml
+        .shouldBe(
+          XChildren(
+            IList(
+              XTag(XAtom("value"), IList.empty, XAtom("1")),
+              XTag(XAtom("value"), IList.empty, XAtom("2")),
+              XTag(XAtom("value"), IList.empty, XAtom("3"))
+            )
           )
         )
     }
 
     "should support FiniteDuration" in {
-      10.seconds.toXml shouldBe XAtom("10000")
+      10.seconds.toXml.shouldBe(XAtom("10000"))
     }
 
     "should support Instant" in {
       val iso     = "2013-05-30T23:38:23.085Z"
       val instant = Instant.parse(iso)
-      instant.toXml shouldBe XAtom(iso)
+      instant.toXml.shouldBe(XAtom(iso))
     }
 
     "should support generic products" in {
       import examples._
 
-      Foo("hello").toXml shouldBe XChildren(
-        IList(XTag(XAtom("s"), IList.empty, XText("hello")))
+      Foo("hello").toXml.shouldBe(
+        XChildren(
+          IList(XTag(XAtom("s"), IList.empty, XText("hello")))
+        )
       )
-      Caz.toXml shouldBe XChildren(IList.empty)
-      Baz.toXml shouldBe XText("Baz!")
-      Faz(Some("hello")).toXml shouldBe XChildren(
-        IList(XTag(XAtom("o"), IList.empty, XText("hello")))
+      Caz.toXml.shouldBe(XChildren(IList.empty))
+      Baz.toXml.shouldBe(XText("Baz!"))
+      Faz(Some("hello")).toXml.shouldBe(
+        XChildren(
+          IList(XTag(XAtom("o"), IList.empty, XText("hello")))
+        )
       )
 
       // optional thing (not necessarilly the same as the return value)
-      Faz(None).toXml shouldBe XChildren(
-        IList(XTag(XAtom("o"), IList.empty, XChildren(IList.empty)))
+      Faz(None).toXml.shouldBe(
+        XChildren(
+          IList(XTag(XAtom("o"), IList.empty, XChildren(IList.empty)))
+        )
       )
     }
 
     "should support generic coproducts" in {
       import examples._
 
-      (Foo("hello"): SimpleTrait).toXml shouldBe XTag(
-        XAtom("Foo"),
-        IList.empty,
-        XChildren(IList(XTag(XAtom("s"), IList.empty, XText("hello"))))
+      (Foo("hello"): SimpleTrait).toXml.shouldBe(
+        XTag(
+          XAtom("Foo"),
+          IList.empty,
+          XChildren(IList(XTag(XAtom("s"), IList.empty, XText("hello"))))
+        )
       )
-      (Caz: SimpleTrait).toXml shouldBe XTag(
-        XAtom("Caz"),
-        IList.empty,
-        XChildren(IList.empty)
+      (Caz: SimpleTrait).toXml.shouldBe(
+        XTag(
+          XAtom("Caz"),
+          IList.empty,
+          XChildren(IList.empty)
+        )
       )
-      (Baz: SimpleTrait).toXml shouldBe XTag(
-        XAtom("Baz"),
-        IList.empty,
-        XText("Baz!")
+      (Baz: SimpleTrait).toXml.shouldBe(
+        XTag(
+          XAtom("Baz"),
+          IList.empty,
+          XText("Baz!")
+        )
       )
 
-      (Wobble("fish"): AbstractThing).toXml shouldBe XTag(
-        XAtom("Wobble"),
-        IList.empty,
-        XChildren(IList(XTag(XAtom("id"), IList.empty, XText("fish"))))
+      (Wobble("fish"): AbstractThing).toXml.shouldBe(
+        XTag(
+          XAtom("Wobble"),
+          IList.empty,
+          XChildren(IList(XTag(XAtom("id"), IList.empty, XText("fish"))))
+        )
       )
 
-      (Wibble: AbstractThing).toXml shouldBe XTag(
-        XAtom("Wibble"),
-        IList.empty,
-        XChildren(IList.empty)
+      (Wibble: AbstractThing).toXml.shouldBe(
+        XTag(
+          XAtom("Wibble"),
+          IList.empty,
+          XChildren(IList.empty)
+        )
       )
     }
 
     "should support generic recursive ADTs" in {
       import examples._
 
-      Recursive("hello", Some(Recursive("goodbye"))).toXml shouldBe
+      Recursive("hello", Some(Recursive("goodbye"))).toXml.shouldBe(
         XChildren(
           IList(
             XTag(XAtom("h"), IList.empty, XText("hello")),
@@ -211,6 +232,7 @@ class XEncoderTests extends FreeSpec {
             )
           )
         )
+      )
     }
 
     "should encode fields as XmlAttribute" in {
@@ -226,17 +248,20 @@ class XEncoderTests extends FreeSpec {
 
       val multifield = MultiField("hello", Tag("goodbye"))
 
-      multifield.toXml shouldBe attributed
-      (multifield: MultiFieldParent).toXml shouldBe attributed
+      multifield.toXml.shouldBe(attributed)
+      (multifield: MultiFieldParent).toXml.shouldBe(attributed)
 
-      MultiOptyField("hello", Tag(Some("goodbye"))).toXml shouldBe XTag(
-        XAtom("MultiOptyField"),
-        IList(XAttr(XAtom("b"), XText("goodbye"))),
-        XChildren(IList(XTag(XAtom("a"), IList.empty, XText("hello"))))
+      MultiOptyField("hello", Tag(Some("goodbye"))).toXml.shouldBe(
+        XTag(
+          XAtom("MultiOptyField"),
+          IList(XAttr(XAtom("b"), XText("goodbye"))),
+          XChildren(IList(XTag(XAtom("a"), IList.empty, XText("hello"))))
+        )
       )
 
-      MultiOptyField("hello", Tag(None)).toXml shouldBe
+      MultiOptyField("hello", Tag(None)).toXml.shouldBe(
         XChildren(IList(XTag(XAtom("a"), IList.empty, XText("hello"))))
+      )
 
     }
   }
