@@ -122,6 +122,10 @@ class DerivingTest extends FlatSpec {
     lg.shouldBe(an[LabelledGeneric.Aux[Car.type, lg.Repr]])
   }
 
+  it should "support val forwarders" in {
+    (D.`testing.typeclasses.Cofoo` should not).equal(null)
+  }
+
   it should "provide position information on failure" ignore {
     // https://github.com/milessabin/shapeless/issues/756
     // https://github.com/scalatest/scalatest/issues/1193

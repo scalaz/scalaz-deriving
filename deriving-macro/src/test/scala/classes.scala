@@ -51,3 +51,9 @@ object DerivedWibble {
 
 @deriving(CustomGen)
 final case class C(i: Int)
+
+@deriving(d.ValForwarder)
+final case class D(i: Int)
+package object d {
+  val ValForwarder = Cofoo
+}

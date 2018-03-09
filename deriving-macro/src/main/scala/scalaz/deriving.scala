@@ -674,7 +674,8 @@ class DerivingMacros(val c: Context) extends BackCompat {
     // c.typecheck provides Symbol on the input Tree
     val Apply(Select(_, _), parameters) = c.typecheck(c.prefix.tree)
     // gets the juicy typed bits
-    val typeclasses = parameters.map(_.symbol.asModule)
+    val typeclasses =
+      parameters.map(_.symbol.info.typeSymbol.companion.companion.asModule)
 
     annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
