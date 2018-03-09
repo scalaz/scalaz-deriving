@@ -72,5 +72,4 @@ val xmlformat = (project in file("examples/xmlformat"))
   )
 
 // root project
-publishLocal := {}
-publish := {}
+skip in publish := true
