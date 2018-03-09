@@ -56,8 +56,7 @@ object ProjectPlugin extends AutoPlugin {
     scalacOptions in Test ++= {
       val dir = (baseDirectory in ThisBuild).value / "project"
       Seq(
-        s"-Xmacro-settings:deriving.targets=$dir/deriving-targets.conf",
-        s"-Xmacro-settings:deriving.defaults=$dir/deriving-defaults.conf"
+        s"-Xmacro-settings:deriving=$dir/deriving.conf"
       )
     },
     javaOptions in Test ++= {

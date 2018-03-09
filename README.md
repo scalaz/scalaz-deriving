@@ -67,8 +67,7 @@ We provide wirings for several popular libraries out-of-the-box (e.g. `play.json
 scalacOptions ++= {
   val dir = (baseDirectory in ThisBuild).value / "project"
   Seq(
-    s"-Xmacro-settings:deriving.targets=$dir/deriving-targets.conf",
-    s"-Xmacro-settings:deriving.defaults=$dir/deriving-defaults.conf"
+    s"-Xmacro-settings:deriving=$dir/deriving.conf"
   )
 }
 ```

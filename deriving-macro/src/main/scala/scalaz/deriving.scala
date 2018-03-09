@@ -7,6 +7,7 @@ import java.lang.String
 import java.net.URL
 
 import scala.{
+  volatile,
   Any,
   AnyRef,
   Boolean,
@@ -35,39 +36,16 @@ object DerivingMacros extends BackCompat {
   private type Result[T] = Either[String, T]
   private type Stringy   = Map[String, String]
 
-  type Defaults = List[String]
-  private val defaultDefaults: Result[Defaults] = Right(Nil)
-  private def defaults(
-    path: Option[String]
-  ): Result[Defaults] =
-    for {
-      content <- path.fold(defaultDefaults)(parseOrCachedDefaults)
-    } yield content
-
-  private[this] var cachedDefaults: Map[String, Result[Defaults]] = Map.empty
-  def parseOrCachedDefaults(path: String): Result[Defaults] =
-    cachedDefaults.get(path) match {
-      case Some(got) => got
-      case None =>
-        val calculated: Result[Defaults] = for {
-          s <- readFile(path)
-          d <- parseDefaults(s)
-        } yield d
-        cachedDefaults += (path -> calculated)
-        calculated
-    }
-  def parseDefaults(contents: String): Result[Defaults] =
-    Right(contents.split("\n").toList.map(_.trim).filterNot(_.isEmpty))
-
-  private val EmptyTargets: Result[Stringy] = Right(Map.empty)
   private def targets(path: Option[String]): Result[Stringy] =
     for {
       d <- classpathTargets
-      u <- path.fold(EmptyTargets)(user)
+      u <- path.map(user).getOrElse(EmptyTargets)
     } yield (d ++ u)
+  private[this] val EmptyTargets: Result[Stringy] = Right(Map.empty)
 
-  // cached to avoid hitting disk on every use of the macro
-  private[this] var cachedUserTargets: Map[String, Result[Stringy]] = Map.empty
+  // cached to avoid hitting disk on every use of the macro.
+  @volatile private[this] var cachedUserTargets: Map[String, Result[Stringy]] =
+    Map.empty
   private[this] def user(path: String): Result[Stringy] =
     cachedUserTargets.get(path) match {
       case Some(got) => got
@@ -80,23 +58,23 @@ object DerivingMacros extends BackCompat {
         calculated
     }
 
-  private lazy val classpathTargets: Result[Stringy] = {
-    val resources =
-      getClass.getClassLoader.getResources("deriving.conf").asScala.toList
-    resources.map { resUrl =>
-      val resValue: Result[Stringy] = for {
-        s <- readResource(resUrl)
-        c <- parseProperties(s)
-      } yield c
-      resValue match {
-        case Left(err) => Left(s"$resUrl: $err")
-        case Right(v)  => Right(v: Stringy)
+  private[this] lazy val classpathTargets: Result[Stringy] = {
+    getClass.getClassLoader
+      .getResources("deriving.conf")
+      .asScala
+      .toList
+      .map { res =>
+        for {
+          s <- readResource(res)
+          c <- parseProperties(s)
+        } yield c
       }
-    }.fold(EmptyTargets) {
-      case (Right(m1), Right(m2)) => Right(m1 ++ m2)
-      case (Left(e1), _)          => Left(e1)
-      case (_, Left(e2))          => Left(e2)
-    }
+      .fold(EmptyTargets) {
+        // it's almost like we have a Monoid! Except, no, it's stdlib
+        case (Right(m1), Right(m2)) => Right(m1 ++ m2)
+        case (Left(e1), _)          => Left(e1)
+        case (_, Left(e2))          => Left(e2)
+      }
   }
 
   private[this] def parseProperties(config: String): Result[Stringy] =
@@ -106,6 +84,7 @@ object DerivingMacros extends BackCompat {
           .split("\n")
           .toList
           .filterNot(_.isEmpty)
+          .filterNot(_.startsWith("#"))
           .map(_.split("=").toList)
           .map {
             case List(from, to) => from.trim -> to.trim
@@ -182,23 +161,13 @@ class DerivingMacros(val c: Context) extends BackCompat {
                                 accessor: TermName,
                                 tpe: TreeTypeName)
 
-  private case class Config(
-    targets: Map[String, String] = Map.empty,
-    defaults: List[String] = Nil
-  )
+  private case class Config(targets: Map[String, String])
 
   private def getParam(key: String): Option[String] =
     c.settings.find(_.startsWith(s"$key=")).map(_.substring(key.length + 1))
 
   private def readConfig(): Either[String, Config] =
-    for {
-      targets  <- DerivingMacros.targets(getParam("deriving.targets"))
-      defaults <- DerivingMacros.defaults(getParam("deriving.defaults"))
-    } yield
-      Config(
-        targets,
-        defaults
-      )
+    DerivingMacros.targets(getParam("deriving")).map(Config(_))
 
   private def parseToTermTree(s: String): TreeTermName = {
     def toSelect(parts: List[TermName]): Tree = parts match {
@@ -576,13 +545,8 @@ class DerivingMacros(val c: Context) extends BackCompat {
       // the to earlier stages in the compile (e.g. as a plugin).
       tc.fullName -> TermAndType(tc)
     }
-    val defaults = config.defaults.map { tc: String =>
-      val termName = parseToTermTree(tc)
-      tc -> TermAndType(termName, termName.toTypeName)
-    }
 
-    // defaults first (typically dependencies of everything else...)
-    val implicits = (defaults ++ requested).map {
+    val implicits = requested.map {
       case (fqn, typeclass) =>
         val memberName = TermName(fqn).encodedName.toTermName
         val target = config.targets.get(s"$fqn.Aux") match {
@@ -666,7 +630,7 @@ class DerivingMacros(val c: Context) extends BackCompat {
     val config = readConfig().fold(
       error => {
         c.error(c.prefix.tree.pos, s"Failed to parse deriving config: $error")
-        Config()
+        Config(Map.empty)
       },
       success => success
     )

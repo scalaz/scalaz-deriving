@@ -12,6 +12,8 @@ import simulacrum.typeclass
 
 import play.api.libs.json
 
+import shapeless.{ Generic, LabelledGeneric }
+
 import scalaz._
 import Scalaz._
 
@@ -21,7 +23,7 @@ sealed trait Baz
 @deriving(json.Format, Cofoo, B, Wibble)
 final case class Foo(string: String, int: Int) extends Baz
 
-@deriving(json.Format, Cofoo, B)
+@deriving(Generic, LabelledGeneric, json.Format, Cofoo, B)
 final case class Bar(foo: Foo) extends Baz
 object Bar {
   def hello: String = ""
@@ -31,7 +33,7 @@ object Bar {
 private[testing] final case class Par(s: String)
 
 // can't do json.Format: https://github.com/playframework/play-json/issues/93
-@deriving(Cofoo, B)
+@deriving(Generic, LabelledGeneric, Cofoo, B)
 case object Car extends Baz
 
 @deriving(Cofoo, B)
@@ -41,7 +43,7 @@ final class Anyzz(val s: String) extends scala.AnyVal
 @deriving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
-@deriving(json.Format)
+@deriving(json.Format, Generic, LabelledGeneric)
 final case class Gaz[T](t: T)
 
 @typeclass trait Wibble[T] {}
