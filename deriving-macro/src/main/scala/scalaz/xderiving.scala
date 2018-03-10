@@ -17,14 +17,14 @@ class xderiving(val typeclasses: AnyRef*) extends StaticAnnotation {
 class XDerivingMacros(override val c: Context) extends DerivingCommon {
   import c.universe._
 
-  private case class AnyValDesc(name: TypeName,
-                                accessor: TermName,
-                                tpe: TreeTypeName)
+  private case class ValueClassDesc(name: TypeName,
+                                    accessor: TermName,
+                                    tpe: TreeTypeName)
 
   // long-winded way of saying
   //
   // implicitly[TC[A]].xmap(new A(_), _.value)
-  private def genAnyValXmap(typeCons: TreeTypeName, value: AnyValDesc) = {
+  private def genXmap(typeCons: TreeTypeName, value: ValueClassDesc) = {
     import Flag._
     Apply(
       Select(
@@ -58,32 +58,26 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
     )
   }
 
-  private def anyVal(c: ClassDef): Option[AnyValDesc] =
-    c.impl.parents.flatMap {
-      case Ident(name) if name.toString == "AnyVal"     => Some(c)
-      case Select(_, name) if name.toString == "AnyVal" => Some(c)
-      case _                                            => None
-    }.headOption.flatMap { anyval =>
-      anyval.impl.body.collect {
-        case ValDef(_, name, tpt, _) =>
-          AnyValDesc(anyval.name, name, TreeTypeName(tpt))
-      }.headOption
+  private def valueClass(c: ClassDef): Option[ValueClassDesc] =
+    c.impl.body.collect {
+      case ValDef(_, name, tpt, _) =>
+        ValueClassDesc(c.name, name, TreeTypeName(tpt))
+    }.toList match {
+      case vc :: Nil => Some(vc)
+      case _         => None
     }
 
-  /**
-   * AnyVal is special cased to use an invariant functor
-   */
   private def genImplicitVal(
     memberName: TermName,
     typeclass: TermAndType,
     c: ClassDef,
-    value: AnyValDesc
+    value: ValueClassDesc
   ) =
     ValDef(
       Modifiers(Flag.IMPLICIT),
       memberName,
       AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
-      genAnyValXmap(typeclass.cons, value)
+      genXmap(typeclass.cons, value)
     )
 
   private def genImplicitDef(
@@ -91,7 +85,7 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
     typeclass: TermAndType,
     c: ClassDef,
     tparams: List[TypeDef],
-    value: AnyValDesc
+    value: ValueClassDesc
   ) = {
     val implicits =
       if (isIde) Nil
@@ -121,7 +115,7 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
           )
         )
       ),
-      genAnyValXmap(typeclass.cons, value)
+      genXmap(typeclass.cons, value)
     )
   }
 
@@ -129,7 +123,7 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
                      requested: List[(String, TermAndType)],
                      clazz: ClassDef,
                      comp: ModuleDef,
-                     av: AnyValDesc): c.Expr[Any] = {
+                     av: ValueClassDesc): c.Expr[Any] = {
     val implicits = requested.map {
       case (fqn, typeclass) =>
         val memberName = TermName(fqn).encodedName.toTermName
@@ -155,9 +149,9 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
     val trees = annottees.map(_.tree)
     val dca = trees match {
       case (data: ClassDef) :: Nil =>
-        anyVal(data).map(av => (data, createCompanion(data), av))
+        valueClass(data).map(av => (data, createCompanion(data), av))
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        anyVal(data).map(av => (data, companion, av))
+        valueClass(data).map(av => (data, companion, av))
       case _ => None
     }
     dca match {
@@ -166,7 +160,7 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
       case None =>
         c.abort(
           c.enclosingPosition,
-          s"@xderiving can only be applied to AnyVal classes (got $trees)"
+          s"@xderiving can only be used on classes with one parameter (got $trees)"
         )
     }
   }

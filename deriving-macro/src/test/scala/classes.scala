@@ -34,6 +34,9 @@ private[testing] final case class Par(s: String)
 case object Car extends Baz
 
 @xderiving(Cofoo, B)
+final case class Van(v: String) extends Baz
+
+@xderiving(Cofoo, B)
 final case class Anyx(s: String) extends AnyVal
 @deriving(Cofoo, B)
 final case class Anyz(s: String) extends AnyVal

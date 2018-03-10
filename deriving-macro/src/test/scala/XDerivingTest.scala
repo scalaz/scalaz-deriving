@@ -38,6 +38,10 @@ class XDerivingTest extends FlatSpec {
     (the[Cobar[Anyzz]] should not).equal(null)
   }
 
+  it should "support single parameter classes" in {
+    (the[Cobar[Van]] should not).equal(null)
+  }
+
   it should "fail to derive AnyVal that is not invariant" ignore {
     fail("see below, must be manual")
   }

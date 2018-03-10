@@ -53,11 +53,11 @@ The config file is plain text with one line per wiring, formatted: `fqn.TypeClas
 
 ## `@xderiving`
 
-A variant `@xderiving` works only on classes that `extends AnyVal`, making use of an `.xmap` that the typeclass may provide directly or via an instance of =scalaz.InvariantFunctor=, e.g.
+A variant `@xderiving` works only on classes with one parameter (including those that extend =AnyVal=), making use of an `.xmap` that the typeclass may provide directly or via an instance of =scalaz.InvariantFunctor=, e.g.
 
 ```scala
 @scalaz.xderiving(Encoder, Decoder)
-class Foo(val s: String) extends AnyVal
+class Foo(val s: String)
 ```
 
 expands into
