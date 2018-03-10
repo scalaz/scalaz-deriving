@@ -184,100 +184,10 @@ class DerivingMacros(override val c: Context) extends DerivingCommon {
       toGen(target)
     )
 
-  /**
-   * The pattern we actually want to generate is more like
-   *
-   * {{{
-   *    val `shapeless.LabelledGeneric` = {
-   *      def `shapeless.LabelledGeneric.Aux` = scala.Predef.???
-   *      shapeless.LabelledGeneric[Bar]
-   *    }
-   *    implicit val `shapeless.LabelledGeneric.Aux`
-   *      : shapeless.LabelledGeneric.Aux[Bar, `shapeless.LabelledGeneric`.Repr] =
-   *      `shapeless.LabelledGeneric`
-   * }}}
-   *
-   * which would expose the actual .Aux. However, generating this
-   * results in a compiler error
-   *
-   * {{{
-   * Encountered Valdef without symbol:
-   *   implicit val <none>: LabelledGeneric.Aux[Bar, LabelledGeneric.Repr]
-   * at UnCurry$UnCurryTransformer.mainTransform(UnCurry.scala:466)
-   * }}}
-   *
-   * which means the type of LabelledGeneric is not being filled in.
-   *
-   * However, we can do a much simpler alternative which is to
-   * generate something like
-   *
-   * {{{
-   *   implicit val `shapeless.LabelledGeneric` = shapeless.LabelledGeneric[Bar]
-   * }}}
-   *
-   * i.e. to put the types on the RHS and let the compiler infer them
-   * on the left.
-   */
-  private def genAuxClassImplicitVal(
-    target: TreeTermName,
-    memberName: TermName,
-    cd: ClassDef
-  ): Tree =
-    ValDef(
-      Modifiers(Flag.IMPLICIT),
-      memberName,
-      TypeTree(),
-      TypeApply(
-        target.tree,
-        List(Ident(cd.name))
-      )
-    )
-
-  private def genAuxObjectImplicitVal(
-    target: TreeTermName,
-    memberName: TermName,
-    comp: ModuleDef
-  ) =
-    ValDef(
-      Modifiers(Flag.IMPLICIT),
-      memberName,
-      TypeTree(),
-      TypeApply(
-        target.tree,
-        List(SingletonTypeTree(Ident(comp.name.toTermName)))
-      )
-    )
-
-  // unlike getClassImplicitDef, we do not generate an implicit
-  // parameter section (unless this turns out to be required).
-  private def genAuxClassImplicitDef(
-    target: TreeTermName,
-    memberName: TermName,
-    c: ClassDef,
-    tparams: List[TypeDef]
-  ) =
-    DefDef(
-      Modifiers(Flag.IMPLICIT),
-      memberName,
-      tparams,
-      Nil,
-      TypeTree(),
-      TypeApply(
-        target.tree,
-        List(
-          AppliedTypeTree(
-            Ident(c.name),
-            tparams.map(tp => Ident(tp.name))
-          )
-        )
-      )
-    )
-
   /* typeclass patterns supported */
   private sealed trait Target
-  private case class Derived(value: TreeTermName)      extends Target
-  private case class LeftInferred(value: TreeTermName) extends Target
-  private case object Derivez                          extends Target
+  private case class Derived(value: TreeTermName) extends Target
+  private case object Derivez                     extends Target
 
   private def update(config: DerivingConfig,
                      requested: List[(String, TermAndType)],
@@ -286,15 +196,11 @@ class DerivingMacros(override val c: Context) extends DerivingCommon {
     val implicits = requested.map {
       case (fqn, typeclass) =>
         val memberName = TermName(fqn).encodedName.toTermName
-        val target = config.targets.get(s"$fqn.Aux") match {
-          case Some(aux) => LeftInferred(parseToTermTree(aux))
-          case None =>
-            config.targets
-              .get(fqn)
-              .map(parseToTermTree)
-              .map(Derived(_))
-              .getOrElse(Derivez)
-        }
+        val target = config.targets
+          .get(fqn)
+          .map(parseToTermTree)
+          .map(Derived(_))
+          .getOrElse(Derivez)
 
         (clazz, target) match {
           case (Some(c), Derivez) =>
@@ -316,16 +222,6 @@ class DerivingMacros(override val c: Context) extends DerivingCommon {
             }
           case (None, Derived(to)) =>
             genObjectImplicitVal(to, memberName, typeclass, comp)
-
-          case (Some(c), LeftInferred(to)) =>
-            // LeftInferred is the same for value classes and normal classes
-            c.tparams match {
-              case _ if isIde => EmptyTree
-              case Nil        => genAuxClassImplicitVal(to, memberName, c)
-              case tparams    => genAuxClassImplicitDef(to, memberName, c, tparams)
-            }
-          case (None, LeftInferred(to @ _)) =>
-            genAuxObjectImplicitVal(to, memberName, comp)
         }
     }
 

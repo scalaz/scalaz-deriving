@@ -14,10 +14,7 @@ There are two independent and complementary parts to this library:
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
 
-- [`@deriving` Macro Annotation](#deriving-macro-annotation)
-    - [Backends](#backends)
-        - [`Derived` Style](#derived-style)
-        - [`.Aux` Derivation](#aux-derivation)
+- [`@deriving` and `@xderiving` Macro Annotations](#deriving-macro-annotation)
 - [`scalaz-deriving`](#scalaz-deriving)
 - [Installation](#installation)
     - [IntelliJ Users](#intellij-users)
@@ -26,7 +23,9 @@ There are two independent and complementary parts to this library:
 
 <!-- markdown-toc end -->
 
-# `@deriving` Macro Annotation
+# Macro Annotations
+
+# `@deriving`
 
 The `@deriving` annotation simplifies the *semi-auto* pattern, whereby implicit evidence is explicitly added to data type companions, rather than being inferred at the point of use (known as *full-auto*). In short,
 
@@ -38,81 +37,36 @@ case class Bar(s: String, b: Boolean)
 expands to
 
 ```scala
-case class Bar(s: String, b: Boolean)
 object Bar {
-  implicit val encoder: Encoder[Bar] = DerivedEncoder.gen
-  implicit val decoder: Decoder[Bar] = DerivedDecoder.gen
+  implicit val encoder: Encoder[Bar] = scalaz.Derivez.gen[Encoder, Bar]
+  implicit val decoder: Decoder[Bar] = scalaz.Derivez.gen[Decoder, Bar]
 }
 ```
 
-The annotation also supports:
+The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed trait` or `object`.
 
-- type parameters (using `implicit def` rather than `implicit val`)
-- `sealed trait` and `object`
-- `extends AnyVal` (if the typeclass `TC[A]` has a `def xmap[B](f: A => B, g: B => A): TC[B]` or [`scalaz.InvariantFunctor`](https://static.javadoc.io/org.scalaz/scalaz_2.12/7.2.15/scalaz/InvariantFunctor.html))
+You can provide your own project-specific wirings in a =deriving.conf= file, which will also be available for users of your library if it is published.
 
-## Backends
+The compiler flag =-Xmacro-settings:deriving= can be used if a particular configuration must take precedence.
 
-The default expansion is to generate a call to `scalaz.Derivez.gen[TC, A]`, which (if installed) expands into:
+The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
+
+## `@xderiving`
+
+A variant `@xderiving` works only on classes that `extends AnyVal`, making use of an `.xmap` that the typeclass may provide directly or via an instance of =scalaz.InvariantFunctor=, e.g.
 
 ```scala
-val gen = scalaz.ProdGen.gen[Foo]
-val tcs = iotaz.Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
-scalaz.Derivez.xproductz(tcs, gen.labels)(gen.to, gen.from)
+@scalaz.xderiving(Encoder, Decoder)
+class Foo(val s: String) extends AnyVal
 ```
 
-We provide wirings for several popular libraries out-of-the-box (e.g. `play.json.Format`) and you can provide your own project-specific wirings by setting up your build to point to your configuration files, e.g.
+expands into
 
 ```scala
-scalacOptions ++= {
-  val dir = (baseDirectory in ThisBuild).value / "project"
-  Seq(
-    s"-Xmacro-settings:deriving=$dir/deriving.conf"
-  )
+object Foo {
+  implicit val encoder: Encoder[Foo] = implicitly[Encoder[String]].xmap(new Foo(_), _.s)
+  implicit val decoder: Decoder[Foo] = implicitly[Decoder[String]].xmap(new Foo(_), _.s)
 }
-```
-
-If you are a library author, you can distribute a "deriving.conf" in the same format in your published artifacts and scalaz-deriving will find it.
-
-The `targets` config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`.
-
-The `defaults` config file is plain text with one line per typeclass that you wish to **always** be derived. This is best reserved for performance optimisations, e.g. avoiding multiple `shapeless.Generic` derivations, rather than for feature-based typeclasses.
-
-### `Derived` Style
-
-If you are writing a [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), or custom macro, please follow this convention:
-
-```scala
-@typeclass trait Foo[A] { ... }
-
-trait DerivedFoo[A] extends Foo[A]
-object DerivedFoo {
-  def gen: DerivedFoo[A] = ???
-}
-```
-
-### `.Aux` Derivation
-
-If you would prefer to let the compiler infer the type
-
-```scala
-@deriving(Generic, LabelledGeneric)
-case class Bar(s: String, b: Boolean)
-```
-
-generating
-
-```scala
-object Bar {
-  implicit val generic = shapeless.Generic[Bar]
-  implicit val labelled = shapeless.LabelledGeneric[Bar]
-}
-```
-
-(note that the type is not bound on the LHS, allowing for complex types), you can do so by creating a `.Aux` rule in the config file, similar to the included rule:
-
-```
-shapeless.Generic.Aux=shapeless.Generic.apply
 ```
 
 # `scalaz-deriving`

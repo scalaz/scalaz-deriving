@@ -8,7 +8,7 @@ import java.lang.String
 import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
-import shapeless.{ the, Generic, LabelledGeneric }
+import shapeless.the
 import testing.classes._
 import testing.typeclasses._
 
@@ -69,38 +69,6 @@ class DerivingTest extends FlatSpec {
   it should "support user-provided rules" in {
     the[Cobar[Foo]].shouldBe(Foo.`testing.typeclasses.Cobar`)
     (the[Cobar[Foo]] should not).equal(null)
-  }
-
-  it should "support the .Aux pattern on regular classes" in {
-    (Bar.`shapeless.Generic` should not).equal(null)
-    val g = Generic[Bar]
-    (Bar.`shapeless.Generic` should be).theSameInstanceAs(g)
-    g.shouldBe(an[Generic.Aux[Bar, g.Repr]])
-
-    (Bar.`shapeless.LabelledGeneric` should not).equal(null)
-    val lg = LabelledGeneric[Bar]
-    (Bar.`shapeless.LabelledGeneric` should be).theSameInstanceAs(lg)
-    lg.shouldBe(an[LabelledGeneric.Aux[Bar, lg.Repr]])
-  }
-
-  it should "support the .Aux pattern on parameterised classes" in {
-    (Gaz.`shapeless.Generic`[String] should not).equal(null)
-    val g = Generic[Gaz[String]]
-    g.shouldBe(an[Generic.Aux[Gaz[String], g.Repr]])
-
-    (Gaz.`shapeless.LabelledGeneric`[String] should not).equal(null)
-    val lg = LabelledGeneric[Gaz[String]]
-    lg.shouldBe(an[LabelledGeneric.Aux[Gaz[String], lg.Repr]])
-  }
-
-  it should "support the .Aux pattern on objects" in {
-    (Car.`shapeless.Generic` should not).equal(null)
-    val g = Generic[Car.type]
-    g.shouldBe(an[Generic.Aux[Car.type, g.Repr]])
-
-    (Car.`shapeless.LabelledGeneric` should not).equal(null)
-    val lg = LabelledGeneric[Car.type]
-    lg.shouldBe(an[LabelledGeneric.Aux[Car.type, lg.Repr]])
   }
 
   it should "support val forwarders" in {
