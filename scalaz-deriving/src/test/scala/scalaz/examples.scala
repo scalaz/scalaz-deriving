@@ -10,8 +10,11 @@ import scalaz._
 import Scalaz._
 
 package anyvals {
-  @deriving(Equal, Default, Show)
+  @xderiving(Equal, Default, Show)
   final case class Thing(s: String) extends AnyVal
+
+  @deriving(Equal, Default, Show)
+  final case class Thong(s: String) extends AnyVal
 }
 
 package adt {

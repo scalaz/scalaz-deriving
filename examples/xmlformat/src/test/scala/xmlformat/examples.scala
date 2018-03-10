@@ -6,8 +6,6 @@ package xmlformat.examples
 import scalaz._
 import xmlformat._
 
-final case class Optimal(thing: String) extends AnyVal
-
 @deriving(XEncoder, XDecoder) sealed trait SimpleTrait
 @deriving(XEncoder, XDecoder) final case class Foo(s: String)
     extends SimpleTrait

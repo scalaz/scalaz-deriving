@@ -36,11 +36,14 @@ private[testing] final case class Par(s: String)
 @deriving(Generic, LabelledGeneric, Cofoo, B)
 case object Car extends Baz
 
+@xderiving(Cofoo, B)
+final case class Anyx(s: String) extends AnyVal
 @deriving(Cofoo, B)
 final case class Anyz(s: String) extends AnyVal
-@deriving(Cofoo, B)
+
+@xderiving(Cofoo, B)
 final class Anyzz(val s: String) extends scala.AnyVal
-@deriving(Cofoo)
+@xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
 @deriving(json.Format, Generic, LabelledGeneric)

@@ -5,8 +5,6 @@ package tests
 
 import java.lang.String
 
-import scala.{ Either, Right }
-
 import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
@@ -55,29 +53,12 @@ class DerivingTest extends FlatSpec {
     (the[Cobar[Baz]] should not).equal(null)
   }
 
-  it should "special case AnyVal" in {
+  it should "not special case AnyVal" in {
     (the[Cofoo[Anyz]] should not).equal(null)
 
     the[Cofoo[Anyz]].shouldBe(Anyz.`testing.typeclasses.Cofoo`)
 
-    Anyz("wibble").toFoo.shouldBe("exercised the xmap codepath")
-
-    new Anyzz("wobble").toFoo.shouldBe("exercised the xmap codepath")
-  }
-
-  it should "special case AnyVal with type parameters" in {
-    val e: Either[String, String] = Right("hello")
-    new Valuezz(e).toFoo.shouldBe("exercised the xmap codepath")
-  }
-
-  it should "support AnyVal for typeclasses with an InvariantFunctor" in {
-    (the[Cobar[Anyz]] should not).equal(null)
-
-    (the[Cobar[Anyzz]] should not).equal(null)
-  }
-
-  it should "fail to derive AnyVal that is not invariant" ignore {
-    fail("see below, must be manual")
+    Anyz("wibble").toFoo.shouldBe("this is the default gen codepath")
   }
 
   it should "support baked-in rules" in {
@@ -135,8 +116,3 @@ class DerivingTest extends FlatSpec {
 
 // @scalaz.deriving(Cobar)
 // class ElZilcho(s: String)
-
-// AnyVal cannot be defined in a test
-// should fail with "value xmap is not a member of ..."
-//@scalaz.deriving(Cobar)
-//class Bad(val s: String) extends scala.AnyVal

@@ -13,6 +13,8 @@ addCommandAlias("lint", "all compile:scalafixCli test:scalafixCli")
 val deriving = (project in file("deriving-macro")).settings(
   name := "deriving-macro",
   MacroParadise,
+  scalacOptions += "-Yno-predef",
+  scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
   libraryDependencies ++= Seq(
     "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
     "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
@@ -31,6 +33,8 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
   licenses := Seq(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
   ),
+  scalacOptions += "-Yno-imports",
+  scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
     "com.chuusai" %% "shapeless"   % shapelessVersion,
     "org.scalaz"  %% "scalaz-core" % scalazVersion
@@ -47,6 +51,8 @@ val derivez = (project in file("scalaz-deriving"))
     KindProjector,
     MacroParadise,
     name := "scalaz-deriving",
+    scalacOptions += "-Yno-imports",
+    scalacOptions += "-Yno-predef",
     envVars in Jmh += ("RANDOM_DATA_GENERATOR_SEED" -> "0"),
     // WORKAROUND https://gitlab.com/fommil/sbt-sensible/issues/18
     dependencyClasspathAsJars in NeoJmhPlugin.JmhInternal ++= (fullClasspathAsJars in Jmh).value,
@@ -61,8 +67,6 @@ val xmlformat = (project in file("examples/xmlformat"))
   .dependsOn(deriving)
   .settings(
     MacroParadise,
-    scalacOptions -= "-Yno-imports",
-    scalacOptions -= "-Yno-predef",
     libraryDependencies ++= Seq(
       "org.scalaz"             %% "scalaz-core" % scalazVersion,
       "com.chuusai"            %% "shapeless"   % shapelessVersion,

@@ -83,8 +83,6 @@ object ProjectPlugin extends AutoPlugin {
       "-Xlog-free-types",
       "-Xlog-reflective-calls",
       "-Yrangepos",
-      "-Yno-imports",
-      "-Yno-predef",
       "-Xexperimental" // SAM types in 2.11
     ),
     // weird false positives...
