@@ -5,7 +5,7 @@ package scalaz
 
 import scala.{ Either, Left, Right }
 
-trait BackCompat {
+trait DerivingBackCompat {
   private[scalaz] implicit class EitherBackCompat[L, R](e: Either[L, R]) {
     def map[RR](f: R => RR): Either[L, RR] = e match {
       case Left(left)   => Left(left)

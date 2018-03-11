@@ -39,16 +39,8 @@ class XDerivingTest extends FlatSpec {
   }
 
   it should "support single parameter classes" in {
+    (the[Cofoo[Van]] should not).equal(null)
     (the[Cobar[Van]] should not).equal(null)
   }
 
-  it should "fail to derive AnyVal that is not invariant" ignore {
-    fail("see below, must be manual")
-  }
-
 }
-
-// AnyVal cannot be defined in a test
-// should fail with "value xmap is not a member of ..."
-//@scalaz.deriving(Cobar)
-//class Bad(val s: String) extends scala.AnyVal

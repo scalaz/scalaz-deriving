@@ -3,4 +3,4 @@
 
 package scalaz
 
-trait BackCompat
+trait DerivingBackCompat

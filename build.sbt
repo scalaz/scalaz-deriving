@@ -22,7 +22,7 @@ val deriving = (project in file("deriving-macro")).settings(
     "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
     "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
     "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-    "com.typesafe.play"    %% "play-json"     % "2.6.8"            % "test"
+    "com.typesafe.play"    %% "play-json"     % "2.6.9"            % "test"
   )
 )
 

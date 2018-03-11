@@ -11,127 +11,32 @@ import scala.reflect.macros.whitebox.Context
 @compileTimeOnly("xderiving annotation should have been removed")
 class xderiving(val typeclasses: AnyRef*) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any =
-    macro XDerivingMacros.gen
+    macro XDerivingMacroAnnotation.gen
 }
 
-class XDerivingMacros(override val c: Context) extends DerivingCommon {
+class XDerivingMacroAnnotation(override val c: Context) extends DerivingCommon {
   import c.universe._
 
-  private case class ValueClassDesc(name: TypeName,
-                                    accessor: TermName,
-                                    tpe: TreeTypeName)
-
-  // long-winded way of saying
-  //
-  // implicitly[TC[A]].xmap(new A(_), _.value)
-  private def genXmap(typeCons: TreeTypeName, value: ValueClassDesc) = {
-    import Flag._
-    Apply(
-      Select(
-        TypeApply(
-          Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scala")),
-                        TermName("Predef")),
-                 TermName("implicitly")),
-          List(AppliedTypeTree(typeCons.tree, List(value.tpe.tree)))
-        ),
-        TermName("xmap")
-      ),
-      List(
-        Function(
-          List(
-            ValDef(Modifiers(PARAM | SYNTHETIC),
-                   TermName("x"),
-                   TypeTree(),
-                   EmptyTree)
-          ),
-          Apply(Select(New(Ident(value.name)), termNames.CONSTRUCTOR),
-                List(Ident(TermName("x"))))
-        ),
-        Function(List(
-                   ValDef(Modifiers(PARAM | SYNTHETIC),
-                          TermName("x"),
-                          TypeTree(),
-                          EmptyTree)
-                 ),
-                 Select(Ident(TermName("x")), value.accessor))
+  override protected def toGen(f: Tree, a: Tree): Tree =
+    if (isIde) Literal(Constant(null))
+    else
+      TypeApply(
+        Select(Select(Select(Ident(termNames.ROOTPKG), TermName("scalaz")),
+                      TermName("DerivingMacros")),
+               TermName("xderiving")),
+        List(f, a)
       )
-    )
-  }
 
-  private def valueClass(c: ClassDef): Option[ValueClassDesc] =
-    c.impl.body.collect {
-      case ValDef(_, name, tpt, _) =>
-        ValueClassDesc(c.name, name, TreeTypeName(tpt))
-    }.toList match {
-      case vc :: Nil => Some(vc)
-      case _         => None
-    }
-
-  private def genImplicitVal(
-    memberName: TermName,
-    typeclass: TermAndType,
-    c: ClassDef,
-    value: ValueClassDesc
-  ) =
-    ValDef(
-      Modifiers(Flag.IMPLICIT),
-      memberName,
-      AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
-      genXmap(typeclass.cons, value)
-    )
-
-  private def genImplicitDef(
-    memberName: TermName,
-    typeclass: TermAndType,
-    c: ClassDef,
-    tparams: List[TypeDef],
-    value: ValueClassDesc
-  ) = {
-    val implicits =
-      if (isIde) Nil
-      else
-        List(
-          List(
-            ValDef(
-              Modifiers(Flag.IMPLICIT | Flag.PARAM),
-              TermName(s"ev"),
-              AppliedTypeTree(typeclass.cons.tree, List(value.tpe.tree)),
-              EmptyTree
-            )
-          )
-        )
-
-    DefDef(
-      Modifiers(Flag.IMPLICIT),
-      memberName,
-      tparams,
-      implicits,
-      AppliedTypeTree(
-        typeclass.cons.tree,
-        List(
-          AppliedTypeTree(
-            Ident(c.name),
-            tparams.map(tp => Ident(tp.name))
-          )
-        )
-      ),
-      genXmap(typeclass.cons, value)
-    )
-  }
-
-  private def update(config: DerivingConfig,
-                     requested: List[(String, TermAndType)],
+  private def update(requested: List[(String, TermAndType)],
                      clazz: ClassDef,
-                     comp: ModuleDef,
-                     av: ValueClassDesc): c.Expr[Any] = {
+                     comp: ModuleDef): c.Expr[Any] = {
     val implicits = requested.map {
       case (fqn, typeclass) =>
         val memberName = TermName(fqn).encodedName.toTermName
-        val tparams    = clazz.tparams
-        if (tparams.isEmpty)
-          genImplicitVal(memberName, typeclass, clazz, av)
+        if (clazz.tparams.isEmpty)
+          genImplicitVal(memberName, typeclass, clazz)
         else
-          genImplicitDef(memberName, typeclass, clazz, tparams, av)
+          genImplicitDef(memberName, typeclass, clazz)
     }
 
     val module = regenModule(comp, implicits)
@@ -143,24 +48,17 @@ class XDerivingMacros(override val c: Context) extends DerivingCommon {
   }
 
   def gen(annottees: c.Expr[Any]*): c.Expr[Any] = {
-    val config      = readConfig()
     val typeclasses = findTypeclasses()
 
-    val trees = annottees.map(_.tree)
-    val dca = trees match {
+    annottees.map(_.tree) match {
       case (data: ClassDef) :: Nil =>
-        valueClass(data).map(av => (data, createCompanion(data), av))
+        update(typeclasses, data, createCompanion(data))
       case (data: ClassDef) :: (companion: ModuleDef) :: Nil =>
-        valueClass(data).map(av => (data, companion, av))
-      case _ => None
-    }
-    dca match {
-      case Some((data, companion, av)) =>
-        update(config, typeclasses, data, companion, av)
-      case None =>
+        update(typeclasses, data, companion)
+      case _ =>
         c.abort(
           c.enclosingPosition,
-          s"@xderiving can only be used on classes with one parameter (got $trees)"
+          s"@xderiving can only be used on classes with one parameter"
         )
     }
   }

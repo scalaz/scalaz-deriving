@@ -10,7 +10,7 @@ import scala.collection.immutable.{ List, Map }
 import scala.collection.JavaConverters._
 
 private[scalaz] final case class DerivingConfig(targets: Map[String, String])
-private[scalaz] object DerivingConfig extends BackCompat {
+private[scalaz] object DerivingConfig extends DerivingBackCompat {
   private type Result[T] = Either[String, T]
   private type Stringy   = Map[String, String]
 
@@ -89,10 +89,10 @@ private[scalaz] object DerivingConfig extends BackCompat {
     is: java.io.InputStream
   ): Either[String, String] =
     try {
-      val baos              = new java.io.ByteArrayOutputStream()
-      val data              = scala.Array.ofDim[scala.Byte](2048)
-      var len: scala.Int    = 0
-      def read(): scala.Int = { len = is.read(data); len }
+      val baos        = new java.io.ByteArrayOutputStream()
+      val data        = Array.ofDim[Byte](2048)
+      var len: Int    = 0
+      def read(): Int = { len = is.read(data); len }
       while (read != -1) {
         baos.write(data, 0, len)
       }

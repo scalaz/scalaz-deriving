@@ -3,34 +3,20 @@
 
 package scalaz
 
-import scala.Predef.ArrowAssoc
+import Predef.ArrowAssoc
 import scala.reflect.macros.whitebox.Context
 
-abstract class DerivingCommon extends BackCompat {
+abstract class DerivingCommon {
   val c: Context
   import c.universe._
 
   protected def isIde: Boolean =
     c.universe.isInstanceOf[scala.tools.nsc.interactive.Global]
 
-  protected def debug(t: Tree) =
-    scala.Predef.println(showRaw(t))
-  //scala.Predef.println(showRaw(t, printPositions = true))
-
-  protected def getParam(key: String): Option[String] =
-    c.settings.find(_.startsWith(s"$key=")).map(_.substring(key.length + 1))
-
-  protected def readConfig(): DerivingConfig =
-    DerivingConfig
-      .targets(getParam("deriving"))
-      .map(DerivingConfig(_))
-      .fold(
-        error => {
-          c.error(c.prefix.tree.pos, s"Failed to parse deriving config: $error")
-          throw new IllegalStateException
-        },
-        success => success
-      )
+  protected def debug(t: Tree) = {
+    Predef.println(showRaw(t))
+    Predef.println(showCode(t))
+  }
 
   // some classes that add type hints around what a Tree contains
   protected case class TreeTypeName(tree: Tree) {
@@ -50,7 +36,8 @@ abstract class DerivingCommon extends BackCompat {
   protected case class TermAndType(term: TreeTermName, cons: TreeTypeName)
   protected object TermAndType {
     def apply(s: ModuleSymbol): TermAndType = {
-      val term = TreeTermName(c.internal.gen.mkAttributedStableRef(s))
+      val ref  = c.internal.gen.mkAttributedStableRef(s)
+      val term = TreeTermName(ref)
       TermAndType(term, term.toTypeName)
     }
   }
@@ -108,4 +95,67 @@ abstract class DerivingCommon extends BackCompat {
       )
     )
 
+  protected def genImplicitVal(
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef
+  ) =
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      AppliedTypeTree(typeclass.cons.tree, List(Ident(c.name))),
+      toGen(typeclass.cons.tree, Ident(c.name))
+    )
+
+  protected def genImplicitDef(
+    memberName: TermName,
+    typeclass: TermAndType,
+    c: ClassDef
+  ) = {
+    val implicits =
+      List(
+        c.tparams.zipWithIndex.map {
+          case (t, i) =>
+            ValDef(
+              Modifiers(Flag.IMPLICIT | Flag.PARAM),
+              TermName(s"evidence$$$i"),
+              AppliedTypeTree(typeclass.cons.tree, List(Ident(t.name))),
+              EmptyTree
+            )
+        }
+      )
+
+    val a = AppliedTypeTree(
+      Ident(c.name),
+      c.tparams.map(tp => Ident(tp.name))
+    )
+
+    DefDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      c.tparams,
+      implicits,
+      AppliedTypeTree(typeclass.cons.tree, List(a)),
+      toGen(typeclass.cons.tree, a)
+    )
+  }
+
+  protected def genObjectImplicitVal(
+    memberName: TermName,
+    typeclass: TermAndType,
+    comp: ModuleDef
+  ) = {
+    val a = SingletonTypeTree(Ident(comp.name.toTermName))
+    ValDef(
+      Modifiers(Flag.IMPLICIT),
+      memberName,
+      AppliedTypeTree(
+        typeclass.cons.tree,
+        List(a)
+      ),
+      toGen(typeclass.cons.tree, a)
+    )
+  }
+
+  protected def toGen(f: Tree, a: Tree): Tree
 }
