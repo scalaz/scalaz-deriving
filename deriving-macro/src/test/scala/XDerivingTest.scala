@@ -20,7 +20,7 @@ class XDerivingTest extends FlatSpec {
   "@xderiving" should "support AnyVal" in {
     (the[Cofoo[Anyx]] should not).equal(null)
 
-    the[Cofoo[Anyx]].shouldBe(Anyx.`testing.typeclasses.Cofoo`)
+    the[Cofoo[Anyx]].shouldBe(Anyx._deriving_cofoo)
 
     Anyx("wibble").toFoo.shouldBe("exercised the xmap codepath")
 

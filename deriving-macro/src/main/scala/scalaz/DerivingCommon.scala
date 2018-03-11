@@ -34,13 +34,6 @@ abstract class DerivingCommon {
       })
   }
   protected case class TermAndType(term: TreeTermName, cons: TreeTypeName)
-  protected object TermAndType {
-    def apply(s: ModuleSymbol): TermAndType = {
-      val ref  = c.internal.gen.mkAttributedStableRef(s)
-      val term = TreeTermName(ref)
-      TermAndType(term, term.toTypeName)
-    }
-  }
 
   protected def createCompanion(data: ClassDef): ModuleDef = {
     val mods =
@@ -64,23 +57,16 @@ abstract class DerivingCommon {
     )
   }
 
-  // typechecks the annotation and resolves the typeclasses associated to the
-  // companions referenced there. Keyed by the typeclass fqn.
-  protected def findTypeclasses(): List[(String, TermAndType)] = {
-    // c.typecheck provides Symbol on the input Tree
-    val Apply(Select(_, _), parameters) = c.typecheck(c.prefix.tree)
-    // gets the juicy typed bits
-    val typeclasses =
-      parameters.map(_.symbol.info.typeSymbol.companion.companion.asModule)
-
-    typeclasses.map { tc: ModuleSymbol =>
-      // ModuleSymbol is very powerful and only available because we
-      // typechecked the annotation. Please do not pass it around to
-      // the methods beneath or it will not be possible to migrate
-      // the to earlier stages in the compile (e.g. as a plugin).
-      tc.fullName -> TermAndType(tc)
+  protected def findTypeclasses(): List[(String, TermAndType)] =
+    c.prefix.tree.children.collect {
+      case s @ Select(_, t) if t != termNames.CONSTRUCTOR => TreeTermName(s)
+      case i @ Ident(_)                                   => TreeTermName(i)
+    }.map { ttn =>
+      memberName(ttn.tree) -> TermAndType(ttn, ttn.toTypeName)
     }
-  }
+
+  private def memberName(t: Tree): String =
+    "_deriving_" + t.toString.toLowerCase.replace(".", "_")
 
   protected def regenModule(comp: ModuleDef, extras: List[Tree]): ModuleDef =
     atPos(comp.pos)(

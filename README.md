@@ -38,8 +38,8 @@ expands to
 
 ```scala
 object Bar {
-  implicit val encoder: Encoder[Bar] = scalaz.Derivez.gen[Encoder, Bar]
-  implicit val decoder: Decoder[Bar] = scalaz.Derivez.gen[Decoder, Bar]
+  implicit val _deriving_encoder: Encoder[Bar] = scalaz.Derivez.gen[Encoder, Bar]
+  implicit val _deriving_decoder: Decoder[Bar] = scalaz.Derivez.gen[Decoder, Bar]
 }
 ```
 
@@ -64,8 +64,8 @@ expands into
 
 ```scala
 object Foo {
-  implicit val encoder: Encoder[Foo] = implicitly[Encoder[String]].xmap(new Foo(_), _.s)
-  implicit val decoder: Decoder[Foo] = implicitly[Decoder[String]].xmap(new Foo(_), _.s)
+  implicit val _deriving_encoder: Encoder[Foo] = implicitly[Encoder[String]].xmap(new Foo(_), _.s)
+  implicit val _deriving_decoder: Decoder[Foo] = implicitly[Decoder[String]].xmap(new Foo(_), _.s)
 }
 ```
 

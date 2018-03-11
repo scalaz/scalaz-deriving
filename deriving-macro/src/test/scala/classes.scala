@@ -61,4 +61,5 @@ final case class C(i: Int)
 final case class D(i: Int)
 package object d {
   val ValForwarder = Cofoo
+  type ValForwarder[a] = Cofoo[a]
 }
