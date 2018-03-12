@@ -46,7 +46,6 @@ final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
-// BUG https://gitlab.com/fommil/scalaz-deriving/issues/65
 @deriving(json.Format)
 final case class Gaz[T](t: T)
 
