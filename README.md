@@ -14,7 +14,9 @@ There are two independent and complementary parts to this library:
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
 
-- [`@deriving` and `@xderiving` Macro Annotations](#deriving-macro-annotation)
+- [Compiler Plugin](#compiler-plugin)
+    - [`@deriving`](#deriving)
+    - [`@xderiving`](#xderiving)
 - [`scalaz-deriving`](#scalaz-deriving)
 - [Installation](#installation)
     - [IntelliJ Users](#intellij-users)
@@ -23,9 +25,9 @@ There are two independent and complementary parts to this library:
 
 <!-- markdown-toc end -->
 
-# Macro Annotations
+# Compiler Plugin
 
-# `@deriving`
+## `@deriving`
 
 The `@deriving` annotation simplifies the *semi-auto* pattern, whereby implicit evidence is explicitly added to data type companions, rather than being inferred at the point of use (known as *full-auto*). In short,
 
@@ -166,16 +168,16 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 ## IntelliJ Users
 
-`@deriving` will work out-of-the box if you are using the nightly plugin release.
+`@deriving` will work out-of-the box.
+
+`@xderiving` requires the nightly release.
 
 ## Maven Central
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12)
 
-The artefacts are independent and may be installed separately. The `@deriving` macro requires that the [macro paradise](https://docs.scala-lang.org/overviews/macros/paradise.html) compiler plugin is installed:
-
 ```scala
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+addCompilerPlugin("com.fommil" %% "deriving-plugin" % "<version>")
 
 libraryDependencies ++= Seq(
   "com.fommil" %% "deriving-macro" % "<version>",
@@ -189,9 +191,6 @@ Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("sn
 
 This is a beta release, missing important features, tracked in the [1.0 Milestone](https://gitlab.com/fommil/scalaz-deriving/milestones/1).
 
-`scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided.
+`scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided. Enforce this in your builds with the [`DisableSyntax`](https://scalacenter.github.io/scalafix/docs/rules/DisableSyntax) lint.
 
 The macro that generates the [iotaz](https://github.com/frees-io/iota) representation is very primitive and does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47) and contributors would be very welcome to help with this effort.
-
-Macro annotations do not work in ENSIME and Scala IDE. The generated methods are visible after a compile but you may still experience strangeness in files that use the `@deriving` macro. This will be addressed by [rewriting `@deriving` as a compiler plugin](https://gitlab.com/fommil/scalaz-deriving/issues/41).
-

@@ -1,19 +1,28 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package testing.classes
+package testing
 
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
 
-import scalaz.deriving
-import testing.typeclasses.{ Cobar => B, _ }
-import simulacrum.typeclass
+import scalaz.{ deriving, xderiving }
 
-import play.api.libs.json
-
-import scalaz._
-import Scalaz._
+package typeclasses {
+  trait Cofoo[A]
+  object Cofoo
+  trait Cobar[A]
+  object Cobar
+  package json {
+    trait Format[A]
+    object Format {
+      implicit val string: Format[String] = null
+    }
+  }
+}
+trait Wibble[A]
+object Wibble
+import typeclasses.{ Cobar => B, _ }
 
 @deriving(Cofoo, B)
 sealed trait Baz
@@ -46,20 +55,8 @@ final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
-// BUG https://gitlab.com/fommil/scalaz-deriving/issues/65
-//@deriving(json.Format)
-//final case class Gaz[T](t: T)
-
-@deriving(Cofoo)
-final class Waz[T](val t: T)
-
-@typeclass trait Wibble[T] {}
-object DerivedWibble {
-  def gen[T]: Wibble[T] = new Wibble[T] {}
-}
-
-@deriving(CustomGen)
-final case class C(i: Int)
+@scalaz.deriving(json.Format)
+final case class Gaz[T](t: T)
 
 @deriving(d.ValForwarder)
 final case class D(i: Int)

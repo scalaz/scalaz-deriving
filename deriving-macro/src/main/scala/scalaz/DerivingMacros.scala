@@ -3,8 +3,12 @@
 
 package scalaz
 
-import Predef.genericArrayOps
+import scala.Predef.genericArrayOps
+import scala.annotation.StaticAnnotation
 import scala.reflect.macros.blackbox
+
+class deriving(val typeclasses: AnyRef*)  extends StaticAnnotation
+class xderiving(val typeclasses: AnyRef*) extends StaticAnnotation
 
 final class DerivingMacrosImpl(val c: blackbox.Context) {
   import c.universe._

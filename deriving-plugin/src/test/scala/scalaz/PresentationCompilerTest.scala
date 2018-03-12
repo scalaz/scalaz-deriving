@@ -9,14 +9,13 @@ import OptionValues._
 import org.ensime.pcplod._
 
 class PresentationCompilerTest extends FlatSpec {
-  // the macro is not being run
   "PresentationCompiler" should "not have errors" in withMrPlod(
     "interactive.scala"
   ) { mr =>
     mr.messages.shouldBe('empty)
   }
 
-  it should "be able to perform type-at-point" ignore withMrPlod(
+  it should "be able to perform type-at-point" in withMrPlod(
     "interactive.scala"
   ) { mr =>
     mr.typeAtPoint('foo).value.shouldBe("wibble.Foo")

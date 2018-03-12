@@ -31,9 +31,15 @@ class DerivingTest extends FlatSpec {
     (the[Cofoo[Bar]] should not).equal(null)
   }
 
+  // BUG https://gitlab.com/fommil/scalaz-deriving/issues/65
+  // it should "support case classes with type parameters" in {
+  //   (the[json.Format[Gaz[String]]] should not).equal(null)
+  //   (Gaz._deriving_json_format[String] should not).equal(null)
+  // }
+
   it should "support case classes with type parameters" in {
-    (the[json.Format[Gaz[String]]] should not).equal(null)
-    (Gaz._deriving_json_format[String] should not).equal(null)
+    (the[Cofoo[Waz[String]]] should not).equal(null)
+    (Waz._deriving_cofoo[String] should not).equal(null)
   }
 
   // it should "support HKT typeclasses" in {
@@ -75,12 +81,4 @@ class DerivingTest extends FlatSpec {
     (D._deriving_d_valforwarder should not).equal(null)
   }
 
-  it should "provide position information on failure" ignore {
-    // https://github.com/milessabin/shapeless/issues/756
-    // https://github.com/scalatest/scalatest/issues/1193
-    fail("see below, must be manual")
-  }
 }
-
-// @scalaz.deriving(Cobar)
-// class ElZilcho(s: String)

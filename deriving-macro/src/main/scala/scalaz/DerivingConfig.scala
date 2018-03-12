@@ -68,14 +68,14 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
             case List(from, to) => from.trim -> to.trim
             case other          =>
               // I'd have used Left with traverse, but this is stdlib...
-              throw new java.lang.IllegalArgumentException(
+              throw new IllegalArgumentException(
                 s"expected 2 parts but got ${other.size} in $other"
               )
           }
           .toMap
       )
     } catch {
-      case t: java.lang.Throwable =>
+      case t: Throwable =>
         Left(t.getMessage)
     }
 
@@ -98,7 +98,7 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
       }
       Right(new String(baos.toByteArray(), "UTF-8"))
     } catch {
-      case t: java.lang.Throwable => Left(t.getMessage)
+      case t: Throwable => Left(t.getMessage)
     } finally is.close()
 
 }
