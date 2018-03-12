@@ -108,7 +108,7 @@ class DerivingPlugin(override val global: Global)
     DefDef(
       Modifiers(Flag.IMPLICIT),
       memberName,
-      c.tparams,
+      c.tparams.map(_.duplicate),
       implicits,
       AppliedTypeTree(typeclass.tree.duplicate, List(a)),
       toGen(typeclass.tree, a, target)

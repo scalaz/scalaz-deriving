@@ -31,13 +31,12 @@ class DerivingTest extends FlatSpec {
     (the[Cofoo[Bar]] should not).equal(null)
   }
 
-  // BUG https://gitlab.com/fommil/scalaz-deriving/issues/65
-  // it should "support case classes with type parameters" in {
-  //   (the[json.Format[Gaz[String]]] should not).equal(null)
-  //   (Gaz._deriving_json_format[String] should not).equal(null)
-  // }
-
   it should "support case classes with type parameters" in {
+    (the[json.Format[Gaz[String]]] should not).equal(null)
+    (Gaz._deriving_json_format[String] should not).equal(null)
+  }
+
+  it should "support classes with type parameters" in {
     (the[Cofoo[Waz[String]]] should not).equal(null)
     (Waz._deriving_cofoo[String] should not).equal(null)
   }
