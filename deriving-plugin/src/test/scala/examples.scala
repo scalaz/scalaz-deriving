@@ -64,3 +64,6 @@ package object d {
   val ValForwarder = Cofoo
   type ValForwarder[a] = Cofoo[a]
 }
+
+@deriving
+final case class Si3664(foo: String)

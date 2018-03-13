@@ -51,7 +51,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   // best way to inspect a tree, just call this
   def debug(name: String, tree: Tree): Unit =
     Predef.println(
-      s"$name ${tree.id} ${tree.pos}: ${showCode(tree)}\n${showRaw(tree)}"
+      s"====\n$name ${tree.id} ${tree.pos}:\n${showCode(tree)}\n${showRaw(tree)}"
     )
 
   // recovers the final part of an annotation
@@ -138,32 +138,49 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
           Modifiers(Flag.PROTECTED, clazz.mods.privateWithin)
         else NoMods
 
+      val isCase = clazz.mods.hasFlag(Flag.CASE)
+
+      def sup =
+        if (isCase && clazz.tparams.isEmpty) {
+          val accessors = clazz.impl.collect {
+            case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
+              tpt.duplicate
+          }
+          AppliedTypeTree(Select(Select(Ident(nme.ROOTPKG), nme.scala_),
+                                 TypeName(s"Function${accessors.size}")),
+                          accessors ::: List(Ident(clazz.name)))
+        } else
+          Select(Ident(nme.scala_), nme.AnyRef.toTypeName)
+
+      def toString_ =
+        DefDef(
+          Modifiers(Flag.OVERRIDE),
+          nme.toString_,
+          Nil,
+          Nil,
+          Select(Select(Ident(nme.java), nme.lang), nme.String.toTypeName),
+          Literal(Constant(clazz.name.companionName.decode))
+        )
+
+      val cons = DefDef(
+        Modifiers(),
+        nme.CONSTRUCTOR,
+        Nil,
+        List(Nil),
+        TypeTree(),
+        Block(List(pendingSuperCall), Literal(Constant(())))
+      )
+
       ModuleDef(
         mods,
         clazz.name.companionName,
         Template(
-          List(Select(Ident(nme.scala_), nme.AnyRef.toTypeName)),
+          List(sup),
           noSelfType,
-          List(
-            DefDef(
-              Modifiers(),
-              nme.CONSTRUCTOR,
-              Nil,
-              List(Nil),
-              TypeTree(),
-              Block(
-                List(
-                  Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY),
-                               nme.CONSTRUCTOR),
-                        Nil)
-                ),
-                Literal(Constant(()))
-              )
-            )
-          )
+          cons :: (if (isCase) List(toString_) else Nil)
         )
       )
-    }.withAllPos(clazz.pos)
+    }
 
     def transformer(tree: Tree): Tree = tree match {
       case t: PackageDef if hasTrigger(t) =>
@@ -203,7 +220,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
         val updated = t.stats.flatMap {
           case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-            val companion        = genCompanion(c)
+            val companion        = genCompanion(c).withAllPos(c.pos)
             val (cleaned, ann)   = extractTrigger(c)
             val updatedCompanion = updateCompanion(ann, cleaned, companion)
             List(updateClass(ann, cleaned), updatedCompanion)

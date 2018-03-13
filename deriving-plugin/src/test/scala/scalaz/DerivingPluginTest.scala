@@ -48,4 +48,9 @@ class DerivingPluginTest extends FlatSpec {
     D._deriving_d_valforwarder.shouldBe(implicitly[Cofoo[D]])
   }
 
+  it should "not trigger SI-3664" in {
+    val _: String => Si3664 = Si3664
+
+    Si3664.toString.shouldBe("Si3664")
+  }
 }

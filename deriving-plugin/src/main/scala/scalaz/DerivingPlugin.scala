@@ -13,7 +13,7 @@ class DerivingPlugin(override val global: Global)
   import global._
 
   private val DerivingMacros =
-    Select(Select(Ident(termNames.ROOTPKG), TermName("scalaz")),
+    Select(Select(Ident(nme.ROOTPKG), TermName("scalaz")),
            TermName("DerivingMacros"))
   def toGen(f: Tree, a: Tree, target: TermName): Tree =
     if (isIde) Literal(Constant(null))
@@ -135,8 +135,8 @@ class DerivingPlugin(override val global: Global)
 
   def findTypeclasses(ann: Tree): List[(TermName, TreeTypeName)] =
     ann.children.collect {
-      case s @ Select(_, t) if t != termNames.CONSTRUCTOR => TreeTermName(s)
-      case i @ Ident(_)                                   => TreeTermName(i)
+      case s @ Select(_, t) if t != nme.CONSTRUCTOR => TreeTermName(s)
+      case i @ Ident(_)                             => TreeTermName(i)
     }.map { ttn =>
       memberName(ttn.tree) -> ttn.toTypeName
     }
