@@ -21,6 +21,9 @@ There are two independent and complementary parts to this library:
 - [Installation](#installation)
     - [IntelliJ Users](#intellij-users)
     - [Maven Central](#maven-central)
+    - [Breaking Changes](#breaking-changes)
+        - [`deriving-macro`](#deriving-macro)
+        - [`scalaz-deriving`](#scalaz-deriving)
     - [Caveats](#caveats)
 
 <!-- markdown-toc end -->
@@ -170,7 +173,7 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 `@deriving` will work out-of-the box.
 
-`@xderiving` requires the nightly release.
+`@xderiving` requires the [nightly release](https://confluence.jetbrains.com/display/SCA/Scala+Plugin+Nightly) until https://github.com/JetBrains/intellij-scala/pull/433 is released.
 
 ## Maven Central
 
@@ -187,10 +190,31 @@ libraryDependencies ++= Seq(
 
 Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
 
-## Caveats
+## Breaking Changes
 
-This is a beta release, missing important features, tracked in the [1.0 Milestone](https://gitlab.com/fommil/scalaz-deriving/milestones/1).
+We provide some automated rules to migrate when we introduce breaking changes. You must have a recent version of [scalafix](https://scalacenter.github.io/scalafix/docs/users/installation) installed.
+
+### `deriving-macro`
+
+- 0.9.0
+  - `@stalactite.deriving` renamed to `@scalaz.deriving`
+    - `scalafix replace:stalactite.deriving/scalaz.deriving`
+- 0.10.0
+  - the default deriver was changed from `Foo.gen` to `scalaz.Derivez.gen`, add your typeclasses to `deriving.conf`
+  - the `-default.conf` derivations feature was removed
+- 0.11.0
+  - the `.Aux` derivation feature was removed
+  - `@scalaz.deriving` special casing for `extends AnyVal` was replaced with `@scalaz.xderiving`
+    - `scalafix https://gitlab.com/fommil/scalaz-deriving/raw/master/scalafix/rules/src/main/scala/fix/Deriving_0_11_0.scala`
+  - the compiler plugin must be enabled
+  - `deriving.conf` in `resources` is preferred to using compiler flags
+
+### `scalaz-deriving`
+
+The changelog will not be documented until 1.0.
+
+## Caveats
 
 `scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided. Enforce this in your builds with the [`DisableSyntax`](https://scalacenter.github.io/scalafix/docs/rules/DisableSyntax) lint.
 
-The macro that generates the [iotaz](https://github.com/frees-io/iota) representation is very primitive and does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47) and contributors would be very welcome to help with this effort.
+The macro that generates the [iotaz](https://github.com/frees-io/iota) representation does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47).
