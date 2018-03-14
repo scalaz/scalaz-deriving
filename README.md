@@ -56,6 +56,22 @@ The compiler flag =-Xmacro-settings:deriving= can be used if a particular config
 
 The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
 
+If you wish to use `@deriving` with a custom deriver, in the same subproject that defines the typeclass is defined, you need to add your `resources` directory to the compiler classpath, e.g.
+
+```scala
+  def derivingResources(config: Configuration) = Seq(
+    compileOptions in (config, compile) := {
+      val oldOptions = (compileOptions in (config, compile)).value
+      val resources  = List(
+        (resourceDirectory in config).value,
+        (resourceDirectory in Compile).value
+      ).distinct
+      oldOptions.withClasspath(oldOptions.classpath ++ resources)
+    })
+```
+
+and call with `derivingResources(Compile)` and `derivingResources(Test)` (until [sbt#3934](https://github.com/sbt/sbt/issues/3934) is resolved).
+
 ## `@xderiving`
 
 A variant `@xderiving` works only on classes with one parameter (including those that extend =AnyVal=), making use of an `.xmap` that the typeclass may provide directly or via an instance of =scalaz.InvariantFunctor=, e.g.
