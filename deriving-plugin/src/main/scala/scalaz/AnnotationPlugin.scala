@@ -88,16 +88,15 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     private def newTransformer(unit: CompilationUnit) =
       new TypingTransformer(unit) {
         override def transform(tree: Tree): Tree =
-          transformer(super.transform(tree))
+          autobots(super.transform(tree))
       }
 
     val Triggers = triggers.map(newTypeName)
-    private def hasTrigger(t: PackageDef): Boolean =
-      t.stats.exists {
-        case c: ClassDef if hasTrigger(c.mods)  => true
-        case m: ModuleDef if hasTrigger(m.mods) => true
-        case _                                  => false
-      }
+    private def hasTrigger(t: Tree): Boolean = t.exists {
+      case c: ClassDef if hasTrigger(c.mods)  => true
+      case m: ModuleDef if hasTrigger(m.mods) => true
+      case _                                  => false
+    }
 
     private def hasTrigger(mods: Modifiers): Boolean =
       Triggers.exists(mods.hasAnnotationNamed)
@@ -182,68 +181,105 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       )
     }
 
-    def transformer(tree: Tree): Tree = tree match {
+    // responds to visiting all the parts of the tree and passes to decepticons
+    // to do the rewrites
+    def autobots(tree: Tree): Tree = tree match {
       case t: PackageDef if hasTrigger(t) =>
-        val classes: Map[TypeName, ClassDef] = t.stats.collect {
-          case c: ClassDef => c.name -> c
-        }(breakOut)
-
-        val modules: Map[TermName, ModuleDef] = t.stats.collect {
-          case m: ModuleDef => m.name -> m
-        }(breakOut)
-
-        object ClassNoCompanion {
-          def unapply(t: Tree): Option[ClassDef] = t match {
-            case c: ClassDef if !modules.contains(c.name.companionName) =>
-              Some(c)
-            case _ => None
-          }
-        }
-
-        object ClassHasCompanion {
-          def unapply(t: Tree): Option[ClassDef] = t match {
-            case c: ClassDef if modules.contains(c.name.companionName) =>
-              Some(c)
-            case _ => None
-          }
-        }
-
-        object CompanionAndClass {
-          def unapply(t: Tree): Option[(ModuleDef, ClassDef)] = t match {
-            case m: ModuleDef =>
-              classes.get(m.name.companionName).map { c =>
-                (m, c)
-              }
-            case _ => None
-          }
-        }
-
-        val updated = t.stats.flatMap {
-          case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-            val companion        = genCompanion(c).withAllPos(c.pos)
-            val (cleaned, ann)   = extractTrigger(c)
-            val updatedCompanion = updateCompanion(ann, cleaned, companion)
-            List(updateClass(ann, cleaned), updatedCompanion)
-
-          case ClassHasCompanion(c) if hasTrigger(c.mods) =>
-            val (cleaned, ann) = extractTrigger(c)
-            List(updateClass(ann, cleaned))
-
-          case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
-            val (cleaned, ann) = extractTrigger(c)
-            List(updateCompanion(ann, cleaned, companion))
-
-          case m: ModuleDef if hasTrigger(m.mods) =>
-            val (cleaned, ann) = extractTrigger(m)
-            List(updateModule(ann, cleaned))
-
-          case tr =>
-            List(tr)
-        }
-
+        val updated = decepticons(t.stats)
         treeCopy.PackageDef(t, t.pid, updated)
 
+      case t: ModuleDef if hasTrigger(t.impl) =>
+        val update = treeCopy.Template(
+          t.impl,
+          t.impl.parents,
+          t.impl.self,
+          decepticons(t.impl.body)
+        )
+        treeCopy.ModuleDef(
+          t,
+          t.mods,
+          t.name,
+          update
+        )
+
+      case t: ClassDef if hasTrigger(t.impl) =>
+        // yuck, this finds classes and modules defined inside other classes.
+        // added for completeness.
+        val update = treeCopy.Template(
+          t.impl,
+          t.impl.parents,
+          t.impl.self,
+          decepticons(t.impl.body)
+        )
+        treeCopy.ClassDef(
+          t,
+          t.mods,
+          t.name,
+          t.tparams,
+          update
+        )
+
       case t => t
+    }
+
+    // does not recurse, let the autobots handle that
+    def decepticons(trees: List[Tree]): List[Tree] = {
+      val classes: Map[TypeName, ClassDef] = trees.collect {
+        case c: ClassDef => c.name -> c
+      }(breakOut)
+
+      val modules: Map[TermName, ModuleDef] = trees.collect {
+        case m: ModuleDef => m.name -> m
+      }(breakOut)
+
+      object ClassNoCompanion {
+        def unapply(t: Tree): Option[ClassDef] = t match {
+          case c: ClassDef if !modules.contains(c.name.companionName) =>
+            Some(c)
+          case _ => None
+        }
+      }
+
+      object ClassHasCompanion {
+        def unapply(t: Tree): Option[ClassDef] = t match {
+          case c: ClassDef if modules.contains(c.name.companionName) =>
+            Some(c)
+          case _ => None
+        }
+      }
+
+      object CompanionAndClass {
+        def unapply(t: Tree): Option[(ModuleDef, ClassDef)] = t match {
+          case m: ModuleDef =>
+            classes.get(m.name.companionName).map { c =>
+              (m, c)
+            }
+          case _ => None
+        }
+      }
+
+      trees.flatMap {
+        case ClassNoCompanion(c) if hasTrigger(c.mods) =>
+          val companion        = genCompanion(c).withAllPos(c.pos)
+          val (cleaned, ann)   = extractTrigger(c)
+          val updatedCompanion = updateCompanion(ann, cleaned, companion)
+          List(updateClass(ann, cleaned), updatedCompanion)
+
+        case ClassHasCompanion(c) if hasTrigger(c.mods) =>
+          val (cleaned, ann) = extractTrigger(c)
+          List(updateClass(ann, cleaned))
+
+        case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
+          val (cleaned, ann) = extractTrigger(c)
+          List(updateCompanion(ann, cleaned, companion))
+
+        case m: ModuleDef if hasTrigger(m.mods) =>
+          val (cleaned, ann) = extractTrigger(m)
+          List(updateModule(ann, cleaned))
+
+        case tr =>
+          List(tr)
+      }
     }
 
   }

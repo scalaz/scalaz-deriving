@@ -67,3 +67,15 @@ package object d {
 
 @deriving
 final case class Si3664(foo: String)
+
+@deriving(Cofoo)
+sealed abstract class Duped
+object Duped {
+  @deriving(Cofoo)
+  case class Souped(i: Int) extends Duped
+}
+
+package nesty {
+  @deriving(Cofoo)
+  final case class Duped(s: String)
+}

@@ -53,4 +53,21 @@ class DerivingPluginTest extends FlatSpec {
 
     Si3664.toString.shouldBe("Si3664")
   }
+
+  it should "support nested types" in {
+    implicitly[Cofoo[Duped]].shouldBe(Duped._deriving_cofoo)
+
+    implicitly[Cofoo[Duped.Souped]].shouldBe(Duped.Souped._deriving_cofoo)
+  }
+
+  it should "support nested object and no top level package" in {
+    import NotDerived._
+
+    implicitly[Cofoo[Inner.type]].shouldBe(Inner._deriving_cofoo)
+  }
+
+  it should "support nested types with dupe names" in {
+    implicitly[Cofoo[nesty.Duped]].shouldBe(nesty.Duped._deriving_cofoo)
+  }
+
 }
