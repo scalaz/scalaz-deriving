@@ -1,7 +1,7 @@
 image: fommil/docker-openjdk-sbt:latest
 variables:
   SBT_TASK_LIMIT: "4"
-  COURSIER_CACHE: "project/.sbt/coursier"
+  COURSIER_CACHE: "${CI_PROJECT_DIR}/project/.sbt/coursier"
 
 stages:
   - build
@@ -22,6 +22,7 @@ build_job:
         exit 1 ;
       fi
     - sbt ";+check ;+cpl ;+lint ;+doc ;+test"
+    - cd scalafix ; sbt tests/test
 
 deploy_job:
   only:
@@ -34,4 +35,5 @@ deploy_job:
     paths:
       - project/.sbt
   script:
-    - sbt "+publish"
+    - sbt ";+update;+publish"
+    - cd scalafix ; sbt update
