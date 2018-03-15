@@ -1,7 +1,9 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+// To install: copy this file, changing the package. Canonical latest is
+// https://gitlab.com/fommil/scalaz-deriving/tree/master/deriving-plugin
+package scalaz.plugins.deriving
 
 import scala.Predef.ArrowAssoc
 import scala.collection.immutable.Map

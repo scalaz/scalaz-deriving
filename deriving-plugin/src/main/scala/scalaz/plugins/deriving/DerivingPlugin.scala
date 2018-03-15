@@ -1,7 +1,7 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+package scalaz.plugins.deriving
 
 import scala.tools.nsc._
 
@@ -13,7 +13,8 @@ class DerivingPlugin(override val global: Global)
   import global._
 
   private val DerivingMacros =
-    Select(Select(Ident(nme.ROOTPKG), TermName("scalaz")),
+    Select(Select(Select(Ident(nme.ROOTPKG), TermName("scalaz")),
+                  TermName("macros")),
            TermName("DerivingMacros"))
   def toGen(f: Tree, a: Tree, target: TermName): Tree =
     if (isIde) Literal(Constant(null))

@@ -1,12 +1,10 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+package scalaz.macros
 
 import scala._
 import scala.reflect.macros.blackbox
-
-//import iotaz._
 
 final class DerivezMacros(val c: blackbox.Context) {
   import c.universe._
@@ -71,13 +69,13 @@ final class DerivezMacros(val c: blackbox.Context) {
 
     if (aSym.isSealed) {
       q"""
-       val gen = _root_.scalaz.CopGen.gen[$A, $data, $labels]
+       val gen = _root_.iotaz.CopGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
        _root_.scalaz.Derivez[$F].xcoproductz(tcs, gen.labels)(gen.to, gen.from)
        """
     } else {
       q"""
-       val gen = _root_.scalaz.ProdGen.gen[$A, $data, $labels]
+       val gen = _root_.iotaz.ProdGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
        _root_.scalaz.Derivez[$F].xproductz(tcs, gen.labels)(gen.to, gen.from)
        """

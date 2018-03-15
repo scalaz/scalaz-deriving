@@ -3,9 +3,9 @@
 
 package scalaz
 
-import scala.{ inline }
+import scala.inline
 
-import iotaz.{ Prod, TList, TNil }
+import iotaz._
 import iotaz.TList.::
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }

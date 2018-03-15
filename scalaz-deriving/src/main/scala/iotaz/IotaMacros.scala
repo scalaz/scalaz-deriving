@@ -1,7 +1,7 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+package iotaz
 
 import scala._
 import scala.reflect.macros.blackbox
@@ -25,7 +25,7 @@ final class IotaMacros(val c: blackbox.Context) {
 
     if (aSym.isModuleClass) {
       q"""
-       _root_.scalaz.ProdGen[$A, $R, $L](
+       _root_.iotaz.ProdGen[$A, $R, $L](
          (a: $A) => ${Prod.companion}[$R](),
          (p: $Prod[$R]) => ${A.termSymbol},
          ${Prod.companion}[$L]()
@@ -46,7 +46,7 @@ final class IotaMacros(val c: blackbox.Context) {
       val labelParts = accessors.map(method => method.name.toString)
 
       q"""
-       _root_.scalaz.ProdGen[$A, $R, $L](
+       _root_.iotaz.ProdGen[$A, $R, $L](
          a => ${Prod.companion}[$R](..$fromParts),
          p => ${aSym.companion}(..$toParts): $A,
          ${Prod.companion}[$L](..$labelParts)
@@ -111,7 +111,7 @@ final class IotaMacros(val c: blackbox.Context) {
       val labelParts = subs.map(sub => sub.name.toString)
 
       q"""
-        _root_.scalaz.CopGen[$A, $R, $L](
+        _root_.iotaz.CopGen[$A, $R, $L](
           a => a match { case ..$fromParts },
           c => c.value.asInstanceOf[$A],
           ${Prod.companion}[$L](..$labelParts)

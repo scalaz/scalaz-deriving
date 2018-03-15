@@ -1,18 +1,17 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+package iotaz
 
 import java.lang.String
 
 import scala.collection.immutable.{ Seq, Vector }
 
-import iotaz._
-import iotaz.TList._
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
+import TList._
+import TList.Compute.{ Aux => ↦ }
+import TList.Op.{ Map => ƒ }
 
-import Scalaz._
+import scalaz._, Scalaz._
 
 sealed abstract class ProdGen[A] {
   type Repr <: TList

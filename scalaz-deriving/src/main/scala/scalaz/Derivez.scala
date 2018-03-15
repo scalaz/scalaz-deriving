@@ -76,7 +76,7 @@ object Derivez {
    * And similarly for a sealed trait (but instead calling `CopGen.gen` and
    * `xcoproductz`).
    */
-  def gen[F[_], A]: F[A] = macro DerivezMacros.gen[F, A]
+  def gen[F[_], A]: F[A] = macro macros.DerivezMacros.gen[F, A]
 
   // should really be on the companion of Equal
   implicit val EqualDerivez: ContravariantDerivez[Equal] =

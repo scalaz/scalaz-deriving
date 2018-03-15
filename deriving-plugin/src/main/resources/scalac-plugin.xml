@@ -1,4 +1,4 @@
 <plugin>
   <name>deriving</name>
-  <classname>scalaz.DerivingPlugin</classname>
+  <classname>scalaz.plugins.deriving.DerivingPlugin</classname>
 </plugin>
