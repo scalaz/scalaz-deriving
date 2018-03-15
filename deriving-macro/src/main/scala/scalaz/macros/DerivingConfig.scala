@@ -14,29 +14,8 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
   private type Result[T] = Either[String, T]
   private type Stringy   = Map[String, String]
 
-  private[scalaz] def targets(path: Option[String]): Result[Stringy] =
-    for {
-      d <- classpathTargets
-      u <- path.map(user).getOrElse(EmptyTargets)
-    } yield (d ++ u)
-  private[this] val EmptyTargets: Result[Stringy] = Right(Map.empty)
-
   // cached to avoid hitting disk on every use of the macro.
-  @volatile private[this] var cachedUserTargets: Map[String, Result[Stringy]] =
-    Map.empty
-  private[this] def user(path: String): Result[Stringy] =
-    cachedUserTargets.get(path) match {
-      case Some(got) => got
-      case None =>
-        val calculated = for {
-          s <- readFile(path)
-          c <- parseProperties(s)
-        } yield c
-        cachedUserTargets += path -> calculated
-        calculated
-    }
-
-  private[this] lazy val classpathTargets: Result[Stringy] = {
+  private[scalaz] lazy val targets: Result[Stringy] = {
     getClass.getClassLoader
       .getResources("deriving.conf")
       .asScala
@@ -47,13 +26,15 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
           c <- parseProperties(s)
         } yield c
       }
-      .fold(EmptyTargets) {
+      .reverse // map addition means the last element wins
+      .fold(EmptyResults) {
         // it's almost like we have a Monoid! Except, no, it's stdlib
         case (Right(m1), Right(m2)) => Right(m1 ++ m2)
         case (Left(e1), _)          => Left(e1)
         case (_, Left(e2))          => Left(e2)
       }
   }
+  private[this] val EmptyResults: Result[Stringy] = Right(Map.empty)
 
   private[this] def parseProperties(config: String): Result[Stringy] =
     try {
@@ -78,9 +59,6 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
       case t: Throwable =>
         Left(t.getMessage)
     }
-
-  private[this] def readFile(file: String): Either[String, String] =
-    readInputStream(new java.io.FileInputStream(file))
 
   private[this] def readResource(resUrl: URL): Either[String, String] =
     readInputStream(resUrl.openStream())

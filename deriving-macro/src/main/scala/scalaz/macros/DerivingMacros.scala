@@ -44,12 +44,8 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
     }
   }
 
-  private def getParam(key: String): Option[String] =
-    c.settings.find(_.startsWith(s"$key=")).map(_.substring(key.length + 1))
-
   private def readConfig(): DerivingConfig =
-    DerivingConfig
-      .targets(getParam("deriving"))
+    DerivingConfig.targets
       .fold(
         error => {
           c.error(c.prefix.tree.pos, s"Failed to parse deriving config: $error")

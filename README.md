@@ -50,31 +50,27 @@ object Bar {
 
 The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed trait` or `object`.
 
-You can provide your own project-specific wirings in a =deriving.conf= file, which will also be available for users of your library if it is published.
-
-The compiler flag =-Xmacro-settings:deriving= can be used if a particular configuration must take precedence.
+You can provide your own project-specific wirings in a `deriving.conf` file, which will also be available for users of your library if it is published.
 
 The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
 
 If you wish to use `@deriving` with a custom deriver, in the same subproject that defines the typeclass is defined, you need to add your `resources` directory to the compiler classpath, e.g.
 
 ```scala
-  def derivingResources(config: Configuration) = Seq(
+  // WORKAROUND: https://github.com/sbt/sbt/issues/3934
+  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
     compileOptions in (config, compile) := {
       val oldOptions = (compileOptions in (config, compile)).value
-      val resources  = List(
-        (resourceDirectory in config).value,
-        (resourceDirectory in Compile).value
-      ).distinct
-      oldOptions.withClasspath(oldOptions.classpath ++ resources)
-    })
+      val resources = (resourceDirectory in config).value
+      oldOptions.withClasspath(resources +: oldOptions.classpath)
+    }
 ```
 
-and call with `derivingResources(Compile)` and `derivingResources(Test)` (until [sbt#3934](https://github.com/sbt/sbt/issues/3934) is resolved).
+and call with, e.g. `resourcesOnCompilerCp(Compile)` or `resourcesOnCompilerCp(Test)`.
 
 ## `@xderiving`
 
-A variant `@xderiving` works only on classes with one parameter (including those that extend =AnyVal=), making use of an `.xmap` that the typeclass may provide directly or via an instance of =scalaz.InvariantFunctor=, e.g.
+A variant `@xderiving` works only on classes with one parameter (including those that extend `AnyVal`), making use of an `.xmap` that the typeclass may provide directly or via an instance of `scalaz.InvariantFunctor`, e.g.
 
 ```scala
 @scalaz.xderiving(Encoder, Decoder)
@@ -223,7 +219,8 @@ We provide some automated rules to migrate when we introduce breaking changes. Y
   - `@scalaz.deriving` special casing for `extends AnyVal` was replaced with `@scalaz.xderiving`
     - `scalafix https://gitlab.com/fommil/scalaz-deriving/raw/master/scalafix/rules/src/main/scala/fix/Deriving_0_11_0.scala`
   - the compiler plugin must be enabled
-  - `deriving.conf` in `resources` is preferred to using compiler flags
+- 0.12.0
+  - the `-Xmacro-settings:deriving` flag was removed, use `deriving.conf` in `resources`
 
 ### `scalaz-deriving`
 

@@ -22,6 +22,10 @@ val plugin = (project in file("deriving-plugin")).settings(
   scalacOptions in Test ++= {
     val jar = (packageBin in Compile).value
     Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+  },
+  javaOptions in Test += {
+    val jar = (packageBin in Compile).value.getAbsolutePath
+    s"-Dpcplod.settings=-Ymacro-expand:discard,-Xplugin:$jar",
   }
 )
 
@@ -38,6 +42,7 @@ val macros = (project in file("deriving-macro"))
   .settings(
     name := "deriving-macro",
     MacroParadise,
+    resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",
     scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
     libraryDependencies ++= Seq(
@@ -45,7 +50,6 @@ val macros = (project in file("deriving-macro"))
       "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
       "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
-      "org.ensime"           %% "pcplod"        % "1.2.1"            % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
       "com.typesafe.play"    %% "play-json"     % "2.6.9"            % "test"
     )

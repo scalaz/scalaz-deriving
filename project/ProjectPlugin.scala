@@ -27,6 +27,14 @@ object ProjectKeys {
       case _ => Nil
     }
 
+  // WORKAROUND: https://github.com/sbt/sbt/issues/3934
+  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
+    compileOptions in (config, compile) := {
+      val oldOptions = (compileOptions in (config, compile)).value
+      val resources  = (resourceDirectory in config).value
+      oldOptions.withClasspath(resources +: oldOptions.classpath)
+    }
+
 }
 
 object ProjectPlugin extends AutoPlugin {
@@ -51,60 +59,26 @@ object ProjectPlugin extends AutoPlugin {
       scalafixConfig := Some(file("project/scalafix.conf"))
     )
 
-  override def projectSettings = Seq(
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-    scalacOptions in Test ++= {
-      val dir = (baseDirectory in ThisBuild).value / "project"
-      Seq(
-        s"-Xmacro-settings:deriving=$dir/deriving.conf"
-      )
-    },
-    javaOptions in Test ++= {
-      val settings =
-        //Seq("-Ymacro-expand:discard") ++
-        (scalacOptions in Test).value
-          .filterNot(_.startsWith("-Yno-"))
-          .filterNot(_.contains(","))
-          .mkString(",")
-      val classpath = (fullClasspath in Test).value.map(_.data).mkString(",")
-      Seq(
-        s"-Dpcplod.settings=$settings",
-        s"-Dpcplod.classpath=$classpath"
-      )
-    },
-    scalacOptions ++= Seq(
-      "-language:_",
-      "-unchecked",
-      "-explaintypes",
-      "-Ywarn-value-discard",
-      "-Ywarn-numeric-widen",
-      "-Ypartial-unification",
-      "-Xlog-free-terms",
-      "-Xlog-free-types",
-      "-Xlog-reflective-calls",
-      "-Yrangepos",
-      "-Xexperimental" // SAM types in 2.11
-    ),
-    // weird false positives...
-    scalacOptions -= "-Ywarn-dead-code",
-    scalacOptions ++= extraScalacOptions(scalaVersion.value),
-    scalacOptions in (Compile, console) -= "-Xfatal-warnings",
-    initialCommands in (Compile, console) := Seq(
-      "java.lang.String",
-      "scala.{Any,AnyRef,AnyVal,Boolean,Byte,Double,Float,Short,Int,Long,Char,Symbol,Unit,Null,Nothing,Option,Some,None,Either,Left,Right,StringContext}",
-      "scala.annotation.tailrec",
-      "scala.collection.immutable.{Map,Seq,List,::,Nil,Set,Vector}",
-      "scala.util.{Try,Success,Failure}",
-      "scala.Predef.{???,ArrowAssoc,identity,implicitly,<:<,=:=}",
-      "shapeless.{ :: => :*:, _ }",
-      "scalaz._",
-      "Scalaz._"
-    ).mkString("import ", ",", ""),
-    // WORKAROUND: https://github.com/sbt/sbt/issues/3934
-    compileOptions in (Test, compile) := {
-      val oldOptions = (compileOptions in (Test, compile)).value
-      val resDir     = (resourceDirectory in Test).value
-      oldOptions.withClasspath(oldOptions.classpath :+ resDir)
-    }
-  )
+  override def projectSettings =
+    Seq(
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+      scalacOptions ++= Seq(
+        "-language:_",
+        "-unchecked",
+        "-explaintypes",
+        "-Ywarn-value-discard",
+        "-Ywarn-numeric-widen",
+        "-Ypartial-unification",
+        "-Xlog-free-terms",
+        "-Xlog-free-types",
+        "-Xlog-reflective-calls",
+        "-Yrangepos",
+        "-Xexperimental" // SAM types in 2.11
+      ),
+      // weird false positives...
+      //scalacOptions -= "-Ywarn-dead-code",
+      scalacOptions ++= extraScalacOptions(scalaVersion.value),
+      scalacOptions in (Compile, console) -= "-Xfatal-warnings",
+      initialCommands in (Compile, console) := "import scalaz._, Scalaz._"
+    )
 }
