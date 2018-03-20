@@ -16,7 +16,7 @@ trait Decoder[A] { self =>
     xml => self.fromXml(xml).map(f)
   def andThen[B](f: A => Decoder.Decoded[B]): Decoder[B] =
     xml => self.fromXml(xml).flatMap(f)
-  def xmap[B](f: A => B, g: B => A): Decoder[B] =
+  def xmap[B](f: A => B, @unused g: B => A): Decoder[B] =
     map(f)
 
 }

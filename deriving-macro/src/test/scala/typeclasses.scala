@@ -7,14 +7,18 @@ import java.lang.String
 
 import scala.Either
 
+import scalaz.unused
+
 import simulacrum.typeclass
 
 @typeclass trait Cofoo[A] {
-  def toFoo(a: A): String = "this is the default gen codepath"
+  def toFoo(@unused a: A): String =
+    "this is the default gen codepath"
 
-  final def xmap[B](f: A => B, g: B => A): Cofoo[B] = new Cofoo[B] {
-    override def toFoo(b: B): String = "exercised the xmap codepath"
-  }
+  final def xmap[B](@unused f: A => B, @unused g: B => A): Cofoo[B] =
+    new Cofoo[B] {
+      override def toFoo(b: B): String = "exercised the xmap codepath"
+    }
 }
 object Cofoo {
   implicit val string: Cofoo[String] = new Cofoo[String] {}
@@ -24,7 +28,7 @@ object Cofoo {
 trait DerivedCofoo[T] extends Cofoo[T]
 object DerivedCofoo {
   def gen[T, Repr](
-    implicit G: shapeless.LabelledGeneric.Aux[T, Repr]
+    implicit @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
   ): DerivedCofoo[T] = new DerivedCofoo[T] {}
 }
 
@@ -40,7 +44,7 @@ object Cobar {
 }
 object CustomCobar {
   def go[T, Repr](
-    implicit G: shapeless.LabelledGeneric.Aux[T, Repr]
+    implicit @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
   ): Cobar[T] = new Cobar[T] {}
 }
 
@@ -54,7 +58,7 @@ package a {
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}
   object DerivedCobaz {
     def gen[T[_]](
-      implicit G: shapeless.Generic1[T, DerivedCobaz]
+      implicit @unused G: shapeless.Generic1[T, DerivedCobaz]
     ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 
@@ -66,7 +70,7 @@ package b {
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}
   object DerivedCobaz {
     def gen[T[_]](
-      implicit G: shapeless.Generic1[T, DerivedCobaz]
+      implicit @unused G: shapeless.Generic1[T, DerivedCobaz]
     ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 

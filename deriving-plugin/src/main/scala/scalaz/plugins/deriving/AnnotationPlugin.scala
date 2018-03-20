@@ -173,7 +173,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       )
 
       ModuleDef(
-        mods,
+        mods | Flag.SYNTHETIC,
         clazz.name.companionName,
         Template(
           List(sup),

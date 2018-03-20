@@ -9,8 +9,9 @@ import scalaz._
 trait XEncoder[A] { self =>
   def toXml(a: A): XNode
 
-  def contramap[B](f: B => A): XEncoder[B]       = b => self.toXml(f(b))
-  def xmap[B](f: A => B, g: B => A): XEncoder[B] = contramap(g)
+  def contramap[B](f: B => A): XEncoder[B] = b => self.toXml(f(b))
+  def xmap[B](@unused f: A => B, g: B => A): XEncoder[B] =
+    contramap(g)
 }
 object XEncoder extends XEncoderScalaz with XEncoderStdlib {
 

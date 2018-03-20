@@ -31,7 +31,7 @@ object ProdGen {
     t: Prod[R] => A,
     n: Prod[L]
   )(
-    implicit ev: λ[a => String] ƒ R ↦ L
+    implicit @unused ev: λ[a => String] ƒ R ↦ L
   ): Aux[A, R, L] = new ProdGen[A] {
     type Repr   = R
     type Labels = L
@@ -62,7 +62,7 @@ object CopGen {
     t: Cop[R] => A,
     n: Prod[L]
   )(
-    implicit ev: λ[a => String] ƒ R ↦ L
+    implicit @unused ev: λ[a => String] ƒ R ↦ L
   ): Aux[A, R, L] = new CopGen[A] {
     type Repr   = R
     type Labels = L
@@ -102,7 +102,7 @@ object Prods {
     tcs: Prod[TL]
   )(f: T[Y] => Y)(
     implicit
-    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+    @unused ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]
@@ -151,7 +151,7 @@ object Cops {
     implicit
     // needs evidence for being non empty
     // https://github.com/frees-io/iota/issues/91
-    ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+    @unused ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]

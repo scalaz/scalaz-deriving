@@ -74,7 +74,7 @@ val derivez = (project in file("scalaz-deriving"))
   .enablePlugins(NeoJmhPlugin)
   .dependsOn(
     scalaz,
-    macros % "test"
+    macros
   )
   .settings(inConfig(Test)(ScalazDeriving))
   .settings(

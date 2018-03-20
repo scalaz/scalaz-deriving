@@ -21,9 +21,7 @@ object ProjectKeys {
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, 12)) =>
-        Seq("-Ywarn-unused:patvars,imports,privates,locals")
-      // explicits and (linted = imports,privates,locals,implicits) has far too
-      // many false positives (implementations and implicit evidence)
+        Seq("-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits")
       case _ => Nil
     }
 

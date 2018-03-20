@@ -4,6 +4,8 @@
 package xmlformat
 package scalaxml
 
+import scalaz.unused
+
 /**
  * Encodes the xmlformat ADT into the `scala.xml.NodeSeq` suite of classes.
  *
@@ -18,7 +20,7 @@ trait Encoder[A] { self =>
     final def toScalaXml(b: B): xml.Node =
       self.toScalaXml(f(b))
   }
-  def xmap[B](f: A => B, g: B => A): Encoder[B] =
+  def xmap[B](@unused f: A => B, g: B => A): Encoder[B] =
     contramap(g)
 }
 

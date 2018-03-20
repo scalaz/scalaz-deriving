@@ -21,9 +21,10 @@ trait XDecoder[A] { self =>
 
   def fromXml(x: XNode): Out[A]
 
-  def map[B](f: A => B): XDecoder[B]             = x => self.fromXml(x).map(f)
-  def xmap[B](f: A => B, g: B => A): XDecoder[B] = map(f)
-  def andThen[B](f: A => Out[B]): XDecoder[B]    = x => self.fromXml(x).flatMap(f)
+  def map[B](f: A => B): XDecoder[B] = x => self.fromXml(x).map(f)
+  def xmap[B](f: A => B, @unused g: B => A): XDecoder[B] =
+    map(f)
+  def andThen[B](f: A => Out[B]): XDecoder[B] = x => self.fromXml(x).flatMap(f)
 }
 object XDecoder extends XDecoderScalaz with XDecoderStdlib {
 

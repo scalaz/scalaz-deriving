@@ -76,7 +76,7 @@ class DerivingPlugin(override val global: Global)
     target: TermName
   ) =
     ValDef(
-      Modifiers(Flag.IMPLICIT),
+      Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
       AppliedTypeTree(typeclass.tree.duplicate, List(Ident(c.name))),
       toGen(typeclass.tree, Ident(c.name), target)
@@ -93,7 +93,7 @@ class DerivingPlugin(override val global: Global)
         c.tparams.zipWithIndex.map {
           case (t, i) =>
             ValDef(
-              Modifiers(Flag.IMPLICIT | Flag.PARAM),
+              Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
               TermName(s"evidence$$$i"),
               AppliedTypeTree(typeclass.tree.duplicate, List(Ident(t.name))),
               EmptyTree
@@ -107,7 +107,7 @@ class DerivingPlugin(override val global: Global)
     )
 
     DefDef(
-      Modifiers(Flag.IMPLICIT),
+      Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
       c.tparams.map(_.duplicate),
       implicits,
@@ -124,7 +124,7 @@ class DerivingPlugin(override val global: Global)
   ) = {
     val a = SingletonTypeTree(Ident(comp.name.toTermName))
     ValDef(
-      Modifiers(Flag.IMPLICIT),
+      Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
       AppliedTypeTree(
         typeclass.tree.duplicate,
