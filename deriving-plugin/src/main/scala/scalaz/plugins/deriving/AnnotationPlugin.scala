@@ -155,7 +155,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
       def toString_ =
         DefDef(
-          Modifiers(Flag.OVERRIDE),
+          Modifiers(Flag.OVERRIDE | Flag.SYNTHETIC),
           nme.toString_,
           Nil,
           Nil,
@@ -164,7 +164,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
         )
 
       val cons = DefDef(
-        Modifiers(),
+        Modifiers(Flag.SYNTHETIC),
         nme.CONSTRUCTOR,
         Nil,
         List(Nil),
