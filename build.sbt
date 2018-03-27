@@ -71,7 +71,6 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
 )
 
 val derivez = (project in file("scalaz-deriving"))
-  .enablePlugins(NeoJmhPlugin)
   .dependsOn(
     scalaz,
     macros
@@ -83,13 +82,9 @@ val derivez = (project in file("scalaz-deriving"))
     name := "scalaz-deriving",
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
-    envVars in Jmh += ("RANDOM_DATA_GENERATOR_SEED" -> "0"),
-    // WORKAROUND https://gitlab.com/fommil/sbt-sensible/issues/18
-    dependencyClasspathAsJars in NeoJmhPlugin.JmhInternal ++= (fullClasspathAsJars in Jmh).value,
     libraryDependencies ++= Seq(
-      "org.scala-lang"      % "scala-compiler"         % scalaVersion.value % "provided",
-      "io.frees"            %% "iotaz-core"            % "0.3.6",
-      "com.danielasfregola" %% "random-data-generator" % "2.4" % "test,jmh"
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+      "io.frees"       %% "iotaz-core"    % "0.3.6"
     )
   )
 
