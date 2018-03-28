@@ -54,20 +54,6 @@ You can provide your own project-specific wirings in a `deriving.conf` file, whi
 
 The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
 
-If you wish to use `@deriving` with a custom deriver, in the same subproject that defines the typeclass is defined, you need to add your `resources` directory to the compiler classpath, e.g.
-
-```scala
-  // WORKAROUND: https://github.com/sbt/sbt/issues/3934
-  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
-    compileOptions in (config, compile) := {
-      val oldOptions = (compileOptions in (config, compile)).value
-      val resources = (resourceDirectory in config).value
-      oldOptions.withClasspath(resources +: oldOptions.classpath)
-    }
-```
-
-and call with, e.g. `resourcesOnCompilerCp(Compile)` or `resourcesOnCompilerCp(Test)`.
-
 ## `@xderiving`
 
 A variant `@xderiving` works only on classes with one parameter (including those that extend `AnyVal`), making use of an `.xmap` that the typeclass may provide directly or via an instance of `scalaz.InvariantFunctor`, e.g.
@@ -183,24 +169,36 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 ## IntelliJ Users
 
-`@deriving` will work out-of-the box.
-
-`@xderiving` requires the [nightly release](https://confluence.jetbrains.com/display/SCA/Scala+Plugin+Nightly) until https://github.com/JetBrains/intellij-scala/pull/433 is released.
+`@deriving` and `@xderiving` will work out-of-the box since [2018.1.18](https://plugins.jetbrains.com/plugin/1347-scala).
 
 ## Maven Central
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fommil/deriving-macro_2.12)
-
 ```scala
-addCompilerPlugin("com.fommil" %% "deriving-plugin" % "<version>")
-
+val derivingVersion = "<version>"
+addCompilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion)
 libraryDependencies ++= Seq(
-  "com.fommil" %% "deriving-macro" % "<version>",
-  "com.fommil" %% "scalaz-deriving" % "<version>"
+  "com.fommil" %% "deriving-macro" % derivingVersion,
+  "com.fommil" %% "scalaz-deriving" % derivingVersion
 )
 ```
 
+where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil a:scalaz-deriving_2.12).
+
 Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
+
+If you wish to use `@deriving` with a custom deriver, you need to add your `resources` directory to the compiler classpath, e.g.
+
+```scala
+  // WORKAROUND: https://github.com/sbt/sbt/issues/1965
+  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
+    managedClasspath in config := {
+      val res = (resourceDirectory in config).value
+      val old = (managedClasspath in config).value
+      Attributed.blank(res) +: old
+    }
+```
+
+and call with, e.g. `resourcesOnCompilerCp(Compile)`.
 
 ## Breaking Changes
 

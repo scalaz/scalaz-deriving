@@ -25,12 +25,12 @@ object ProjectKeys {
       case _ => Nil
     }
 
-  // WORKAROUND: https://github.com/sbt/sbt/issues/3934
+  // WORKAROUND: https://github.com/sbt/sbt/issues/1965
   def resourcesOnCompilerCp(config: Configuration): Setting[_] =
-    compileOptions in (config, compile) := {
-      val oldOptions = (compileOptions in (config, compile)).value
-      val resources  = (resourceDirectory in config).value
-      oldOptions.withClasspath(resources +: oldOptions.classpath)
+    managedClasspath in config := {
+      val res = (resourceDirectory in config).value
+      val old = (managedClasspath in config).value
+      Attributed.blank(res) +: old
     }
 
 }
