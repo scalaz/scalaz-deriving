@@ -18,27 +18,26 @@ object ProjectKeys {
   def KindProjector =
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
 
+  def MonadicFor =
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.1.0")
+
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, 12)) =>
-        Seq("-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits")
+        Seq(
+          "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
+          "-opt:l:method,inline",
+          "-opt-inline-from:scalaz.**",
+          "-opt-inline-from:xmlformat.**"
+        )
       case _ => Nil
     }
-
-  // WORKAROUND: https://github.com/sbt/sbt/issues/1965
-  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
-    managedClasspath in config := {
-      val res = (resourceDirectory in config).value
-      val old = (managedClasspath in config).value
-      Attributed.blank(res) +: old
-    }
-
 }
 
 object ProjectPlugin extends AutoPlugin {
 
   override def requires =
-    fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin
+    fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin && ScalafixPlugin
   override def trigger = allRequirements
 
   val autoImport = ProjectKeys
@@ -66,6 +65,7 @@ object ProjectPlugin extends AutoPlugin {
         "-explaintypes",
         "-Ywarn-value-discard",
         "-Ywarn-numeric-widen",
+        "-Ywarn-dead-code",
         "-Ypartial-unification",
         "-Xlog-free-terms",
         "-Xlog-free-types",
@@ -73,8 +73,6 @@ object ProjectPlugin extends AutoPlugin {
         "-Yrangepos",
         "-Xexperimental" // SAM types in 2.11
       ),
-      // weird false positives...
-      //scalacOptions -= "-Ywarn-dead-code",
       scalacOptions ++= extraScalacOptions(scalaVersion.value),
       scalacOptions in (Compile, console) -= "-Xfatal-warnings",
       initialCommands in (Compile, console) := "import scalaz._, Scalaz._"

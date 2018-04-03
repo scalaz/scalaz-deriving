@@ -58,6 +58,7 @@ val macros = (project in file("deriving-macro"))
 // extensions to scalaz7.2
 val scalaz = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
+  MonadicFor,
   name := "scalaz-deriving-base",
   licenses := Seq(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
@@ -79,6 +80,7 @@ val derivez = (project in file("scalaz-deriving"))
   .settings(
     KindProjector,
     MacroParadise,
+    MonadicFor,
     name := "scalaz-deriving",
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
@@ -93,6 +95,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   .settings(inConfig(Test)(ScalazDeriving))
   .settings(
     MacroParadise,
+    MonadicFor,
     libraryDependencies ++= Seq(
       "org.scalaz"             %% "scalaz-core" % scalazVersion,
       "com.chuusai"            %% "shapeless"   % shapelessVersion,

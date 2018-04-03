@@ -200,6 +200,12 @@ If you wish to use `@deriving` with a custom deriver, you need to add your `reso
 
 and call with, e.g. `resourcesOnCompilerCp(Compile)`.
 
+Sometimes the scaladoc compiler can get confused and publishing will fail. We recommend that you simply disable scaladocs: nobody reads them and the source is always a better reference anyway:
+
+```scala
+sources in (Compile, doc) := Nil
+```
+
 ## Breaking Changes
 
 We provide some automated rules to migrate when we introduce breaking changes. You must have a recent version of [scalafix](https://scalacenter.github.io/scalafix/docs/users/installation) installed.
