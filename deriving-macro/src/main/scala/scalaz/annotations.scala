@@ -3,15 +3,15 @@
 
 package scalaz
 
-import scala.annotation.StaticAnnotation
+import scala.annotation.Annotation
 
 /** Generates boilerplate for implicit evidence on companion objects via
  * `scalaz.macros.DerivingMacro.deriving` */
-class deriving(val typeclasses: AnyRef*) extends StaticAnnotation
+class deriving(val typeclasses: AnyRef*) extends Annotation
 
 /** Generates boilerplate for implicit evidence on companion objects for single
  * valued data types via `scalaz.macros.DerivingMacro.xderiving` */
-class xderiving(val typeclasses: AnyRef*) extends StaticAnnotation
+class xderiving(val typeclasses: AnyRef*) extends Annotation
 
 /** use to flag an explicit or implicit parameter as known to be unused
  * https://github.com/scala/bug/issues/10790

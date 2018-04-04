@@ -4,10 +4,10 @@
 package scalaz {
 
   import scala.AnyRef
-  import scala.annotation.StaticAnnotation
+  import scala.annotation.Annotation
 
-  class deriving(val typeclasses: AnyRef*)  extends StaticAnnotation
-  class xderiving(val typeclasses: AnyRef*) extends StaticAnnotation
+  class deriving(val typeclasses: AnyRef*)  extends Annotation
+  class xderiving(val typeclasses: AnyRef*) extends Annotation
 
   package macros {
     object DerivingMacros {
