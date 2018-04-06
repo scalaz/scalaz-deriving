@@ -1,4 +1,4 @@
-val scalazVersion     = "7.2.20"
+val scalazVersion     = "7.2.21"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.12.0"
 
