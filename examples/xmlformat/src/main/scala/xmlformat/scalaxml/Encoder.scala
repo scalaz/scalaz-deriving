@@ -24,17 +24,13 @@ trait Encoder[A] { self =>
     contramap(g)
 }
 
-// DESNOTE(2017-12-22, SHalliday) an earlier version of this typeclass provided
-// instances for a wide range of data types, but the ambiguity around the
-// scala.xml object hierarchy was problematic. Hence, only the xmlformat.XNode
-// ADT is supported.
 object Encoder {
 
   implicit val xnode: Encoder[XNode] = {
-    case XText(text)                        => xml.Text(text)
-    case XCdata(text)                       => xml.PCData(text)
-    case XAtom(text)                        => xml.Unparsed(text)
-    case XTag(XAtom(name), attrs, contents) =>
+    case XText(text)                              => xml.Text(text)
+    case XCdata(text)                             => xml.PCData(text)
+    case XAtom(text)                              => xml.Unparsed(text)
+    case XTag(XAtom(name), attrs, children, body) =>
       // I heard you like sequences, so I made a linked list for you, inside
       // your NodeSeq, which is also a Seq[Node].
       val metadata = attrs.foldRight(xml.Null: xml.MetaData) {
@@ -46,10 +42,9 @@ object Encoder {
           )
       }
 
-      val kids = contents match {
-        case children: XChildren => xnode.toScalaXml(children)
-        case str: XString        => xnode.toScalaXml(str)
-      }
+      val content =
+        body.map(xnode.toScalaXml).toOption.toList :::
+          children.map(xnode.toScalaXml).toList
 
       xml.Elem(
         null,
@@ -57,7 +52,7 @@ object Encoder {
         metadata,
         xml.TopScope,
         true,
-        kids.toList.toSeq: _*
+        content.toSeq: _*
       )
 
     case XChildren(list) =>

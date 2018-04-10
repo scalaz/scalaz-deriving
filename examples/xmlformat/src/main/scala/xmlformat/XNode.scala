@@ -22,20 +22,26 @@ import scalaz._
  *
  * This is somewhere in between.
  */
-sealed abstract class XNode {
-  def asContent: XContent = this match {
-    case t: XTag     => XChildren(IList.single(t))
-    case x: XContent => x
-  }
-}
+sealed abstract class XNode
 
 /**
  * An xml tag, also known as an element.
  *
  * `name` must be a valid https://www.w3.org/TR/xml/#NT-NameChar (not enforced).
  */
-final case class XTag(name: XAtom, attrs: IList[XAttr], children: XContent)
+final case class XTag(name: XAtom,
+                      attrs: IList[XAttr],
+                      children: IList[XTag],
+                      body: Maybe[XString])
     extends XNode
+object XTag {
+  def apply(key: XAtom, content: XNode): XTag = content match {
+    case t @ XTag(_, _, _, _) =>
+      XTag(key, IList.empty, IList.single(t), Maybe.empty)
+    case XChildren(c)   => XTag(key, IList.empty, c, Maybe.empty)
+    case s @ XString(_) => XTag(key, IList.empty, IList.empty, Maybe.just(s))
+  }
+}
 
 /**
  * An attribute: key and value.
@@ -44,21 +50,27 @@ final case class XTag(name: XAtom, attrs: IList[XAttr], children: XContent)
  */
 final case class XAttr(name: XAtom, value: XString)
 
-/** May be the body of an XTag */
-sealed abstract class XContent                extends XNode
-final case class XChildren(tree: IList[XTag]) extends XContent
+/**
+ * A raw variant of children in an XTag.
+ */
+final case class XChildren(tree: IList[XTag]) extends XNode
 
 /**
  * When decoding, string data may arrive in a variety of forms, this gives us
  * the ability to treat all equally.
  */
-sealed abstract class XString extends XContent
+sealed abstract class XString extends XNode
 object XString {
-  def unapply(s: XString): Option[String] = s match {
+  def unapply(s: XString): Some[String] = s match {
     case XText(text)  => Some(text)
     case XCdata(text) => Some(text)
     case XAtom(text)  => Some(text)
-    case _            => None
+  }
+
+  implicit val semigroup: Semigroup[XString] = new Semigroup[XString] {
+    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial")) // Some.get is fine
+    def append(f1: XString, f2: =>XString): XString =
+      XCdata(unapply(f1).get + unapply(f2).get)
   }
 }
 

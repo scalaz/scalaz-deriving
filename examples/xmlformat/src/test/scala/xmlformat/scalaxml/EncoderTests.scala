@@ -8,7 +8,6 @@ import scalaz._
 
 import java.time.Instant
 
-import scala.collection.immutable.ListSet
 import scala.concurrent.duration._
 
 import org.scalatest.{ Tag => _, _ }
@@ -52,7 +51,7 @@ class EncoderTests extends FreeSpec {
     }
 
     "should support XTag" in {
-      val tag = XTag(XAtom("foo"), IList.empty, XText("wibble"))
+      val tag = XTag(XAtom("foo"), XText("wibble"))
 
       tag.encode.shouldBe(
         xml.Elem(
@@ -69,7 +68,7 @@ class EncoderTests extends FreeSpec {
     }
 
     "should support XTag with children" in {
-      val tag = XTag(XAtom("foo"), IList.empty, XText("wibble"))
+      val tag = XTag(XAtom("foo"), XText("wibble"))
 
       tag.encode.shouldBe(
         xml.Elem(
@@ -89,7 +88,8 @@ class EncoderTests extends FreeSpec {
       val tag = XTag(
         XAtom("foo"),
         IList(XAttr(XAtom("bar"), XText("<wobble>"))),
-        XText("wibble")
+        IList.empty,
+        Maybe.just(XText("wibble"))
       )
 
       tag.encode.shouldBe(
@@ -112,11 +112,11 @@ class EncoderTests extends FreeSpec {
           XTag(
             XAtom("foo"),
             IList(XAttr(XAtom("bar"), XText("<wobble>"))),
-            XText("wibble")
+            IList.empty,
+            Maybe.just(XText("wibble"))
           ),
           XTag(
             XAtom("bar"),
-            IList.empty,
             XText("wobble")
           )
         )
@@ -128,9 +128,11 @@ class EncoderTests extends FreeSpec {
             xml.Elem(
               null,
               "foo",
-              new xml.UnprefixedAttribute("bar",
-                                          xml.Text("<wobble>"),
-                                          xml.Null),
+              new xml.UnprefixedAttribute(
+                "bar",
+                xml.Text("<wobble>"),
+                xml.Null
+              ),
               xml.TopScope,
               true,
               xml.Text("wibble")
@@ -218,10 +220,6 @@ class EncoderTests extends FreeSpec {
         .shouldBe("<value>1</value><value>2</value><value>3</value>")
       Set(1, 2, 3).print
         .shouldBe("<value>1</value><value>2</value><value>3</value>")
-      ListSet(1, 2, 3).print should (be(
-        "<value>1</value><value>2</value><value>3</value>"
-      ).or(be("<value>3</value><value>2</value><value>1</value>")))
-
       List(1, 2, 3).print
         .shouldBe("<value>1</value><value>2</value><value>3</value>")
     }

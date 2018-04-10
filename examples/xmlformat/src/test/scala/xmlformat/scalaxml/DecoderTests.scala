@@ -87,11 +87,11 @@ class DecoderTests extends FreeSpec {
               XTag(
                 XAtom("foo"),
                 IList(XAttr(XAtom("bar"), XText("<wobble>"))),
-                XText("wibble")
+                IList.empty,
+                Maybe.just(XText("wibble"))
               ),
               XTag(
                 XAtom("bar"),
-                IList.empty,
                 XText("wobble")
               )
             )
@@ -106,7 +106,6 @@ class DecoderTests extends FreeSpec {
         .shouldBe(
           XTag(
             XAtom("foo"),
-            IList.empty,
             XText("wibble")
           )
         )
@@ -117,7 +116,8 @@ class DecoderTests extends FreeSpec {
           XTag(
             XAtom("foo"),
             IList(XAttr(XAtom("bar"), XText("wobble"))),
-            XText("wibble")
+            IList.empty,
+            Maybe.just(XText("wibble"))
           )
         )
 
@@ -130,12 +130,11 @@ class DecoderTests extends FreeSpec {
               XAttr(XAtom("baz"), XText("BAZ")),
               XAttr(XAtom("bar"), XText("BAR"))
             ),
-            XChildren(
-              IList(
-                XTag(XAtom("wobble"), IList.empty, XChildren(IList.empty)),
-                XTag(XAtom("fish"), IList.empty, XChildren(IList.empty))
-              )
-            )
+            IList(
+              XTag(XAtom("wobble"), XChildren(IList.empty)),
+              XTag(XAtom("fish"), XChildren(IList.empty))
+            ),
+            Maybe.empty
           )
         )
     }
@@ -200,8 +199,6 @@ class DecoderTests extends FreeSpec {
     }
 
     "should support Traversables" in {
-      import collection.immutable.ListSet
-
       "<value>1</value><value>2</value><value>3</value>"
         .as[List[Int]]
         .shouldBe(List(1, 2, 3))
@@ -211,9 +208,6 @@ class DecoderTests extends FreeSpec {
       "<value>1</value><value>2</value><value>3</value>"
         .as[Set[Int]]
         .shouldBe(Set(1, 2, 3))
-      "<value>3</value><value>2</value><value>1</value>"
-        .as[ListSet[Int]]
-        .shouldBe(ListSet(1, 2, 3))
 
       "<value>1</value>".as[Seq[Int]].shouldBe(Seq(1))
 
@@ -229,7 +223,9 @@ class DecoderTests extends FreeSpec {
     "should support NonEmptyList" in {
       "<value>1</value><value>2</value><value>3</value>"
         .as[NonEmptyList[Int]]
-        .shouldBe(NonEmptyList.nels(1, 2, 3))
+        .shouldBe(
+          NonEmptyList(1, 2, 3)
+        )
 
       "".failsAs[NonEmptyList[Int]].shouldBe("list was empty")
     }
@@ -251,11 +247,9 @@ class DecoderTests extends FreeSpec {
     "should support generic products" in {
       import examples._
 
-      "".failsAs[Foo]
-        .shouldBe("when decoding xmlformat.examples.Foo: missing tag s")
+      "".failsAs[Foo].shouldBe("Foo -> missing tag 's'")
 
-      "".failsAs[MultiField]
-        .shouldBe("when decoding xmlformat.examples.MultiField: missing tag a")
+      "".failsAs[MultiField].shouldBe("MultiField -> missing tag 'a'")
 
       "<s>hello</s>".as[Foo].shouldBe(Foo("hello"))
       "".as[Caz.type].shouldBe(Caz)
@@ -272,7 +266,7 @@ class DecoderTests extends FreeSpec {
       "<meh/>"
         .failsAs[SimpleTrait]
         .shouldBe(
-          "when decoding xmlformat.examples.SimpleTrait: no valid typehint in 'XTag(XAtom(meh),[],XChildren([]))'"
+          "SimpleTrait -> no valid typehint in 'XTag(XAtom(meh),[],[],Empty())'"
         )
 
       "<Foo><s>hello</s></Foo>".as[SimpleTrait].shouldBe(Foo("hello"))

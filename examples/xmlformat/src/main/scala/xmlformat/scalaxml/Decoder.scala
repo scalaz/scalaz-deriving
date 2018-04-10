@@ -21,10 +21,6 @@ trait Decoder[A] { self =>
 
 }
 
-// DESNOTE(2017-12-22, SHalliday) an earlier version of this typeclass provided
-// instances for a wide range of data types, but the ambiguity around the
-// scala.xml object hierarchy was problematic. Hence, only the xmlformat.XNode
-// ADT is supported.
 object Decoder {
 
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
@@ -90,18 +86,13 @@ object Decoder {
             case many      => xml.Group(many)
           }
         )
-        .map {
-          case xs: XString   => xs
-          case xc: XChildren => xc
-          case xt: XTag      => XChildren(IList(xt))
-        }
         .map { content =>
           val name = XAtom(e.label)
           val attrs = e.attributes.asAttrMap.toList.toIList.map {
             case (k, v) => XAttr(XAtom(k), XText(v))
           }
 
-          XTag(name, attrs, content)
+          XTag(name, content).copy(attrs = attrs)
         }
 
     case other => -\/(s"got unexpected ${other.getClass}: $other")

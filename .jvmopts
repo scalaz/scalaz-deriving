@@ -3,3 +3,7 @@
 -Xss2m
 -Xms1g
 -Xmx1g
+-XX:ReservedCodeCacheSize=128m
+-XX:+CMSClassUnloadingEnabled
+-XX:+UseG1GC
+-XX:+UseStringDeduplication

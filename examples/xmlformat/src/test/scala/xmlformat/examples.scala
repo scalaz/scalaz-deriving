@@ -3,8 +3,13 @@
 
 package xmlformat.examples
 
-import scalaz._
+import scalaz.{ -\/, @@, \/- }
+import scalaz.{ deriving, xderiving }
+
 import xmlformat._
+
+@xderiving(XEncoder, XDecoder)
+final case class Optimal(thing: String) extends AnyVal
 
 @deriving(XEncoder, XDecoder) sealed trait SimpleTrait
 @deriving(XEncoder, XDecoder) final case class Foo(s: String)
@@ -16,7 +21,7 @@ case object Baz extends SimpleTrait {
   implicit val e: XEncoder[Baz.type] = XEncoder[String].contramap { _ =>
     "Baz!"
   }
-  implicit val d: XDecoder[Baz.type] = XDecoder[String].andThen {
+  implicit val d: XDecoder[Baz.type] = XDecoder[String].emap {
     case "Baz!" => \/-(Baz)
     case other  => -\/(s"that's no Baz! $other")
   }
@@ -53,3 +58,18 @@ object orphans {
   a: String,
   b: Option[String] @@ XAttribute
 ) extends MultiFieldParent
+
+@deriving(XEncoder, XDecoder)
+final case class Inliner(Foo: Foo @@ XInlinedField, nose: String)
+@deriving(XEncoder, XDecoder)
+final case class InlinerSingle(Foo: Foo @@ XInlinedField)
+@deriving(XEncoder, XDecoder)
+final case class Inliners(Foo: List[Foo] @@ XInlinedList @@ XInlinedField)
+@deriving(XEncoder, XDecoder)
+final case class Outliners(id: Option[String] @@ XAttribute,
+                           body: Option[String] @@ XInlinedContent)
+
+// decoding will fail. These shapes require a hand-written decoder, see notes on
+// DerivedXDecoder.flatChildren
+@deriving(XEncoder, XDecoder)
+final case class NestedSingle(Foo: Foo)
