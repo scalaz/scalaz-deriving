@@ -74,6 +74,10 @@ object ProjectPlugin extends AutoPlugin {
         "-Xexperimental" // SAM types in 2.11
       ),
       scalacOptions ++= extraScalacOptions(scalaVersion.value),
+      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
+      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),
+      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Ywarn"))),
+      scalacOptions in (Test, doc) -= "-Xfatal-warnings",
       scalacOptions in (Compile, console) -= "-Xfatal-warnings",
       initialCommands in (Compile, console) := "import scalaz._, Scalaz._"
     )

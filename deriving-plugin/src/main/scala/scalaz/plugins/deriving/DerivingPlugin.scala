@@ -17,7 +17,7 @@ class DerivingPlugin(override val global: Global)
                   TermName("macros")),
            TermName("DerivingMacros"))
   def toGen(f: Tree, a: Tree, target: TermName): Tree =
-    if (isIde) Literal(Constant(null))
+    if (isIde || isScaladoc) Literal(Constant(null))
     else
       TypeApply(
         Select(DerivingMacros.duplicate, target),

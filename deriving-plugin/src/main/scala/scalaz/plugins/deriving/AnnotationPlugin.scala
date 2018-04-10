@@ -48,7 +48,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef
 
   /** Use to create code that shortcuts in ENSIME and ScalaIDE */
-  def isIde = global.isInstanceOf[tools.nsc.interactive.Global]
+  def isIde      = global.isInstanceOf[tools.nsc.interactive.Global]
+  def isScaladoc = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
 
   // best way to inspect a tree, just call this
   def debug(name: String, tree: Tree): Unit =
