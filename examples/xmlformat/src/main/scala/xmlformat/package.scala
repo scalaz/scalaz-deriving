@@ -89,11 +89,11 @@ package xmlformat {
 }
 
 package object xmlformat {
-  val XAttribute = Tag.of[XAttribute]
+  val XAttribute: Tag.TagOf[XAttribute] = Tag.of[XAttribute]
 
-  val XInlinedList = Tag.of[XInlinedList]
+  val XInlinedList: Tag.TagOf[XInlinedList] = Tag.of[XInlinedList]
 
-  val XInlinedField = Tag.of[XInlinedField]
+  val XInlinedField: Tag.TagOf[XInlinedField] = Tag.of[XInlinedField]
 
-  val XInlinedContent = Tag.of[XInlinedContent]
+  val XInlinedContent: Tag.TagOf[XInlinedContent] = Tag.of[XInlinedContent]
 }

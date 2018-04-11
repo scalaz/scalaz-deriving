@@ -16,6 +16,8 @@ import org.scalatest.Matchers._
 import Encoder.ops._
 
 class EncoderTests extends FreeSpec {
+  // scalafix:off DisableSyntax.keywords.null
+
   implicit class Helper(x: XNode) {
     def encode: xml.NodeSeq = x.toScalaXml
     def print: String       = encode.toString

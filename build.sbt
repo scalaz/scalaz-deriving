@@ -41,6 +41,7 @@ val macros = (project in file("deriving-macro"))
   .settings(ScalazDeriving)
   .settings(
     name := "deriving-macro",
+    scalafixCli in Compile := {}, // scala-compiler code quality is too low
     MacroParadise,
     resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",

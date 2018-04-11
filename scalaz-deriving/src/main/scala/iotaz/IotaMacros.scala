@@ -39,7 +39,7 @@ final class IotaMacros(val c: blackbox.Context) {
       }.toList
 
       val fromParts = accessors.map(method => q"a.${method.name}")
-      val toParts = (accessors zipWithIndex).map {
+      val toParts = (accessors.zipWithIndex).map {
         case (method, i) =>
           q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }

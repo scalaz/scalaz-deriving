@@ -14,9 +14,33 @@ import iotaz.TList._
 import org.scalatest._
 import org.scalatest.Matchers._
 
-class IotaHelpersSpec extends FlatSpec {
+object IotaHelpersSpec {
+  final case class Foo(s: String, ɩ: Int)
 
-  case class Foo(s: String, ɩ: Int)
+  final case class Goo[A](s: String, a: A)
+
+  object Bar
+  case object CBar
+
+  sealed trait Traity1
+  final case class Traity1A(s: String) extends Traity1
+  case object Traity1B                 extends Traity1
+
+  sealed trait Traity2
+  final case class Traity2A[A](s: A) extends Traity2
+  case object Traity2B               extends Traity2
+
+  sealed trait ATree
+  final case class Leaf(value: String)               extends ATree
+  final case class Branch(left: ATree, right: ATree) extends ATree
+
+  sealed trait GTree[A]
+  final case class GLeaf[A](value: A)                          extends GTree[A]
+  final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
+}
+
+class IotaHelpersSpec extends FlatSpec {
+  import IotaHelpersSpec._
 
   "ProdGen" should "support case classes" in {
     val foo = Foo("hello", 13)
@@ -24,8 +48,6 @@ class IotaHelpersSpec extends FlatSpec {
     gen.to(gen.from(foo)).shouldBe(foo)
     gen.labels.values.shouldBe(List("s", "ɩ"))
   }
-
-  case class Goo[A](s: String, a: A)
 
   it should "support higher kinded case classes" in {
     val goo = Goo("hello", 13)
@@ -38,25 +60,17 @@ class IotaHelpersSpec extends FlatSpec {
     geni.labels.values.shouldBe(List("s", "a"))
   }
 
-  object Bar
-
   it should "support objects" in {
     val gen = ProdGen.gen[Bar.type, TNil, TNil]
     gen.to(gen.from(Bar)).shouldBe(Bar)
     gen.labels.values.shouldBe(empty)
   }
 
-  case object CBar
-
   it should "support case objects" in {
     val gen = ProdGen.gen[CBar.type, TNil, TNil]
     gen.to(gen.from(CBar)).shouldBe(CBar)
     gen.labels.values.shouldBe(empty)
   }
-
-  sealed trait Traity1
-  case class Traity1A(s: String) extends Traity1
-  case object Traity1B           extends Traity1
 
   "CopGen" should "support sealed traits" in {
     val gen =
@@ -73,10 +87,6 @@ class IotaHelpersSpec extends FlatSpec {
 
     gen.labels.values.shouldBe(List("Traity1A", "Traity1B"))
   }
-
-  sealed trait Traity2
-  case class Traity2A[A](s: A) extends Traity2
-  case object Traity2B         extends Traity2
 
   it should "support sealed traits with generic parameters" in {
     def genG[A1] =
@@ -102,10 +112,6 @@ class IotaHelpersSpec extends FlatSpec {
 
   }
 
-  sealed trait ATree
-  case class Leaf(value: String)               extends ATree
-  case class Branch(left: ATree, right: ATree) extends ATree
-
   it should "support recursive ADTs" in {
     val gen =
       CopGen.gen[ATree, Leaf :: Branch :: TNil, String :: String :: TNil]
@@ -118,10 +124,6 @@ class IotaHelpersSpec extends FlatSpec {
 
     gen.labels.values.shouldBe(List("Leaf", "Branch"))
   }
-
-  sealed trait GTree[A]
-  case class GLeaf[A](value: A)                          extends GTree[A]
-  case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 
   it should "support recursive GADTs" in {
     def gen[A] =

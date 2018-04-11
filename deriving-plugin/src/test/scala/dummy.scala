@@ -1,6 +1,8 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
+import scala.Null
+
 package scalaz {
 
   import scala.AnyRef
@@ -11,8 +13,8 @@ package scalaz {
 
   package macros {
     object DerivingMacros {
-      def deriving[F[_], A]  = null
-      def xderiving[F[_], A] = null
+      def deriving[F[_], A]: Null  = null // scalafix:ok
+      def xderiving[F[_], A]: Null = null // scalafix:ok
     }
   }
 

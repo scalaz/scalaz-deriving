@@ -16,7 +16,7 @@ package typeclasses {
   package json {
     trait Format[A]
     object Format {
-      implicit val string: Format[String] = null
+      implicit val string: Format[String] = null // scalafix:ok
     }
   }
 }
@@ -61,7 +61,7 @@ final case class Gaz[T](t: T)
 @deriving(d.ValForwarder)
 final case class D(i: Int)
 package object d {
-  val ValForwarder = Cofoo
+  val ValForwarder: Cofoo.type = Cofoo
   type ValForwarder[a] = Cofoo[a]
 }
 
@@ -72,7 +72,7 @@ final case class Si3664(foo: String)
 sealed abstract class Duped
 object Duped {
   @deriving(Cofoo)
-  case class Souped(i: Int) extends Duped
+  final case class Souped(i: Int) extends Duped
 }
 
 package nesty {

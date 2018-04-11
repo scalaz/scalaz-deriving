@@ -48,8 +48,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef
 
   /** Use to create code that shortcuts in ENSIME and ScalaIDE */
-  def isIde      = global.isInstanceOf[tools.nsc.interactive.Global]
-  def isScaladoc = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
+  def isIde: Boolean      = global.isInstanceOf[tools.nsc.interactive.Global]
+  def isScaladoc: Boolean = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
 
   // best way to inspect a tree, just call this
   def debug(name: String, tree: Tree): Unit =
@@ -78,7 +78,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   }
 
   private def phase = new PluginComponent with TypingTransformers {
-    override val phaseName = AnnotationPlugin.this.name
+    override val phaseName: String = AnnotationPlugin.this.name
     override val global: AnnotationPlugin.this.global.type =
       AnnotationPlugin.this.global
     override final def newPhase(prev: Phase): Phase = new StdPhase(prev) {
@@ -94,7 +94,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
           autobots(super.transform(tree))
       }
 
-    val Triggers = triggers.map(newTypeName)
+    val Triggers: List[TypeName] = triggers.map(newTypeName)
     private def hasTrigger(t: Tree): Boolean = t.exists {
       case c: ClassDef if hasTrigger(c.mods)  => true
       case m: ModuleDef if hasTrigger(m.mods) => true

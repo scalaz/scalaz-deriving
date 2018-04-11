@@ -5,6 +5,9 @@ package xmlformat
 package scalaxml
 
 import javax.xml.parsers.SAXParserFactory
+import javax.xml.parsers.SAXParser
+
+import scala.xml.Elem
 
 import scalaz._, Scalaz._
 
@@ -24,9 +27,9 @@ trait Decoder[A] { self =>
 object Decoder {
 
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
-  def secureParser() = {
+  def secureParser(): SAXParser = {
     val f = SAXParserFactory.newInstance()
-    f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
     f.setFeature(
       "http://xml.org/sax/features/external-parameter-entities",
       false
@@ -36,7 +39,7 @@ object Decoder {
     f.setNamespaceAware(false)
     f.newSAXParser()
   }
-  def secureLoadString(txt: String) =
+  def secureLoadString(txt: String): Elem =
     xml.XML.loadXML(xml.Source.fromString(txt), secureParser())
 
   type Decoded[A] = String \/ A
@@ -44,7 +47,7 @@ object Decoder {
   /** Convenient decoder to domain objects, via XNode */
   object ops extends ToDecoderOps {
     implicit class DecoderOps(private val t: xml.NodeSeq) extends AnyVal {
-      def decode[A: XDecoder] =
+      def decode[A: XDecoder]: String \/ A =
         for {
           xnode <- Decoder[XNode].fromXml(t)
           a     <- XDecoder[A].fromXml(xnode)

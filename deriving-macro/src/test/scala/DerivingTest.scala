@@ -15,6 +15,7 @@ import testing.typeclasses._
 import Cofoo.ops._
 
 class DerivingTest extends FlatSpec {
+  // scalafix:off DisableSyntax.keywords.null
 
   "@deriving" should "support case classes" in {
     the[Cofoo[Foo]].shouldBe(Foo._deriving_cofoo)

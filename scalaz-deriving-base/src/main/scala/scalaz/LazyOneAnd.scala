@@ -96,7 +96,7 @@ object LazyOneAnd {
           F.traverseS_(fa.tail)(f)(f(fa.head)(s)._1)
         }
 
-      override def length[A](fa: LazyOneAnd[F, A]) = 1 + F.length(fa.tail)
+      override def length[A](fa: LazyOneAnd[F, A]): Int = 1 + F.length(fa.tail)
 
       override def index[A](fa: LazyOneAnd[F, A], i: Int) =
         if (i == 0) Some(fa.head) else F.index(fa.tail, i - 1)
@@ -119,10 +119,10 @@ object LazyOneAnd {
       override def toEphemeralStream[A](fa: LazyOneAnd[F, A]) =
         EphemeralStream.cons(fa.head, F.toEphemeralStream(fa.tail))
 
-      override def all[A](fa: LazyOneAnd[F, A])(f: A => Boolean) =
+      override def all[A](fa: LazyOneAnd[F, A])(f: A => Boolean): Boolean =
         f(fa.head) && F.all(fa.tail)(f)
 
-      override def any[A](fa: LazyOneAnd[F, A])(f: A => Boolean) =
+      override def any[A](fa: LazyOneAnd[F, A])(f: A => Boolean): Boolean =
         f(fa.head) || F.any(fa.tail)(f)
     }
 

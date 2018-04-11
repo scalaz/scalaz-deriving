@@ -63,6 +63,6 @@ final case class C(i: Int)
 @deriving(d.ValForwarder)
 final case class D(i: Int)
 package object d {
-  val ValForwarder = Cofoo
+  val ValForwarder: Cofoo.type = Cofoo
   type ValForwarder[a] = Cofoo[a]
 }

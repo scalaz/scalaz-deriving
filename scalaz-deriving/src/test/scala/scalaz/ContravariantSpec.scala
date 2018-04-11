@@ -41,11 +41,11 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
     assert(faz === faz)
   }
 
-  val leaf1        = Leaf("hello")
-  val leaf2        = Leaf("goodbye")
-  val branch       = Branch(leaf1, leaf2)
-  val tree1: ATree = Branch(leaf1, branch)
-  val tree2: ATree = Branch(leaf2, branch)
+  val leaf1: Leaf    = Leaf("hello")
+  val leaf2: Leaf    = Leaf("goodbye")
+  val branch: Branch = Branch(leaf1, leaf2)
+  val tree1: ATree   = Branch(leaf1, branch)
+  val tree2: ATree   = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
     assert(leaf1 === leaf1)

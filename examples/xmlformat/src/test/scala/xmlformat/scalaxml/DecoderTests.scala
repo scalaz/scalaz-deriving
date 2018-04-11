@@ -59,7 +59,7 @@ class DecoderTests extends FreeSpec {
         .Group(
           Seq[xml.Node](
             xml.Elem(
-              null,
+              null /* scalafix:ok */,
               "foo",
               new xml.UnprefixedAttribute(
                 "bar",
@@ -71,7 +71,7 @@ class DecoderTests extends FreeSpec {
               xml.Text("wibble")
             ),
             xml.Elem(
-              null,
+              null /* scalafix:ok */,
               "bar",
               xml.Null,
               xml.TopScope,

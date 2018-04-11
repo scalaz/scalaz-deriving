@@ -25,12 +25,16 @@ object ProjectKeys {
     CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, 12)) =>
         Seq(
+          "-Ywarn-extra-implicit",
           "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
           "-opt:l:method,inline",
           "-opt-inline-from:scalaz.**",
           "-opt-inline-from:xmlformat.**"
         )
-      case _ => Nil
+      case _ =>
+        Seq(
+          "-Xexperimental"
+        )
     }
 }
 
@@ -58,27 +62,24 @@ object ProjectPlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
+      addCompilerPlugin(scalafixSemanticdb),
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
       scalacOptions ++= Seq(
-        "-language:_",
+        "-language:experimental.macros,higherKinds,implicitConversions",
         "-unchecked",
         "-explaintypes",
-        "-Ywarn-value-discard",
-        "-Ywarn-numeric-widen",
-        "-Ywarn-dead-code",
         "-Ypartial-unification",
         "-Xlog-free-terms",
         "-Xlog-free-types",
         "-Xlog-reflective-calls",
-        "-Yrangepos",
-        "-Xexperimental" // SAM types in 2.11
+        "-Yrangepos"
       ),
+      scalacOptions -= "-Ywarn-extra-implicit", // bug in sbt-sensible
       scalacOptions ++= extraScalacOptions(scalaVersion.value),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Ywarn"))),
       scalacOptions in (Test, doc) -= "-Xfatal-warnings",
-      scalacOptions in (Compile, console) -= "-Xfatal-warnings",
       initialCommands in (Compile, console) := "import scalaz._, Scalaz._"
     )
 }

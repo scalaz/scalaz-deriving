@@ -37,11 +37,11 @@ class LabelledContravariantSpec extends FlatSpec with NonImplicitAssertions {
     faz.shows should equal("Faz(b=true,i=1)")
   }
 
-  val leaf1        = Leaf("hello")
-  val leaf2        = Leaf("goodbye")
-  val branch       = Branch(leaf1, leaf2)
-  val tree1: ATree = Branch(leaf1, branch)
-  val tree2: ATree = Branch(leaf2, branch)
+  val leaf1: Leaf    = Leaf("hello")
+  val leaf2: Leaf    = Leaf("goodbye")
+  val branch: Branch = Branch(leaf1, leaf2)
+  val tree1: ATree   = Branch(leaf1, branch)
+  val tree2: ATree   = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
     leaf1.shows should equal("(value=\"hello\")")

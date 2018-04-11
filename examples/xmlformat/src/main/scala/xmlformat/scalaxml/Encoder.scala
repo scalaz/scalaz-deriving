@@ -47,7 +47,7 @@ object Encoder {
           children.map(xnode.toScalaXml).toList
 
       xml.Elem(
-        null,
+        null /* scalafix:ok */,
         name,
         metadata,
         xml.TopScope,

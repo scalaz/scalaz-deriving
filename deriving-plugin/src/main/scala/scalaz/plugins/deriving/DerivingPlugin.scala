@@ -74,7 +74,7 @@ class DerivingPlugin(override val global: Global)
     typeclass: TreeTypeName,
     c: ClassDef,
     target: TermName
-  ) =
+  ): ValDef =
     ValDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
@@ -87,7 +87,7 @@ class DerivingPlugin(override val global: Global)
     typeclass: TreeTypeName,
     c: ClassDef,
     target: TermName
-  ) = {
+  ): DefDef = {
     val implicits =
       List(
         c.tparams.zipWithIndex.map {
@@ -121,7 +121,7 @@ class DerivingPlugin(override val global: Global)
     typeclass: TreeTypeName,
     comp: ModuleDef,
     target: TermName
-  ) = {
+  ): ValDef = {
     val a = SingletonTypeTree(Ident(comp.name.toTermName))
     ValDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
