@@ -74,7 +74,6 @@ object ProjectPlugin extends AutoPlugin {
         "-Xlog-reflective-calls",
         "-Yrangepos"
       ),
-      scalacOptions -= "-Ywarn-extra-implicit", // bug in sbt-sensible
       scalacOptions ++= extraScalacOptions(scalaVersion.value),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),

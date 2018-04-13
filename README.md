@@ -8,7 +8,7 @@
 
 There are two independent and complementary parts to this library:
 
-- a `@deriving` macro annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`).
+- a `@deriving` annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`).
 - `scalaz-deriving`, a principled way for typeclass authors to define typeclass derivations, plus derivations for some `scalaz-core` typeclasses (e.g. `Equal`, `Show`).
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
@@ -173,13 +173,18 @@ Note that `contramap` (and `map`) are not provided automatically by these varian
 
 ## Maven Central
 
+The `@deriving` macro is a compiletime only dependency and can be installed separately:
+
 ```scala
 val derivingVersion = "<version>"
 addCompilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion)
-libraryDependencies ++= Seq(
-  "com.fommil" %% "deriving-macro" % derivingVersion,
-  "com.fommil" %% "scalaz-deriving" % derivingVersion
-)
+libraryDependencies += "com.fommil" %% "deriving-macro" % derivingVersion % "provided"
+```
+
+The `scalaz-deriving` framework is a normal library dependency
+
+```scala
+libraryDependencies += "com.fommil" %% "scalaz-deriving" % derivingVersion
 ```
 
 where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil a:scalaz-deriving_2.12).
