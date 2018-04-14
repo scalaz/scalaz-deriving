@@ -3,7 +3,8 @@
 
 package scalaz
 
-import scala.{ Boolean, Int, None, Some }
+import scala.{ Boolean, Int, None, Option, Some, Unit }
+import scala.collection.immutable.{ List, Set, Stream, Vector }
 
 import scalaz.std.option.{ none, optionMonoid, some }
 
@@ -22,7 +23,7 @@ object LazyOneAnd {
     new Traverse1[LazyOneAnd[F, ?]] {
       def traverse1Impl[G[_], A, B](
         fa: LazyOneAnd[F, A]
-      )(f: A => G[B])(implicit G: Apply[G]) =
+      )(f: A => G[B])(implicit G: Apply[G]): G[LazyOneAnd[F, B]] =
         G.applyApplicative
           .traverse(fa.tail)(f.andThen(\/.left))(F)
           .fold(
@@ -35,24 +36,28 @@ object LazyOneAnd {
 
       override def traverseImpl[G[_], A, B](
         fa: LazyOneAnd[F, A]
-      )(f: A => G[B])(implicit G: Applicative[G]) =
+      )(f: A => G[B])(implicit G: Applicative[G]): G[LazyOneAnd[F, B]] =
         G.apply2(f(fa.head), F.traverseImpl(fa.tail)(f)(G)) {
           case (h, t) => LazyOneAnd(h, t)
         }
 
       override def traverseS[S, A, B](
         fa: LazyOneAnd[F, A]
-      )(f: A => State[S, B]) =
+      )(f: A => State[S, B]): State[S, LazyOneAnd[F, B]] =
         State { s: S =>
           val (s2, b)  = f(fa.head)(s)
           val (s3, bs) = F.traverseS(fa.tail)(f)(s2)
           (s3, LazyOneAnd(b, bs))
         }
 
-      override def findLeft[A](fa: LazyOneAnd[F, A])(f: A => Boolean) =
+      override def findLeft[A](
+        fa: LazyOneAnd[F, A]
+      )(f: A => Boolean): Option[A] =
         if (f(fa.head)) Some(fa.head) else F.findLeft(fa.tail)(f)
 
-      override def findRight[A](fa: LazyOneAnd[F, A])(f: A => Boolean) =
+      override def findRight[A](
+        fa: LazyOneAnd[F, A]
+      )(f: A => Boolean): Option[A] =
         F.findRight(fa.tail)(f) match {
           case a @ Some(_) =>
             a
@@ -60,12 +65,14 @@ object LazyOneAnd {
             if (f(fa.head)) Some(fa.head) else None
         }
 
-      override def foldMap1[A, B: Semigroup](fa: LazyOneAnd[F, A])(f: A => B) =
+      override def foldMap1[A, B: Semigroup](
+        fa: LazyOneAnd[F, A]
+      )(f: A => B): B =
         foldMap(fa)(a => some(f(a))).getOrElse(f(fa.head))
 
       override def foldMapRight1[A, B](
         fa: LazyOneAnd[F, A]
-      )(z: A => B)(f: (A, =>B) => B) =
+      )(z: A => B)(f: (A, =>B) => B): B =
         F.foldRight(fa.tail, none[B])(
             (a, ob) => ob.map(f(a, _)).orElse(some(z(a)))
           )
@@ -74,49 +81,52 @@ object LazyOneAnd {
 
       override def foldMapLeft1[A, B](
         fa: LazyOneAnd[F, A]
-      )(z: A => B)(f: (B, A) => B) =
+      )(z: A => B)(f: (B, A) => B): B =
         F.foldLeft(fa.tail, z(fa.head))(f)
 
       override def foldMap[A, B](
         fa: LazyOneAnd[F, A]
-      )(f: A => B)(implicit M: Monoid[B]) =
+      )(f: A => B)(implicit M: Monoid[B]): B =
         M.append(f(fa.head), F.foldMap(fa.tail)(f))
 
       override def foldRight[A, B](fa: LazyOneAnd[F, A],
-                                   z: =>B)(f: (A, =>B) => B) =
+                                   z: =>B)(f: (A, =>B) => B): B =
         f(fa.head, F.foldRight(fa.tail, z)(f))
 
-      override def foldLeft[A, B](fa: LazyOneAnd[F, A], z: B)(f: (B, A) => B) =
+      override def foldLeft[A, B](fa: LazyOneAnd[F, A],
+                                  z: B)(f: (B, A) => B): B =
         F.foldLeft(fa.tail, f(z, fa.head))(f)
 
       override def traverseS_[S, A, B](
         fa: LazyOneAnd[F, A]
-      )(f: A => State[S, B]) =
+      )(f: A => State[S, B]): State[S, Unit] =
         State { s: S =>
           F.traverseS_(fa.tail)(f)(f(fa.head)(s)._1)
         }
 
       override def length[A](fa: LazyOneAnd[F, A]): Int = 1 + F.length(fa.tail)
 
-      override def index[A](fa: LazyOneAnd[F, A], i: Int) =
+      override def index[A](fa: LazyOneAnd[F, A], i: Int): Option[A] =
         if (i == 0) Some(fa.head) else F.index(fa.tail, i - 1)
 
-      override def toVector[A](fa: LazyOneAnd[F, A]) =
+      override def toVector[A](fa: LazyOneAnd[F, A]): Vector[A] =
         fa.head +: F.toVector(fa.tail)
 
-      override def toList[A](fa: LazyOneAnd[F, A]) =
+      override def toList[A](fa: LazyOneAnd[F, A]): List[A] =
         fa.head :: F.toList(fa.tail)
 
-      override def toIList[A](fa: LazyOneAnd[F, A]) =
+      override def toIList[A](fa: LazyOneAnd[F, A]): IList[A] =
         fa.head :: F.toIList(fa.tail)
 
-      override def toSet[A](fa: LazyOneAnd[F, A]) =
+      override def toSet[A](fa: LazyOneAnd[F, A]): Set[A] =
         F.toSet(fa.tail) + fa.head
 
-      override def toStream[A](fa: LazyOneAnd[F, A]) =
+      override def toStream[A](fa: LazyOneAnd[F, A]): Stream[A] =
         fa.head #:: F.toStream(fa.tail)
 
-      override def toEphemeralStream[A](fa: LazyOneAnd[F, A]) =
+      override def toEphemeralStream[A](
+        fa: LazyOneAnd[F, A]
+      ): EphemeralStream[A] =
         EphemeralStream.cons(fa.head, F.toEphemeralStream(fa.tail))
 
       override def all[A](fa: LazyOneAnd[F, A])(f: A => Boolean): Boolean =

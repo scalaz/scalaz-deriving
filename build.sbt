@@ -8,11 +8,13 @@ addCommandAlias(
   "check",
   "all headerCheck test:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
 )
-addCommandAlias("lint", "all compile:scalafixCli test:scalafixCli")
+addCommandAlias("lint", "all compile:scalafixTest test:scalafixTest")
+addCommandAlias("fix", "all compile:scalafixCli test:scalafixCli")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
   scalafixCli in Compile := {}, // scala-compiler code quality is too low
+  scalafixTest in Compile := {},
   scalacOptions in Test += "-Yno-predef",
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
   libraryDependencies ++= Seq(
@@ -42,6 +44,7 @@ val macros = (project in file("deriving-macro"))
   .settings(
     name := "deriving-macro",
     scalafixCli in Compile := {}, // scala-compiler code quality is too low
+    scalafixTest in Compile := {},
     MacroParadise,
     resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",
