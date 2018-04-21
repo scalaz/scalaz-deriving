@@ -19,7 +19,7 @@ object ProjectKeys {
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
 
   def MonadicFor =
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.1.0")
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.0")
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
