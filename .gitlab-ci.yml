@@ -21,7 +21,7 @@ build_job:
         echo "Please remove TODO or FIXME." ;
         exit 1 ;
       fi
-    - sbt ";+check ;+cpl ;+lint ;+doc ;+test ;+test:doc"
+    - sbt ";+check ;+cpl ;+lint ;+test"
     - cd scalafix ; sbt tests/test
 
 deploy_job:

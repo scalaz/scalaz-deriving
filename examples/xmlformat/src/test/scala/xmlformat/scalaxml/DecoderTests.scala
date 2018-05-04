@@ -7,25 +7,30 @@ package scalaxml
 import org.scalatest.{ Tag => _, _ }
 import org.scalactic.source.Position
 import org.scalatest.Matchers._
+import eu.timepit.refined
 
 import scalaz._
 
 class DecoderTests extends FreeSpec {
   import XTestUtils._
-  import Decoder.ops._
+  import Decoder.xnode
 
   implicit class XmlHelper(x: xml.NodeSeq) {
-    def as[T: XDecoder](implicit P: Position): T = x.decode[T].rightValue
+    def as[T: XNodeDecoder](implicit P: Position): T =
+      XNodeDecoder[T].fromXml(asX).rightValue
+    def asX: XNode = xnode.fromXml(x).rightValue
   }
 
   implicit class StringHelper(txt: String) {
-    def as[T: XDecoder](implicit P: Position): T =
-      parseChild.decode[T].rightValue
-    def failsAs[T: XDecoder](implicit P: Position): String =
-      parseChild.decode[T].leftValue
+    def as[T: XNodeDecoder](implicit P: Position): T = parseChild.as[T]
+    def failsAs[T: XNodeDecoder](implicit P: Position): String =
+      XNodeDecoder[T].fromXml(parseChild.asX).leftValue
 
     def parseChild: xml.NodeSeq =
-      Decoder.secureLoadString(s"""<value>$txt</value>""").child match {
+      Decoder
+        .secureLoadString(s"""<value>$txt</value>""")
+        .rightValue
+        .child match {
         case Seq(only) => only
         case many      => xml.Group(many.toList)
       }
@@ -37,11 +42,11 @@ class DecoderTests extends FreeSpec {
   "XNode Decoder" - {
 
     "should support XAtom" in {
-      xml.Text("wibble").as[XNode].shouldBe(XText("wibble"))
+      xml.Text("wibble").asX.shouldBe(XText("wibble"))
 
       "&lt;wibble&gt;".parsedAs[XNode].shouldBe(XText("<wibble>"))
 
-      xml.PCData("wibble").as[XNode].shouldBe(XCdata("wibble"))
+      xml.PCData("wibble").asX.shouldBe(XCdata("wibble"))
 
       // magical conversions inside scala.xml...
       "<![CDATA[<wibble>]]>".parsedAs[XNode].shouldBe(XText("<wibble>"))
@@ -59,7 +64,7 @@ class DecoderTests extends FreeSpec {
         .Group(
           Seq[xml.Node](
             xml.Elem(
-              null /* scalafix:ok */,
+              null, // scalafix:ok
               "foo",
               new xml.UnprefixedAttribute(
                 "bar",
@@ -71,7 +76,7 @@ class DecoderTests extends FreeSpec {
               xml.Text("wibble")
             ),
             xml.Elem(
-              null /* scalafix:ok */,
+              null, // scalafix:ok
               "bar",
               xml.Null,
               xml.TopScope,
@@ -80,7 +85,7 @@ class DecoderTests extends FreeSpec {
             )
           )
         )
-        .as[XNode]
+        .asX
         .shouldBe(
           XChildren(
             IList(
@@ -107,7 +112,7 @@ class DecoderTests extends FreeSpec {
           XTag(
             XAtom("foo"),
             XText("wibble")
-          )
+          ).asChild
         )
 
       "<foo bar='wobble'>wibble</foo>"
@@ -118,7 +123,7 @@ class DecoderTests extends FreeSpec {
             IList(XAttr(XAtom("bar"), XText("wobble"))),
             IList.empty,
             Maybe.just(XText("wibble"))
-          )
+          ).asChild
         )
 
       "<foo bar='BAR' baz='BAZ'><wobble/><fish/></foo>"
@@ -135,7 +140,7 @@ class DecoderTests extends FreeSpec {
               XTag(XAtom("fish"), XChildren(IList.empty))
             ),
             Maybe.empty
-          )
+          ).asChild
         )
     }
 
@@ -148,7 +153,7 @@ class DecoderTests extends FreeSpec {
       cdata.data.shouldBe("<Foo><![CDATA[%s]]]]><![CDATA[></Foo>")
 
       // but we recover the original
-      cdata.as[XNode].shouldBe(XCdata("<Foo><![CDATA[%s]]></Foo>"))
+      cdata.asX.shouldBe(XCdata("<Foo><![CDATA[%s]]></Foo>"))
     }
 
   }
@@ -184,21 +189,14 @@ class DecoderTests extends FreeSpec {
       "foo".as[Symbol].shouldEqual('foo)
     }
 
-    "should special-case Option" in {
-      "hello".as[Option[String]].shouldBe(Some("hello"))
-
-      xml.Group(Nil).as[Option[String]].shouldBe(None)
-
-      // this was not designed to work this way, but it seems ok...
-      "".as[Option[String]].shouldBe(None)
-    }
-
     "should special-case Either" in {
       "hello".as[Either[Int, String]].shouldBe(Right("hello"))
       "13".as[Either[Int, String]].shouldBe(Left(13))
     }
 
     "should support Traversables" in {
+      import collection.immutable.ListSet
+
       "<value>1</value><value>2</value><value>3</value>"
         .as[List[Int]]
         .shouldBe(List(1, 2, 3))
@@ -208,6 +206,9 @@ class DecoderTests extends FreeSpec {
       "<value>1</value><value>2</value><value>3</value>"
         .as[Set[Int]]
         .shouldBe(Set(1, 2, 3))
+      "<value>3</value><value>2</value><value>1</value>"
+        .as[ListSet[Int]]
+        .shouldBe(ListSet(1, 2, 3))
 
       "<value>1</value>".as[Seq[Int]].shouldBe(Seq(1))
 
@@ -244,20 +245,33 @@ class DecoderTests extends FreeSpec {
       iso.as[Instant].shouldBe(instant)
     }
 
+    "should support Refined types" in {
+      import refined.api.Refined
+      import refined.numeric.Positive
+
+      "1000".as[Long Refined Positive].value.shouldBe(1000)
+
+      "-1000"
+        .failsAs[Long Refined Positive]
+        .shouldBe("Predicate failed: (-1000 > 0).")
+    }
+
     "should support generic products" in {
       import examples._
 
-      "".failsAs[Foo].shouldBe("Foo -> missing tag 's'")
+      "".failsAs[Foo]
+        .shouldBe("Foo -> expected one tag, got XChildren([])")
 
-      "".failsAs[MultiField].shouldBe("MultiField -> missing tag 'a'")
+      "".failsAs[MultiField]
+        .shouldBe("MultiField -> expected one tag, got XChildren([])")
 
-      "<s>hello</s>".as[Foo].shouldBe(Foo("hello"))
-      "".as[Caz.type].shouldBe(Caz)
+      "<Foo><s>hello</s></Foo>".as[Foo].shouldBe(Foo("hello"))
+      "<Caz.type/>".as[Caz.type].shouldBe(Caz)
       "Baz!".as[Baz.type].shouldBe(Baz)
 
       "flibble".failsAs[Baz.type].shouldBe("that's no Baz! flibble")
 
-      "<o>hello</o>".as[Faz].shouldBe(Faz(Some("hello")))
+      "<Faz><o>hello</o></Faz>".as[Faz].shouldBe(Faz(Some("hello")))
     }
 
     "should support generic coproducts" in {
@@ -269,28 +283,36 @@ class DecoderTests extends FreeSpec {
           "SimpleTrait -> no valid typehint in 'XTag(XAtom(meh),[],[],Empty())'"
         )
 
-      "<Foo><s>hello</s></Foo>".as[SimpleTrait].shouldBe(Foo("hello"))
-      "<Caz/>".as[SimpleTrait].shouldBe(Caz)
-      "<Baz>Baz!</Baz>".as[SimpleTrait].shouldBe(Baz)
+      """<SimpleTrait typehint="Foo"><s>hello</s></SimpleTrait>"""
+        .as[SimpleTrait]
+        .shouldBe(Foo("hello"))
+      """<SimpleTrait typehint="Caz"/>""".as[SimpleTrait].shouldBe(Caz)
+      """<SimpleTrait typehint="Baz">Baz!</SimpleTrait>"""
+        .as[SimpleTrait]
+        .shouldBe(Baz)
 
-      "<Wobble><id>fish</id></Wobble>"
+      """<AbstractThing typehint="Wobble"><id>fish</id></AbstractThing>"""
         .as[AbstractThing]
         .shouldBe(Wobble("fish"))
 
-      "<Wibble/>".as[AbstractThing].shouldBe(Wibble)
+      """<AbstractThing typehint="Wibble"/>"""
+        .as[AbstractThing]
+        .shouldBe(Wibble)
     }
 
     "should support generic recursive ADTs" in {
       import examples._
 
       val rec = Recursive("hello", Some(Recursive("goodbye")))
-      "<h>hello</h><t><h>goodbye</h><t/></t>".as[Recursive].shouldBe(rec)
+      "<Recursive><h>hello</h><t><h>goodbye</h></t></Recursive>"
+        .as[Recursive]
+        .shouldBe(rec)
     }
 
     "should decode XmlAttribute fields" in {
       import examples._
 
-      """<MultiField b="goodbye"><a>hello</a></MultiField>"""
+      """<MultiFieldParent typehint="MultiField" b="goodbye"><a>hello</a></MultiFieldParent>"""
         .as[MultiFieldParent]
         .shouldBe(MultiField("hello", Tag("goodbye")))
     }

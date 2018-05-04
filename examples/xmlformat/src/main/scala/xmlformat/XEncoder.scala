@@ -3,128 +3,104 @@
 
 package xmlformat
 
-import scalaz._
-import shapeless.Typeable
+import scalaz._, Scalaz._
 
 @simulacrum.typeclass
 trait XEncoder[A] { self =>
-  def toXml(a: A): XNode
+  def toXml(a: A): XChildren
 
   def contramap[B](f: B => A): XEncoder[B]               = b => self.toXml(f(b))
   def xmap[B](@unused f: A => B, g: B => A): XEncoder[B] = contramap(g)
 }
-object XEncoder extends XEncoderScalaz with XEncoderStdlib {
+object XEncoder
+    extends XEncoderScalaz1
+    with XEncoderStdlib1
+    with XEncoderRefined
+    with XEncoderScalaz2
+    with XEncoderStdlib2
 
-  // JVM data types
-  implicit val boolean: XEncoder[Boolean]           = a => XAtom(a.toString)
-  implicit val short: XEncoder[Short]               = a => XAtom(a.toString)
-  implicit val int: XEncoder[Int]                   = a => XAtom(a.toString)
-  implicit val long: XEncoder[Long]                 = a => XAtom(a.toString)
-  implicit val float: XEncoder[Float]               = a => XAtom(a.toString)
-  implicit val double: XEncoder[Double]             = a => XAtom(a.toString)
-  implicit val uuid: XEncoder[java.util.UUID]       = a => XAtom(a.toString)
-  implicit val instant: XEncoder[java.time.Instant] = a => XAtom(a.toString)
-  implicit val string: XEncoder[String]             = s => XText(s)
-  implicit val char: XEncoder[Char]                 = string.contramap(_.toString)
-  implicit val symbol: XEncoder[Symbol]             = string.contramap(_.name)
-
-  // we could automate this, but it's best to have valid attributes opt-in
-  implicit val stringAttr: XEncoder[String @@ XAttribute] =
-    string.contramap(Tag.unwrap)
-  implicit val booleanAttr: XEncoder[Boolean @@ XAttribute] =
-    boolean.contramap(Tag.unwrap)
-  implicit val intAttr: XEncoder[Int @@ XAttribute] =
-    int.contramap(Tag.unwrap)
-  implicit val longAttr: XEncoder[Long @@ XAttribute] =
-    long.contramap(Tag.unwrap)
-
-  // trivial
-  implicit val xnode: XEncoder[XNode]   = identity
-  implicit val xcdata: XEncoder[XCdata] = identity
-}
-
-/** data types in the scala stdlib */
-trait XEncoderStdlib {
+trait XEncoderScalaz1 {
   this: XEncoder.type =>
 
-  import scala.concurrent.duration.FiniteDuration
-
-  implicit def option[A: XEncoder]: XEncoder[Option[A]] = {
-    case Some(a) => XEncoder[A].toXml(a)
-    case None    => XChildren(IList.empty)
-  }
-  implicit def optionAttr[A](
-    implicit X: XEncoder[A @@ XAttribute]
-  ): XEncoder[Option[A] @@ XAttribute] = { t =>
-    Tag.unwrap(t) match {
-      case Some(a) => X.toXml(Tag(a))
-      case None    => XChildren(IList.empty)
-    }
-  }
-
-  implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]] = {
-    case Left(a)  => XEncoder[A].toXml(a)
-    case Right(b) => XEncoder[B].toXml(b)
-  }
-
-  implicit def finite: XEncoder[FiniteDuration] = long.contramap(_.toMillis)
-
-  private def ilist[A: XEncoder](key: XAtom): XEncoder[IList[A]] = { as =>
-    XChildren(as.map(a => XTag(key, XEncoder[A].toXml(a))))
-  }
-
-  private def ilistInline[A: XEncoder](key: XAtom): XEncoder[IList[A]] = { as =>
+  implicit def ilistStr[A: XStrEncoder]: XEncoder[IList[A]] = { as =>
     XChildren(
-      as.map(XEncoder[A].toXml).map {
-        case t @ XTag(_, _, _, _) => t
-        case other                => XTag(key, other)
-      }
+      as.map(a => XTag(XAtom("value"), XStrEncoder[A].toXml(a)))
     )
   }
 
-  private def dictEntry[K: XEncoder, V: XEncoder]: XEncoder[(K, V)] = {
-    case (k, v) =>
-      XChildren(
-        IList(
-          XTag(XAtom("key"), XEncoder[K].toXml(k)),
-          XTag(XAtom("value"), XEncoder[V].toXml(v))
-        )
-      )
+  implicit def ilist[A: XEncoder]: XEncoder[IList[A]] = { as =>
+    XChildren(as.flatMap(a => XEncoder[A].toXml(a).tree))
   }
-  implicit def dict[K: XEncoder, V: XEncoder]: XEncoder[Map[K, V]] =
-    ilist(XAtom("entry"))(dictEntry[K, V])
-      .contramap(m => IList.fromList(m.toList))
+
+  implicit def disjunction[A: XEncoder, B: XEncoder]: XEncoder[A \/ B] = {
+    case -\/(a) => XEncoder[A].toXml(a)
+    case \/-(b) => XEncoder[B].toXml(b)
+  }
+
+  implicit def nelStr[A: XStrEncoder]: XEncoder[NonEmptyList[A]] =
+    ilistStr[A].contramap(_.list)
+
+  implicit def nel[A: XEncoder]: XEncoder[NonEmptyList[A]] =
+    ilist[A].contramap(_.list)
+
+}
+
+trait XEncoderScalaz2 {
+  this: XEncoder.type =>
+
+  // Foldable derivers are not provided because they can pick up unexpected
+  // instances for `F[_]` such as `Either[A, ?]` and can create `XEncoder`
+  // instances where we really only want an `XStrEncoder`. Also, due to the lack
+  // of a builder for decoding, these would be one-way anyway.
+
+}
+
+trait XEncoderStdlib1 {
+  this: XEncoder.type =>
+
+  implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]] =
+    disjunction[A, B].contramap(_.disjunction)
+
+  implicit def listStr[A: XStrEncoder]: XEncoder[List[A]] =
+    ilistStr[A].contramap(_.toIList)
+  implicit def list[A: XEncoder]: XEncoder[List[A]] =
+    ilist[A].contramap(_.toIList)
+
+  implicit def tuple2[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[(A, B)] = {
+    case (a, b) =>
+      val key = XNodeEncoder[A].toXml(a) match {
+        case XChildren(ts)  => ts.map(_.copy(name = XAtom("key")))
+        case s @ XString(_) => IList.single(XTag(XAtom("key"), s))
+      }
+      val value = XNodeEncoder[B].toXml(b) match {
+        case XChildren(ts)  => ts.map(_.copy(name = XAtom("value")))
+        case s @ XString(_) => IList.single(XTag(XAtom("value"), s))
+      }
+      XTag(XAtom("entry"), XChildren(key ::: value)).asChild
+  }
+
+  implicit def dict[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[Map[A, B]] =
+    list[(A, B)].contramap(_.toList)
+}
+
+trait XEncoderStdlib2 {
+  this: XEncoder.type =>
+
+  implicit def traversableStr[T[_], A: XStrEncoder](
+    implicit T: T[A] <:< Traversable[A]
+  ): XEncoder[T[A]] = listStr.contramap(_.toList)
 
   implicit def traversable[T[_], A: XEncoder](
     implicit T: T[A] <:< Traversable[A]
-  ): XEncoder[T[A]] =
-    ilist[A](XAtom("value")).contramap(t => IList.fromList(T(t).toList))
-
-  implicit def traversableInline[T[_], A: XEncoder: Typeable](
-    implicit T: T[A] <:< Traversable[A]
-  ): XEncoder[T[A] @@ XInlinedList] =
-    ilistInline[A](XAtom(Typeable[A].describe)).contramap(
-      t => IList.fromList(T(XInlinedList.unwrap(t)).toList)
-    )
+  ): XEncoder[T[A]] = list[A].contramap(_.toList)
 
 }
 
-trait XEncoderScalaz {
-  this: XEncoderStdlib =>
+trait XEncoderRefined {
+  this: XEncoder.type =>
 
-  implicit def validated[A: XEncoder, B: XEncoder]: XEncoder[Validation[A, B]] =
-    _.fold(
-      a => XTag(XAtom("Failure"), XEncoder[A].toXml(a)),
-      b => XTag(XAtom("Success"), XEncoder[B].toXml(b))
-    )
+  import eu.timepit.refined.api.Refined
 
-  implicit def nel[A: XEncoder]: XEncoder[NonEmptyList[A]] =
-    traversable[List, A].contramap(_.list.toList)
-
-  implicit def nelInline[
-    A: XEncoder: Typeable
-  ]: XEncoder[NonEmptyList[A] @@ XInlinedList] =
-    traversableInline[List, A].contramap(
-      nel => XInlinedList(XInlinedList.unwrap(nel).list.toList)
-    )
+  implicit def aRefinedB[A: XEncoder, B]: XEncoder[A Refined B] =
+    XEncoder[A].contramap(_.value)
 }

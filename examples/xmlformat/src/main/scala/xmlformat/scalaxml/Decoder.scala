@@ -4,10 +4,7 @@
 package xmlformat
 package scalaxml
 
-import javax.xml.parsers.SAXParserFactory
-import javax.xml.parsers.SAXParser
-
-import scala.xml.Elem
+import javax.xml.parsers.{ SAXParser, SAXParserFactory }
 
 import scalaz._, Scalaz._
 
@@ -27,7 +24,7 @@ trait Decoder[A] { self =>
 object Decoder {
 
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
-  def secureParser(): SAXParser = {
+  private[this] def secureParser(): SAXParser = {
     val f = SAXParserFactory.newInstance()
     f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
     f.setFeature(
@@ -39,21 +36,24 @@ object Decoder {
     f.setNamespaceAware(false)
     f.newSAXParser()
   }
-  def secureLoadString(txt: String): Elem =
-    xml.XML.loadXML(xml.Source.fromString(txt), secureParser())
+
+  // must not escape the code in this module
+  private[this] val cachedParser = new ThreadLocal[SAXParser] {
+    override def initialValue: SAXParser = secureParser()
+  }
+
+  def secureLoadString(txt: String): String \/ xml.Elem =
+    \/.attempt(xml.XML.loadXML(xml.Source.fromString(txt), cachedParser.get())) {
+      case t: Throwable => s"failed to parse as xml, message: ${t.getMessage}"
+    }
+
+  def parse(txt: String): String \/ XChildren =
+    (secureLoadString(txt) >>= xnode.fromXml).flatMap {
+      case XString(_)        => -\/("failed to parse raw string data")
+      case ts @ XChildren(_) => \/-(ts)
+    }
 
   type Decoded[A] = String \/ A
-
-  /** Convenient decoder to domain objects, via XNode */
-  object ops extends ToDecoderOps {
-    implicit class DecoderOps(private val t: xml.NodeSeq) extends AnyVal {
-      def decode[A: XDecoder]: String \/ A =
-        for {
-          xnode <- Decoder[XNode].fromXml(t)
-          a     <- XDecoder[A].fromXml(xnode)
-        } yield a
-    }
-  }
 
   implicit val xnode: Decoder[XNode] = {
     case _: xml.Comment | _: xml.ProcInstr | _: xml.EntityRef =>
@@ -71,14 +71,13 @@ object Decoder {
       nodes.toList.toIList
         .traverse(xnode.fromXml)
         .map {
-          case INil()                     => XChildren(IList.empty)
           case ICons(xs: XString, INil()) => xs
-          case ICons(xt: XTag, INil())    => xt
           case other =>
-            XChildren(other.flatMap {
-              case xt: XTag => IList.single(xt)
-              case _        => IList.empty // lossy
-            })
+            val tags = other.flatMap {
+              case XChildren(tags) => tags
+              case _               => IList.empty[XTag] // lossy
+            }
+            XChildren(tags)
         }
 
     case e: xml.Elem =>
@@ -95,7 +94,7 @@ object Decoder {
             case (k, v) => XAttr(XAtom(k), XText(v))
           }
 
-          XTag(name, content).copy(attrs = attrs)
+          XTag(name, content).copy(attrs = attrs).asChild
         }
 
     case other => -\/(s"got unexpected ${other.getClass}: $other")

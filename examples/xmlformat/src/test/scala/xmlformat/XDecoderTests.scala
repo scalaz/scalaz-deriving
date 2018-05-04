@@ -11,10 +11,12 @@ import scala.concurrent.duration._
 import scalaz._
 
 import org.scalatest.{ Tag => _, _ }
+import eu.timepit.refined
 import Matchers._
 
 class XDecoderTests extends FreeSpec {
   import XDecoder.ops._
+  import XStrDecoder.ops._
   import XTestUtils._
 
   "XNode Decoder" - {
@@ -60,11 +62,6 @@ class XDecoderTests extends FreeSpec {
       XText("foo").as[Symbol].shouldEqual('foo)
     }
 
-    "should special-case Option" in {
-      XText("hello").as[Option[String]].shouldBe(Some("hello"))
-      XChildren(IList.empty).as[Option[String]].shouldBe(None)
-    }
-
     "should special-case Either" in {
       XText("hello").as[Either[String, Int]].shouldBe(Left("hello"))
 
@@ -89,6 +86,15 @@ class XDecoderTests extends FreeSpec {
       xml.as[Seq[Int]].shouldBe(Seq(1, 2, 3))
       xml.as[Set[Int]].shouldBe(Set(1, 2, 3))
 
+      // because ListSet hates us
+      XChildren(
+        IList(
+          XTag(XAtom("value"), XAtom("3")),
+          XTag(XAtom("value"), XAtom("2")),
+          XTag(XAtom("value"), XAtom("1"))
+        )
+      ).as[ListSet[Int]].shouldBe(ListSet(1, 2, 3))
+
       // sometimes single element things come through like this
       XTag(XAtom("value"), XAtom("1")).as[List[Int]].shouldBe(List(1))
 
@@ -99,11 +105,11 @@ class XDecoderTests extends FreeSpec {
       XChildren(
         IList(
           XTag(
-            XAtom("entry"),
+            XAtom("name_ignored"),
             XChildren(
               IList(
                 XTag(XAtom("key"), XAtom("1")),
-                XTag(XAtom("value"), XText("a"))
+                XTag(XAtom("name_ignored"), XText("a"))
               )
             )
           ),
@@ -132,9 +138,10 @@ class XDecoderTests extends FreeSpec {
     "should support NonEmptyList" in {
       XChildren(
         IList(
-          XTag(XAtom("value"), XAtom("1")),
-          XTag(XAtom("value"), XAtom("2")),
-          XTag(XAtom("value"), XAtom("3"))
+          // note that the tag names are ignored
+          XTag(XAtom("wibble"), XAtom("1")),
+          XTag(XAtom("wobble"), XAtom("2")),
+          XTag(XAtom("woo"), XAtom("3"))
         )
       ).as[NonEmptyList[Int]]
         .shouldBe(
@@ -157,19 +164,35 @@ class XDecoderTests extends FreeSpec {
       XAtom(iso).as[Instant].shouldBe(instant)
     }
 
+    "should support refined types" in {
+      import refined.api.Refined
+      import refined.numeric.Positive
+
+      XAtom("-1000")
+        .decode[Long Refined Positive]
+        .leftValue
+        .shouldBe("Predicate failed: (-1000 > 0).")
+      XAtom("1000").as[Long Refined Positive].value.shouldBe(1000)
+    }
+
     "should support generic products" in {
       import examples._
 
-      XChildren(IList(XTag(XAtom("s"), XText("hello"))))
+      XTag(
+        XAtom("Foo"),
+        XTag(XAtom("s"), XText("hello")).asChild
+      ).asChild
         .as[Foo]
         .shouldBe(
           Foo(
             "hello"
           )
         )
-      XChildren(IList.empty).as[Caz.type].shouldBe(Caz)
+      XTag(XAtom("Caz.type"), XChildren(IList.empty)).asChild
+        .as[Caz.type]
+        .shouldBe(Caz)
       XText("Baz!").as[Baz.type].shouldBe(Baz)
-      XChildren(IList(XTag(XAtom("o"), XText("hello"))))
+      XTag(XAtom("Faz"), XTag(XAtom("o"), XText("hello")).asChild).asChild
         .as[Faz]
         .shouldBe(
           Faz(
@@ -177,77 +200,90 @@ class XDecoderTests extends FreeSpec {
           )
         )
 
-      XText("")
-        .decode[Foo]
-        .leftValue
-        .shouldBe("Foo -> missing tag 's'")
-
       XText("").decode[Baz.type].leftValue.shouldBe("that's no Baz! ")
 
       // optional thing
-      XChildren(IList(XTag(XAtom("o"), XChildren(IList.empty))))
+      XTag(XAtom("Faz"), XTag(XAtom("o"), XChildren(IList.empty)).asChild).asChild
         .as[Faz]
         .shouldBe(Faz(None))
-      // optional thing, key missing
-      XChildren(IList.empty).as[Faz].shouldBe(Faz(None))
 
-      // that ambiguous single element list again...
-      XTag(XAtom("s"), XText("hello")).as[Foo].shouldBe(Foo("hello"))
+      // optional thing, key missing
+      XTag(XAtom("Faz"), XChildren(IList.empty)).asChild
+        .as[Faz]
+        .shouldBe(Faz(None))
+
     }
 
     "should support generic coproducts" in {
       import examples._
 
       XTag(
-        XAtom("Foo"),
-        XChildren(IList(XTag(XAtom("s"), XText("hello"))))
-      ).as[SimpleTrait].shouldBe(Foo("hello"))
-
-      XTag(XAtom("Caz"), XChildren(IList.empty)).as[SimpleTrait].shouldBe(Caz)
-      XTag(XAtom("Baz"), XText("Baz!")).as[SimpleTrait].shouldBe(Baz)
-
-      XTag(
-        XAtom("Wobble"),
-        XChildren(IList(XTag(XAtom("id"), XText("fish"))))
-      ).as[AbstractThing].shouldBe(Wobble("fish"))
+        XAtom("SimpleTrait"),
+        IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
+        IList(XTag(XAtom("s"), XText("hello"))),
+        Maybe.empty
+      ).asChild.as[SimpleTrait].shouldBe(Foo("hello"))
 
       XTag(
-        XAtom("Wibble"),
-        XChildren(IList.empty)
-      ).as[AbstractThing].shouldBe(Wibble)
+        XAtom("SimpleTrait"),
+        IList(XAttr(XAtom("typehint"), XAtom("Caz"))),
+        IList.empty,
+        Maybe.empty
+      ).asChild.as[SimpleTrait].shouldBe(Caz)
 
-      XText("")
-        .decode[SimpleTrait]
-        .leftValue
-        .shouldBe("SimpleTrait -> unexpected []...")
+      XTag(
+        XAtom("SimpleTrait"),
+        IList(XAttr(XAtom("typehint"), XAtom("Baz"))),
+        IList.empty,
+        Maybe.just(XText("Baz!"))
+      ).asChild.as[SimpleTrait].shouldBe(Baz)
 
-      // sometimes XTags come through as XChildren with one element
-      XChildren(
-        IList(XTag(XAtom("Wibble"), XChildren(IList.empty)))
-      ).as[Wibble.type].shouldBe(Wibble)
+      XTag(
+        XAtom("AbstractThing"),
+        IList(XAttr(XAtom("typehint"), XAtom("Wobble"))),
+        IList(XTag(XAtom("id"), XText("fish"))),
+        Maybe.empty
+      ).asChild.as[AbstractThing].shouldBe(Wobble("fish"))
 
-      XChildren(
-        IList(XTag(XAtom("Wibble"), XChildren(IList.empty)))
-      ).as[AbstractThing].shouldBe(Wibble)
+      XTag(
+        XAtom("AbstractThing"),
+        IList(XAttr(XAtom("typehint"), XAtom("Wibble"))),
+        IList.empty,
+        Maybe.empty
+      ).asChild.as[AbstractThing].shouldBe(Wibble)
+
+      XTag(
+        XAtom("CoproductInField"),
+        XTag(
+          XAtom("abs"),
+          IList(XAttr(XAtom("typehint"), XAtom("Wibble"))),
+          IList.empty,
+          Maybe.empty
+        ).asChild
+      ).asChild.as[CoproductInField].shouldBe(CoproductInField(Wibble))
     }
 
     "should support generic recursive ADTs" in {
       import examples._
 
-      XChildren(
-        IList(
-          XTag(XAtom("h"), XText("hello")),
-          XTag(
-            XAtom("t"),
-            XChildren(
-              IList(
-                XTag(XAtom("h"), XText("goodbye")),
-                XTag(XAtom("t"), XChildren(IList.empty))
+      XTag(
+        XAtom("Recursive"),
+        XChildren(
+          IList(
+            XTag(XAtom("h"), XText("hello")),
+            XTag(
+              XAtom("t"),
+              XChildren(
+                IList(
+                  XTag(XAtom("h"), XText("goodbye"))
+                )
               )
             )
           )
         )
-      ).as[Recursive].shouldBe(Recursive("hello", Some(Recursive("goodbye"))))
+      ).asChild
+        .as[Recursive]
+        .shouldBe(Recursive("hello", Some(Recursive("goodbye"))))
     }
 
     "should decode XmlAttribute fields" in {
@@ -260,16 +296,37 @@ class XDecoderTests extends FreeSpec {
         Maybe.empty
       ).as[MultiField].shouldBe(MultiField("hello", Tag("goodbye")))
 
-      XChildren(IList(XTag(XAtom("a"), XText("hello"))))
+      XTag(XAtom("MultiOptyField"), XTag(XAtom("a"), XText("hello")).asChild).asChild
         .as[MultiOptyField]
         .shouldBe(MultiOptyField("hello", Tag(None)))
 
       XTag(
-        XAtom("MultiOptyField"),
-        IList(XAttr(XAtom("b"), XText("goodbye"))),
+        XAtom("MultiFieldParent"),
+        IList(
+          XAttr(XAtom("typehint"), XAtom("MultiField")),
+          XAttr(XAtom("b"), XText("goodbye"))
+        ),
         IList(XTag(XAtom("a"), XText("hello"))),
         Maybe.empty
-      ).as[MultiFieldParent]
+      ).asChild
+        .as[MultiFieldParent]
+        .shouldBe(
+          MultiField(
+            "hello",
+            Tag("goodbye")
+          )
+        )
+
+      XTag(
+        XAtom("MultiFieldParent"),
+        IList(
+          XAttr(XAtom("typehint"), XAtom("MultiOptyField")),
+          XAttr(XAtom("b"), XText("goodbye"))
+        ),
+        IList(XTag(XAtom("a"), XText("hello"))),
+        Maybe.empty
+      ).asChild
+        .as[MultiFieldParent]
         .shouldBe(
           MultiOptyField(
             "hello",
@@ -278,104 +335,157 @@ class XDecoderTests extends FreeSpec {
         )
 
       XTag(
-        XAtom("MultiOptyField"),
-        XChildren(IList(XTag(XAtom("a"), XText("hello"))))
-      ).as[MultiFieldParent].shouldBe(MultiOptyField("hello", Tag(None)))
-    }
-
-    "should support inlined lists" in {
-      import examples._
-
-      val xml2 = XChildren(
+        XAtom("MultiFieldParent"),
         IList(
-          XTag(XAtom("Wibble"), XChildren(IList.empty)),
-          XTag(XAtom("Wibble"), XChildren(IList.empty))
-        )
-      )
-
-      xml2.as[List[Wibble.type] @@ XInlinedList].shouldBe(List(Wibble, Wibble))
-
-      // sometimes single element things come through like this
-      val xml1 = XTag(
-        XAtom("MultiField"),
-        IList(XAttr(XAtom("b"), XText("goodbye"))),
+          XAttr(XAtom("typehint"), XAtom("MultiOptyField"))
+        ),
         IList(XTag(XAtom("a"), XText("hello"))),
         Maybe.empty
-      )
-
-      xml1
-        .as[List[MultiField] @@ XInlinedList]
-        .shouldBe(
-          List(
-            MultiField("hello", XAttribute("goodbye"))
-          )
-        )
+      ).asChild
+        .as[MultiFieldParent]
+        .shouldBe(MultiOptyField("hello", Tag(None)))
     }
 
-    "should support inlined fields" in {
+    "should support inlined semigroup fields" in {
       import examples._
       import xmlformat.implicits._
 
-      val xml2 = XChildren(
-        IList(
-          XTag(XAtom("nose"), XText("goodbye")),
-          XTag(
-            XAtom("Foo"),
-            XChildren(IList(XTag(XAtom("s"), XText("hello"))))
-          )
-        )
-      )
-
-      xml2.as[Inliner].shouldBe(Inliner(Foo("hello"), "goodbye"))
-
-      // that ambiguous single element list again...
-      val xml1 = XTag(
-        XAtom("Foo"),
-        XChildren(IList(XTag(XAtom("s"), XText("hello"))))
-      )
-
-      xml1.as[InlinerSingle].shouldBe(InlinerSingle(Foo("hello")))
-    }
-
-    "should fail to decode nested single elements of the same name" in {
-      import examples._
-
-      val xml = XTag(
-        XAtom("Foo"),
+      XTag(
+        XAtom("Inliner"),
         XChildren(
           IList(
             XTag(
               XAtom("Foo"),
-              XChildren(IList(XTag(XAtom("s"), XText("hello"))))
+              XTag(XAtom("s"), XText("hello")).asChild
+            ),
+            XTag(XAtom("nose"), XText("goodbye"))
+          )
+        )
+      ).asChild.as[Inliner].shouldBe(Inliner(Foo("hello"), "goodbye"))
+
+      XTag(
+        XAtom("InlinerSingle"),
+        XChildren(
+          IList(
+            XTag(
+              XAtom("Foo"),
+              XTag(XAtom("s"), XText("hello")).asChild
+            ),
+            XTag(
+              XAtom("Foo"),
+              XTag(XAtom("s"), XText("world")).asChild
             )
           )
         )
-      )
+      ).asChild.as[InlinerSingle].shouldBe(InlinerSingle(Foo("helloworld")))
 
-      xml
-        .decode[NestedSingle]
+      XTag(
+        XAtom("InlinerSingle"),
+        XChildren(
+          IList(
+            XTag(
+              XAtom("Foo"),
+              XTag(XAtom("a"), XText("hello")).asChild
+            ),
+            XTag(
+              XAtom("Foo"),
+              XTag(XAtom("b"), XText("world")).asChild
+            )
+          )
+        )
+      ).asChild
+        .decode[InlinerSingle]
         .leftValue
-        .shouldBe("""NestedSingle -> unexpected 2 elements named 'Foo'""")
+        .shouldBe(
+          """InlinerSingle -> wibble:
+Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[XTag(XAtom(a),[],[],Just(XText(hello)))],Empty())])
+Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[XTag(XAtom(b),[],[],Just(XText(world)))],Empty())])"""
+        )
     }
 
-    "should support inlined lists that are also inlined fields" in {
+    "should support inlined single fields" in {
       import examples._
       import xmlformat.implicits._
 
-      val xml2 = XChildren(
-        IList(
-          XTag(
-            XAtom("Foo"),
-            XChildren(IList(XTag(XAtom("s"), XText("hello"))))
-          ),
-          XTag(
-            XAtom("Foo"),
-            XChildren(IList(XTag(XAtom("s"), XText("goodbye"))))
+      XTag(
+        XAtom("AmbiguousCoproduct"),
+        XTag(
+          XAtom("SimpleTrait"),
+          IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
+          IList(XTag(XAtom("s"), XText("hello"))),
+          Maybe.empty
+        ).asChild
+      ).asChild
+        .as[AmbiguousCoproduct]
+        .shouldBe(
+          AmbiguousCoproduct(Foo("hello"))
+        )
+
+      // sensible failure messages
+      XTag(
+        XAtom("AmbiguousCoproduct"),
+        XTag(
+          XAtom("SimpleTrait"),
+          IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
+          IList(XTag(XAtom("a"), XText("hello"))),
+          Maybe.empty
+        ).asChild
+      ).asChild
+        .decode[AmbiguousCoproduct]
+        .leftValue
+        .shouldBe(
+          """AmbiguousCoproduct -> foo:
+SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(SimpleTrait),[XAttr(XAtom(typehint),XAtom(Foo))],[XTag(XAtom(a),[],[],Just(XText(hello)))],Empty())])"""
+        )
+
+    }
+
+    "should support inlined monoid lists" in {
+      import examples._
+      import xmlformat.implicits._
+
+      val xml2 = XTag(
+        XAtom("Inliners"),
+        XChildren(
+          IList(
+            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("hello")).asChild),
+            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("goodbye")).asChild)
           )
         )
-      )
+      ).asChild
 
       xml2.as[Inliners].shouldBe(Inliners(List(Foo("hello"), Foo("goodbye"))))
+
+      val xml3 = XTag(
+        XAtom("Inliners"),
+        XChildren(
+          IList(
+            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("hello")).asChild),
+            XTag(XAtom("Bar"), XTag(XAtom("s"), XText("goodbye")).asChild),
+            XTag(XAtom("Foo"), XTag(XAtom("o"), XText("invisible")).asChild),
+            XTag(XAtom("Baz"), XTag(XAtom("s"), XText("oops")).asChild) // note different tag name!
+          )
+        )
+      ).asChild
+
+      xml3
+        .as[Inliners]
+        .shouldBe(Inliners(List(Foo("hello"), Foo("goodbye"), Foo("oops"))))
+
+      val xml4 = XTag(
+        XAtom("Inliners"),
+        XChildren(
+          IList(
+            XTag(XAtom("Foo"), XTag(XAtom("a"), XText("hello")).asChild),
+            XTag(XAtom("Bar"), XTag(XAtom("b"), XText("goodbye")).asChild),
+            XTag(XAtom("Foo"), XTag(XAtom("c"), XText("invisible")).asChild),
+            XTag(XAtom("Baz"), XTag(XAtom("d"), XText("oops")).asChild) // note different tag name!
+          )
+        )
+      ).asChild
+
+      // never fails when there is a Monoid!
+      xml4.as[Inliners].shouldBe(Inliners(XInlined(Nil)))
     }
 
     "should support inlined content" in {
@@ -408,6 +518,31 @@ class XDecoderTests extends FreeSpec {
       )
 
       xml3.as[Outliners].shouldBe(Outliners(None, Some("goodbye")))
+    }
+
+    "should support tagged coproduct disambiguation" in {
+      import examples._
+
+      XTag(
+        XAtom("TaggyCoproduct"),
+        XTag(
+          XAtom("TaggyA"),
+          XChildren(IList.empty)
+        ).asChild
+      ).asChild
+        .as[TaggyCoproduct]
+        .shouldBe(TaggyCoproduct(XInlined(TaggyA())))
+
+      XTag(
+        XAtom("TaggyCoproduct"),
+        XTag(
+          XAtom("TaggyB"),
+          XText("hello")
+        ).asChild
+      ).asChild
+        .as[TaggyCoproduct]
+        .shouldBe(TaggyCoproduct(XInlined(TaggyB("hello"))))
+
     }
 
   }

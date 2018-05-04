@@ -2,79 +2,207 @@
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 package xmlformat
+package generic
 
-import scalaz._, Scalaz._
+import scalaz.{
+  @@,
+  Foldable1,
+  ICons,
+  INil,
+  Maybe,
+  Monoid,
+  NonEmptyList,
+  Semigroup
+}
+import scalaz.Scalaz._
 
 import shapeless._
 import shapeless.labelled._
 
-import shapeless.{ :+:, Coproduct }
-
-import XDecoder.Out
+import XDecoder.{ fail, Out }
 
 /**
- * Product and coproduct decoder.
- *
- * The XDecoder returned by gen uses a list of XTags for unattributed products
- * and XTag for coproducts or products with attributes.
+ * Product and coproduct decoder. The inverse of DerivedXEncoder.
  */
 sealed trait DerivedXDecoder[R] {
-  private[xmlformat] def from(x: IList[XTag] \/ XTag): Out[R]
+  private[generic] def from(x: XTag): Out[R]
 }
-object DerivedXDecoder
-    extends LowPriorityDerivedXDecoder1
-    with LowPriorityDerivedXDecoder2
-    with LowPriorityDerivedXDecoder3 {
-  def gen[T, R](
+object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
+
+  def gen[T, Repr](
     implicit
-    G: LabelledGeneric.Aux[T, R],
-    LER: Cached[Strict[DerivedXDecoder[R]]],
+    G: LabelledGeneric.Aux[T, Repr],
+    LER: Cached[Strict[DerivedXDecoder[Repr]]],
     T: Typeable[T]
-  ): XDecoder[T] = { x =>
-    val input = x match {
-      case t: XTag      => \/-(t)
-      case XChildren(c) => -\/(c)
-      case _            => -\/(IList.empty[XTag]) // ignores unexpected
-    }
-    LER.value.value
-      .from(input)
-      .map(G.from)
-      .leftMap(reason => s"${T.describe} -> $reason")
+  ): XDecoder[T] = {
+    case XChildren(ICons(t, INil())) =>
+      LER.value.value
+        .from(t)
+        .map(G.from)
+        .leftMap(reason => s"${T.describe} -> $reason")
+
+    case got =>
+      fail("one tag", got)
+        .leftMap(reason => s"${T.describe} -> $reason")
   }
 
   trait PXDecoder[R] extends DerivedXDecoder[R]
-  trait CXDecoder[R] extends DerivedXDecoder[R] {
-    def from(x: IList[XTag] \/ XTag): Out[R] = x match {
-      case \/-(tag)                => coproduct(tag)
-      case -\/(ICons(tag, INil())) => coproduct(tag)
-      case -\/(list)               => -\/(s"unexpected ${list.take(100)}...")
-    }
-    def coproduct(x: XTag): Out[R]
+  trait CXDecoder[R] extends DerivedXDecoder[R]
+
+  implicit final class NiceMatch[A](private val a: A) extends AnyVal {
+    @inline final def switch[B](f: A => B): B = f(a)
   }
 
-  implicit val hnil: PXDecoder[HNil] = _ => \/-(HNil)
+  implicit val hnil: PXDecoder[HNil] = _ => HNil.right[String]
 
-  implicit def hconsAttr[K <: Symbol, A, AS <: HList](
+  implicit def hconsAttr[K <: Symbol, A, T <: HList](
     implicit K: Witness.Aux[K],
-    DV: XDecoder[A @@ XAttribute],
-    DR: PXDecoder[AS]
-  ): PXDecoder[FieldType[K, A @@ XAttribute] :: AS] = { in =>
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XAttribute] :: T] = { in =>
+    hconsAttrOptional[K, A, T](K, DV, DR).from(in).flatMap {
+      case XAttribute(Some(head)) :: tail =>
+        (field[K](XAttribute(head)) :: tail).right[String]
+      case _ =>
+        fail(s"attr '${K.value.name}'", in.asChild)
+    }
+  }
+
+  implicit def hconsAttrOptional[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, Option[A] @@ XAttribute] :: T] = { in =>
     val key = XAtom(K.value.name)
 
-    in.|> {
-      case \/-(XTag(_, attrs, _, _)) =>
-        val value = attrs.find(_.name == key).map(_.value)
-        DV.fromXml(value.getOrElse(XChildren(IList.empty))).leftMap { err =>
-          if (value.isEmpty) s"missing attribute ${key.text} from $attrs"
-          else err
+    in.attrs
+      .find(_.name == key)
+      .switch {
+        case None       => Option.empty[A].right[String]
+        case Some(attr) => DV.fromXml(attr.value).map(Option(_))
+      }
+      .flatMap { head =>
+        DR.from(in).map { tail =>
+          field[K](XAttribute(head)) :: tail
         }
+      }
+  }
 
-      case -\/(other) =>
-        DV.fromXml(XChildren(IList.empty))
-          .leftMap(
-            _ =>
-              s"missing attribute ${key.text}, got ${other.toString.take(100)}"
-          )
+  implicit def hconsInlinedStr[K <: Symbol, A, T <: HList](
+    implicit
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XInlined] :: T] = { in =>
+    hconsInlinedStrOptional[K, A, T](DV, DR).from(in).flatMap {
+      case XInlined(Some(head)) :: tail =>
+        (field[K](XInlined(head)) :: tail).right[String]
+      case _ =>
+        fail(s"a body", in.asChild)
+    }
+  }
+
+  implicit def hconsInlinedStrOptional[K <: Symbol, A, T <: HList](
+    implicit
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, Option[A] @@ XInlined] :: T] = { in =>
+    in.body
+      .cata(
+        DV.fromXml(_).map(Option(_)),
+        Option.empty[A].right[String]
+      )
+      .flatMap { head =>
+        DR.from(in).map { tail =>
+          field[K](XInlined(head)) :: tail
+        }
+      }
+  }
+
+  private[this] val typehint = XAtom("typehint")
+  implicit val cnil: CXDecoder[CNil] = tag =>
+    s"no valid typehint in '$tag'".left[CNil]
+  implicit def ccons[K <: Symbol, A, T <: Coproduct](
+    implicit
+    K: Witness.Aux[K],
+    LDI: Lazy[XDecoder[A]],
+    DR: CXDecoder[T]
+  ): CXDecoder[FieldType[K, A] :+: T] = { in =>
+    val hint = XAttr(typehint, XAtom(K.value.name))
+
+    if (in.attrs.element(hint))
+      LDI.value.fromXml(in.asChild).map(a => Inl(field[K](a)))
+    else
+      DR.from(in).map(a => Inr(a))
+  }
+
+  implicit def cconsStr[K <: Symbol, A, T <: Coproduct](
+    implicit
+    K: Witness.Aux[K],
+    DI: XStrDecoder[A],
+    DR: CXDecoder[T]
+  ): CXDecoder[FieldType[K, A] :+: T] = { in =>
+    val hint = XAttr(typehint, XAtom(K.value.name))
+
+    if (in.attrs.element(hint))
+      in.body.cata(
+        b => DI.fromXml(b).map(a => Inl(field[K](a))),
+        fail("a body", in.asChild)
+      )
+    else
+      DR.from(in).map(a => Inr(a))
+  }
+
+}
+
+trait LowPriorityDerivedXDecoder1 extends LowPriorityDerivedXDecoder2 {
+  this: DerivedXDecoder.type =>
+
+  implicit def hconsInlinedMonoid[K <: Symbol, A, T <: HList](
+    implicit M: Monoid[A],
+    LDV: Lazy[XDecoder[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XInlined] :: T] = { in =>
+    DR.from(in).map { tail =>
+      // ignores errors, failure to decode anything gives Monoid.empty
+      val head =
+        in.children
+          .flatMap(ts => LDV.value.fromXml(ts.asChild).toMaybe.toIList)
+          .fold
+      field[K](XInlined(head)) :: tail
+    }
+  }
+
+}
+
+trait LowPriorityDerivedXDecoder2 extends LowPriorityDerivedXDecoder3 {
+  this: DerivedXDecoder.type =>
+
+  implicit def hcons[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    LDV: Lazy[XDecoder[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A] :: T] = { in =>
+    // does not call hconsOptional as an optimisation
+    val key      = XAtom(K.value.name)
+    val matching = XChildren(in.children.filter(_.name == key))
+    LDV.value.fromXml(matching).flatMap { head =>
+      DR.from(in).map { tail =>
+        field[K](head) :: tail
+      }
+    }
+  }
+
+  implicit def hconsOptional[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    LDV: Lazy[XDecoder[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, Option[A]] :: T] = { in =>
+    val key      = XAtom(K.value.name)
+    val matching = in.children.filter(_.name == key)
+
+    {
+      if (matching.isEmpty) Option.empty[A].right[String]
+      else LDV.value.fromXml(XChildren(matching)).map(Some(_))
     }.flatMap { head =>
       DR.from(in).map { tail =>
         field[K](head) :: tail
@@ -82,110 +210,35 @@ object DerivedXDecoder
     }
   }
 
-  // XML is ambiguous in its representation of single element lists, i.e. we
-  // could get a single element unattributed or an XTag. If there was no
-  // ambiguity we would want to look at the children of the XTag, but due to the
-  // ambiguity we must search in the outer which will leave us at the wrong
-  // level in the case of nested single elements of the same name.
-  protected def flatChildren(in: IList[XTag] \/ XTag): IList[XTag] = in match {
-    case -\/(unattributed) => unattributed
-    case \/-(outer @ XTag(_, _, children, _)) =>
-      outer :: children
-    case \/-(tag) => IList.single(tag) // string body
-  }
-
-  implicit def hconsInlinedField[K <: Symbol, A, AS <: HList](
+  implicit def hconsStr[K <: Symbol, A, T <: HList](
     implicit K: Witness.Aux[K],
-    LDV: Lazy[XDecoder[A]],
-    DR: PXDecoder[AS]
-  ): PXDecoder[FieldType[K, A @@ XInlinedField] :: AS] = { in =>
-    val key = XAtom(K.value.name)
-    val values = flatChildren(in).filter(_.name == key) match {
-      case ICons(value, INil()) => value: XNode
-      case list                 => XChildren(list)
-    }
-    LDV.value.fromXml(values).flatMap { head =>
-      DR.from(in).map { tail =>
-        field[K](XInlinedField(head)) :: tail
-      }
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A] :: T] = { in =>
+    hconsStrOptional[K, A, T](K, DV, DR).from(in).flatMap {
+      case head :: tail =>
+        (head: Option[A]) match {
+          case None =>
+            fail(s"a tag named '${K.value.name}' with a body", in.asChild)
+          case Some(value) => (field[K](value) :: tail).right[String]
+        }
     }
   }
 
-  implicit def hconsInlinedContent[K <: Symbol, A, AS <: HList](
-    implicit
-    @unused K: Witness.Aux[K],
-    LDV: Lazy[XDecoder[A]],
-    DR: PXDecoder[AS]
-  ): PXDecoder[FieldType[K, A @@ XInlinedContent] :: AS] = { in =>
-    in.|> {
-      case -\/(tags) => LDV.value.fromXml(XChildren(tags))
-      case \/-(t)    => XDecoder.fromXTagContent(t)(LDV.value)
-    }.flatMap { head =>
-      DR.from(in).map { tail =>
-        field[K](XInlinedContent(head)) :: tail
-      }
-    }
-  }
-
-  implicit val cnil: CXDecoder[CNil] = tag =>
-    -\/(s"no valid typehint in '$tag'")
-  implicit def ccons[K <: Symbol, V, AS <: Coproduct](
-    implicit
-    K: Witness.Aux[K],
-    LDI: Lazy[XDecoder[V]],
-    DR: CXDecoder[AS]
-  ): CXDecoder[FieldType[K, V] :+: AS] = {
-    case t @ XTag(XAtom(key), INil(), _, _) if key == K.value.name =>
-      XDecoder.fromXTagContent(t)(LDI.value).map(a => Inl(field[K](a)))
-    case t @ XTag(XAtom(key), _, _, _) if key == K.value.name =>
-      LDI.value.fromXml(t).map(a => Inl(field[K](a)))
-    case other =>
-      DR.coproduct(other).map(a => Inr(a))
-  }
-
-}
-
-trait LowPriorityDerivedXDecoder1 {
-  this: DerivedXDecoder.type =>
-
-  // Workaround two shapeless bugs:
-  //
-  // - https://github.com/milessabin/shapeless/issues/309
-  // - if LDV is Lazy, it fails to compile
-  //
-  // so this explicit support has been added.
-  implicit def hconsInlinedList[K <: Symbol, A, AS <: HList](
+  implicit def hconsStrOptional[K <: Symbol, A, T <: HList](
     implicit K: Witness.Aux[K],
-    LDV: XDecoder[A @@ XInlinedList],
-    DR: PXDecoder[AS]
-  ): PXDecoder[
-    FieldType[K, A @@ XInlinedList @@ XInlinedField] :: AS
-  ] =
-    hconsInlinedField(K, Lazy(LDV), DR)
-
-}
-
-trait LowPriorityDerivedXDecoder2 {
-  this: DerivedXDecoder.type =>
-
-  implicit def hcons[K <: Symbol, A, AS <: HList](
-    implicit K: Witness.Aux[K],
-    LDV: Lazy[XDecoder[A]],
-    DR: PXDecoder[AS]
-  ): PXDecoder[FieldType[K, A] :: AS] = { in =>
+    DV: XStrDecoder[A],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, Option[A]] :: T] = { in =>
     val key = XAtom(K.value.name)
 
-    flatChildren(in)
+    in.children
       .filter(_.name == key)
-      .|> {
-        case ICons(v, INil()) =>
-          XDecoder.fromXTagContent(v)(LDV.value)
-        case INil() =>
-          LDV.value.fromXml(XChildren(IList.empty)).leftMap { _ =>
-            s"missing tag '${key.text}'"
-          }
-        case list =>
-          -\/(s"unexpected ${list.length} elements named '${key.text}'")
+      .switch {
+        case ICons(XTag(_, _, _, Maybe.Just(body)), INil()) =>
+          DV.fromXml(body).map(Option(_))
+        case _ =>
+          Option.empty[A].right[String]
       }
       .flatMap { head =>
         DR.from(in).map { tail =>
@@ -193,16 +246,66 @@ trait LowPriorityDerivedXDecoder2 {
         }
       }
   }
+
+  implicit def hconsInlinedSemigroup[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    M: Semigroup[A],
+    LDV: Lazy[XDecoder[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XInlined] :: T] = { in =>
+    DR.from(in).flatMap { tail =>
+      val (fails, goods) =
+        in.children.map(ts => LDV.value.fromXml(ts.asChild)).separate
+
+      goods.toNel match {
+        case Some(head) =>
+          (field[K](XInlined(Foldable1[NonEmptyList].fold1(head))) :: tail)
+            .right[String]
+        case None =>
+          val messages = fails.intercalate("\n")
+          s"${K.value.name}:\n$messages".left
+      }
+    }
+  }
+
 }
 
-trait LowPriorityDerivedXDecoder3 {
+trait LowPriorityDerivedXDecoder3 extends LowPriorityDerivedXDecoder4 {
+  this: DerivedXDecoder.type =>
+
+  implicit def hconsInlined[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    LDV: Lazy[XDecoder[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XInlined] :: T] = { in =>
+    DR.from(in).flatMap { tail =>
+      val (fails, goods) =
+        in.children.map(ts => LDV.value.fromXml(ts.asChild)).separate
+
+      goods.switch {
+        case ICons(a, INil()) => (field[K](XInlined(a)) :: tail).right[String]
+        case other if other.isEmpty =>
+          val messages = fails.intercalate("\n")
+          s"${K.value.name}:\n$messages".left
+        case other =>
+          fail(
+            s"one (not ${other.length}) value for ${K.value.name}",
+            in.asChild
+          )
+      }
+    }
+  }
+
+}
+
+trait LowPriorityDerivedXDecoder4 {
   this: DerivedXDecoder.type =>
 
   // WORKAROUND https://github.com/milessabin/shapeless/issues/309
-  implicit def hconsHack[K <: Symbol, A, T, AS <: HList](
+  implicit def hconsHack[K <: Symbol, A, Z, T <: HList](
     implicit K: Witness.Aux[K],
-    DV: XDecoder[A @@ T],
-    DR: PXDecoder[AS]
-  ): PXDecoder[FieldType[K, A @@ T] :: AS] = hcons(K, DV, DR)
+    DV: XDecoder[A @@ Z],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ Z] :: T] = hcons(K, DV, DR)
 
 }

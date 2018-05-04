@@ -16,10 +16,12 @@ import org.scalatest.Matchers._
 import Encoder.ops._
 
 class EncoderTests extends FreeSpec {
-  // scalafix:off DisableSyntax.keywords.null
-
-  implicit class Helper(x: XNode) {
+  implicit class NodeHelper(x: XNode) {
     def encode: xml.NodeSeq = x.toScalaXml
+    def print: String       = encode.toString
+  }
+  implicit class TagHelper(x: XTag) {
+    def encode: xml.NodeSeq = x.asChild.encode
     def print: String       = encode.toString
   }
 
@@ -57,7 +59,7 @@ class EncoderTests extends FreeSpec {
 
       tag.encode.shouldBe(
         xml.Elem(
-          null,
+          null, // scalafix:ok
           "foo",
           xml.Null,
           xml.TopScope,
@@ -74,7 +76,7 @@ class EncoderTests extends FreeSpec {
 
       tag.encode.shouldBe(
         xml.Elem(
-          null,
+          null, // scalafix:ok
           "foo",
           xml.Null,
           xml.TopScope,
@@ -96,7 +98,7 @@ class EncoderTests extends FreeSpec {
 
       tag.encode.shouldBe(
         xml.Elem(
-          null,
+          null, // scalafix:ok
           "foo",
           new xml.UnprefixedAttribute("bar", xml.Text("<wobble>"), xml.Null),
           xml.TopScope,
@@ -128,7 +130,7 @@ class EncoderTests extends FreeSpec {
         xml.Group(
           Seq[xml.Node](
             xml.Elem(
-              null,
+              null, // scalafix:ok
               "foo",
               new xml.UnprefixedAttribute(
                 "bar",
@@ -140,7 +142,7 @@ class EncoderTests extends FreeSpec {
               xml.Text("wibble")
             ),
             xml.Elem(
-              null,
+              null, // scalafix:ok
               "bar",
               xml.Null,
               xml.TopScope,
@@ -159,8 +161,8 @@ class EncoderTests extends FreeSpec {
 
   }
 
-  implicit class AnyHelper[A: XEncoder](x: A) {
-    import XEncoder.ops._
+  implicit class AnyHelper[A: XNodeEncoder](x: A) {
+    import XNodeEncoder.ops._
 
     def encode: xml.NodeSeq = x.toXml.toScalaXml
     def print: String       = encode.toString
@@ -205,13 +207,6 @@ class EncoderTests extends FreeSpec {
       'foo.print.shouldBe("foo")
     }
 
-    "should special-case Option" in {
-      (Some("hello"): Option[String]).print.shouldBe("hello")
-
-      (None: Option[String]).encode.shouldBe(xml.Group(Nil))
-      (None: Option[String]).print.shouldBe("")
-    }
-
     "should special-case Either" in {
       (Left("hello"): Either[String, Int]).print.shouldBe("hello")
       (Right(13): Either[String, Int]).print.shouldBe("13")
@@ -245,30 +240,37 @@ class EncoderTests extends FreeSpec {
     "should support generic products" in {
       import examples._
 
-      Foo("hello").print.shouldBe("<s>hello</s>")
-      Caz.print.shouldBe("")
+      Foo("hello").print.shouldBe("<Foo><s>hello</s></Foo>")
+      Caz.print.shouldBe("<Caz.type/>")
       Baz.print.shouldBe("Baz!")
-      Faz(Some("hello")).print.shouldBe("<o>hello</o>")
+      Faz(Some("hello")).print.shouldBe("<Faz><o>hello</o></Faz>")
     }
 
     "should support generic coproducts" in {
       import examples._
 
-      (Foo("hello"): SimpleTrait).print.shouldBe("<Foo><s>hello</s></Foo>")
-      (Caz: SimpleTrait).print.shouldBe("<Caz/>")
-      (Baz: SimpleTrait).print.shouldBe("<Baz>Baz!</Baz>")
+      (Foo("hello"): SimpleTrait).print
+        .shouldBe("""<SimpleTrait typehint="Foo"><s>hello</s></SimpleTrait>""")
+      (Caz: SimpleTrait).print.shouldBe("""<SimpleTrait typehint="Caz"/>""")
+      (Baz: SimpleTrait).print
+        .shouldBe("""<SimpleTrait typehint="Baz">Baz!</SimpleTrait>""")
 
       (Wobble("fish"): AbstractThing).print
-        .shouldBe("<Wobble><id>fish</id></Wobble>")
+        .shouldBe(
+          """<AbstractThing typehint="Wobble"><id>fish</id></AbstractThing>"""
+        )
 
-      (Wibble: AbstractThing).print.shouldBe("<Wibble/>")
+      (Wibble: AbstractThing).print
+        .shouldBe("""<AbstractThing typehint="Wibble"/>""")
     }
 
     "should support generic recursive ADTs" in {
       import examples._
 
       val rec = Recursive("hello", Some(Recursive("goodbye")))
-      rec.print.shouldBe("<h>hello</h><t><h>goodbye</h><t/></t>")
+      rec.print.shouldBe(
+        "<Recursive><h>hello</h><t><h>goodbye</h></t></Recursive>"
+      )
     }
 
     "should encode fields as XmlAttribute" in {
@@ -278,9 +280,12 @@ class EncoderTests extends FreeSpec {
         .shouldBe("""<MultiField b="goodbye"><a>hello</a></MultiField>""")
 
       (MultiField("hello", Tag("goodbye")): MultiFieldParent).print
-        .shouldBe("""<MultiField b="goodbye"><a>hello</a></MultiField>""")
+        .shouldBe(
+          """<MultiFieldParent typehint="MultiField" b="goodbye"><a>hello</a></MultiFieldParent>"""
+        )
 
     }
+
   }
 
 }

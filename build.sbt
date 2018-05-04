@@ -1,4 +1,4 @@
-val scalazVersion     = "7.2.21"
+val scalazVersion     = "7.2.22"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.12.0"
 
@@ -96,15 +96,17 @@ val derivez = (project in file("scalaz-deriving"))
 
 val xmlformat = (project in file("examples/xmlformat"))
   .dependsOn(macros)
-  .settings(inConfig(Test)(ScalazDeriving))
+  .settings(ScalazDeriving)
   .settings(
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "org.scalaz"             %% "scalaz-core" % scalazVersion,
-      "com.chuusai"            %% "shapeless"   % shapelessVersion,
-      "com.github.mpilquist"   %% "simulacrum"  % simulacrumVersion,
-      "org.scala-lang.modules" %% "scala-xml"   % "1.1.0"
+      "eu.timepit"             %% "refined"        % "0.9.0",
+      "eu.timepit"             %% "refined-scalaz" % "0.9.0" % "test",
+      "org.scalaz"             %% "scalaz-core"    % scalazVersion,
+      "com.chuusai"            %% "shapeless"      % shapelessVersion,
+      "com.github.mpilquist"   %% "simulacrum"     % simulacrumVersion,
+      "org.scala-lang.modules" %% "scala-xml"      % "1.1.0"
     )
   )
 

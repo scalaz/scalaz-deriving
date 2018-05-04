@@ -4,7 +4,7 @@
 package xmlformat
 package scalaxml
 
-import scalaz.unused
+import scalaz._
 
 /**
  * Encodes the xmlformat ADT into the `scala.xml.NodeSeq` suite of classes.
@@ -27,10 +27,10 @@ trait Encoder[A] { self =>
 object Encoder {
 
   implicit val xnode: Encoder[XNode] = {
-    case XText(text)                              => xml.Text(text)
-    case XCdata(text)                             => xml.PCData(text)
-    case XAtom(text)                              => xml.Unparsed(text)
-    case XTag(XAtom(name), attrs, children, body) =>
+    case XText(text)                                                        => xml.Text(text)
+    case XCdata(text)                                                       => xml.PCData(text)
+    case XAtom(text)                                                        => xml.Unparsed(text)
+    case XChildren(ICons(XTag(XAtom(name), attrs, children, body), INil())) =>
       // I heard you like sequences, so I made a linked list for you, inside
       // your NodeSeq, which is also a Seq[Node].
       val metadata = attrs.foldRight(xml.Null: xml.MetaData) {
@@ -44,10 +44,10 @@ object Encoder {
 
       val content =
         body.map(xnode.toScalaXml).toOption.toList :::
-          children.map(xnode.toScalaXml).toList
+          children.map(t => xnode.toScalaXml(XChildren(IList(t)))).toList
 
       xml.Elem(
-        null /* scalafix:ok */,
+        null, // scalafix:ok
         name,
         metadata,
         xml.TopScope,
@@ -56,6 +56,6 @@ object Encoder {
       )
 
     case XChildren(list) =>
-      xml.Group(list.map(xnode.toScalaXml).toList)
+      xml.Group(list.map(t => xnode.toScalaXml(XChildren(IList(t)))).toList)
   }
 }
