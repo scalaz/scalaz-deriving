@@ -72,11 +72,9 @@ import shapeless.labelled._
  * names can be rewritten by a container, therfore it is not feasible in the
  * general case to use tag names to differentiate between coproduct values.
  *
- * However, by manually calling DerivedXEncoderTag.gen instead of this XEncoder
- * (plus the decoding variant), tags will be used instead of attributes. If the
- * coproduct is used as a field in a container, it **must** be XInlined or
- * decoding will fail. This is not checked at compiletime and is the
- * responsibility of the user.
+ * However, if a coproduct has derived an XEncoderTag instead of an XEncoder,
+ * tags will be used to differentiate instead of attributes. If used as a field
+ * in a container, it **must** be XInlined, which is enforced by the types.
  *
  * = Attributes =
  *
@@ -175,6 +173,19 @@ object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
         .toXml(XInlined.unwrap(head))
         .tree
         .map(_.left[XString].right[XAttr]) ::: ER.product(tail)
+  }
+
+  // tags only allowed inline
+  implicit def hconsInlinedTag[K <: Symbol, A, T <: HList](
+    implicit
+    LEV: Lazy[XEncoderTag[A]],
+    ER: PXEncoder[T]
+  ): PXEncoder[FieldType[K, A @@ XInlined] :: T] = {
+    case head :: tail =>
+      LEV.value
+        .toXTag(XInlined.unwrap(head))
+        .left[XString]
+        .right[XAttr] :: ER.product(tail)
   }
 
   implicit def hconsInlinedStr[K <: Symbol, A, T <: HList](

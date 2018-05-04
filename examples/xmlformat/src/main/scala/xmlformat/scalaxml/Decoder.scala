@@ -7,21 +7,22 @@ package scalaxml
 import javax.xml.parsers.{ SAXParser, SAXParserFactory }
 
 import scalaz._, Scalaz._
+import simulacrum._
 
-@simulacrum.typeclass(generateAllOps = false)
+@typeclass(generateAllOps = false)
 trait Decoder[A] { self =>
-  def fromXml(x: xml.NodeSeq): Decoder.Decoded[A]
-
-  def map[B](f: A => B): Decoder[B] =
-    xml => self.fromXml(xml).map(f)
-  def andThen[B](f: A => Decoder.Decoded[B]): Decoder[B] =
-    xml => self.fromXml(xml).flatMap(f)
-  def xmap[B](f: A => B, @unused g: B => A): Decoder[B] =
-    map(f)
-
+  def fromScalaXml(x: xml.NodeSeq): String \/ A
 }
 
 object Decoder {
+  @inline def instance[A](f: xml.NodeSeq => String \/ A): Decoder[A] = f(_)
+
+  import Isomorphism.<~>
+  val iso: Decoder <~> Kleisli[String \/ ?, xml.NodeSeq, ?] = Kleisli.iso(
+    λ[λ[a => (xml.NodeSeq => String \/ a)] ~> Decoder](instance(_)),
+    λ[Decoder ~> λ[a => (xml.NodeSeq => String \/ a)]](_.fromScalaXml)
+  )
+  implicit val monad: MonadError[Decoder, String] = MonadError.fromIso(iso)
 
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
   private[this] def secureParser(): SAXParser = {
@@ -48,19 +49,17 @@ object Decoder {
     }
 
   def parse(txt: String): String \/ XChildren =
-    (secureLoadString(txt) >>= xnode.fromXml).flatMap {
+    (secureLoadString(txt) >>= xnode.fromScalaXml).flatMap {
       case XString(_)        => -\/("failed to parse raw string data")
       case ts @ XChildren(_) => \/-(ts)
     }
-
-  type Decoded[A] = String \/ A
 
   implicit val xnode: Decoder[XNode] = {
     case _: xml.Comment | _: xml.ProcInstr | _: xml.EntityRef =>
       // things we ignore
       \/-(XChildren(IList.empty))
     case d: xml.Document =>
-      (Option(d.docElem) \/> "no content") >>= xnode.fromXml
+      (Option(d.docElem) \/> "no content") >>= xnode.fromScalaXml
 
     case t: xml.Text => \/-(XText(t.data))
     case p: xml.PCData =>
@@ -69,7 +68,7 @@ object Decoder {
 
     case xml.Group(nodes) =>
       nodes.toList.toIList
-        .traverse(xnode.fromXml)
+        .traverse(xnode.fromScalaXml)
         .map {
           case ICons(xs: XString, INil()) => xs
           case other =>
@@ -82,7 +81,7 @@ object Decoder {
 
     case e: xml.Elem =>
       xnode
-        .fromXml(
+        .fromScalaXml(
           e.child match {
             case Seq(only) => only
             case many      => xml.Group(many)

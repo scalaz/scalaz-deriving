@@ -6,6 +6,7 @@ package generic
 
 import scalaz.{
   @@,
+  \/,
   Foldable1,
   ICons,
   INil,
@@ -19,13 +20,13 @@ import scalaz.Scalaz._
 import shapeless._
 import shapeless.labelled._
 
-import XDecoder.{ fail, Out }
+import XDecoder.fail
 
 /**
  * Product and coproduct decoder. The inverse of DerivedXEncoder.
  */
-sealed trait DerivedXDecoder[R] {
-  private[generic] def from(x: XTag): Out[R]
+sealed trait DerivedXDecoder[A] {
+  private[generic] def from(x: XTag): String \/ A
 }
 object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
 
@@ -266,6 +267,16 @@ trait LowPriorityDerivedXDecoder2 extends LowPriorityDerivedXDecoder3 {
           s"${K.value.name}:\n$messages".left
       }
     }
+  }
+
+  // XDecoderTags must be inlined
+  implicit def hconsInlinedTag[K <: Symbol, A, T <: HList](
+    implicit K: Witness.Aux[K],
+    LDV: Lazy[XDecoderTag[A]],
+    DR: PXDecoder[T]
+  ): PXDecoder[FieldType[K, A @@ XInlined] :: T] = { in =>
+    val decoder = Lazy(LDV.value.asXDecoder)
+    hconsInlined(K, decoder, DR).from(in)
   }
 
 }

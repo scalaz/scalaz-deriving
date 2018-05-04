@@ -5,6 +5,7 @@ package xmlformat
 package scalaxml
 
 import scalaz._
+import simulacrum._
 
 /**
  * Encodes the xmlformat ADT into the `scala.xml.NodeSeq` suite of classes.
@@ -12,19 +13,17 @@ import scalaz._
  * Note that the `NodeSeq` trait is unsealed and there are many anonymous
  * implementations.
  */
-@simulacrum.typeclass
+@typeclass
 trait Encoder[A] { self =>
   def toScalaXml(a: A): xml.Node
-
-  def contramap[B](f: B => A): Encoder[B] = new Encoder[B] {
-    final def toScalaXml(b: B): xml.Node =
-      self.toScalaXml(f(b))
-  }
-  def xmap[B](@unused f: A => B, g: B => A): Encoder[B] =
-    contramap(g)
 }
 
 object Encoder {
+  implicit val contravariant: Contravariant[Encoder] =
+    new Contravariant[Encoder] {
+      def contramap[A, B](fa: Encoder[A])(f: B => A): Encoder[B] =
+        b => fa.toScalaXml(f(b))
+    }
 
   implicit val xnode: Encoder[XNode] = {
     case XText(text)                                                        => xml.Text(text)

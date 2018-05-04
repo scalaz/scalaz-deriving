@@ -4,20 +4,24 @@
 package xmlformat
 
 import scalaz._, Scalaz._
+import simulacrum._
 
-@simulacrum.typeclass
-trait XEncoder[A] { self =>
+@typeclass trait XEncoder[A] {
   def toXml(a: A): XChildren
-
-  def contramap[B](f: B => A): XEncoder[B]               = b => self.toXml(f(b))
-  def xmap[B](@unused f: A => B, g: B => A): XEncoder[B] = contramap(g)
 }
 object XEncoder
     extends XEncoderScalaz1
     with XEncoderStdlib1
-    with XEncoderRefined
     with XEncoderScalaz2
-    with XEncoderStdlib2
+    with XEncoderStdlib2 {
+
+  implicit val contravariant: Contravariant[XEncoder] =
+    new Contravariant[XEncoder] {
+      def contramap[A, B](fa: XEncoder[A])(f: B => A): XEncoder[B] =
+        b => fa.toXml(f(b))
+    }
+
+}
 
 trait XEncoderScalaz1 {
   this: XEncoder.type =>
@@ -94,13 +98,4 @@ trait XEncoderStdlib2 {
     implicit T: T[A] <:< Traversable[A]
   ): XEncoder[T[A]] = list[A].contramap(_.toList)
 
-}
-
-trait XEncoderRefined {
-  this: XEncoder.type =>
-
-  import eu.timepit.refined.api.Refined
-
-  implicit def aRefinedB[A: XEncoder, B]: XEncoder[A Refined B] =
-    XEncoder[A].contramap(_.value)
 }

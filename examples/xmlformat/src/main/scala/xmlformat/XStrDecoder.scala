@@ -10,25 +10,27 @@ import scala.util.control.NonFatal
 
 import shapeless.Typeable
 import scalaz._, Scalaz._
+import simulacrum._
 
-@simulacrum.typeclass(generateAllOps = false)
+@typeclass(generateAllOps = false)
 trait XStrDecoder[A] { self =>
-  import XStrDecoder.Out
-
-  def fromXml(x: XString): Out[A]
-
-  def map[B](f: A => B): XStrDecoder[B]                     = x => self.fromXml(x).map(f)
-  def xmap[B](f: A => B, @unused g: B => A): XStrDecoder[B] = map(f)
-  def emap[B](f: A => Out[B]): XStrDecoder[B]               = x => self.fromXml(x).flatMap(f)
+  def fromXml(x: XString): String \/ A
 }
-object XStrDecoder extends XStrDecoderRefined with XStrDecoderStdlib {
+object XStrDecoder extends XStrDecoderStdlib {
+  @inline def instance[A](f: XString => String \/ A): XStrDecoder[A] = f(_)
 
-  type Out[A] = String \/ A
   object ops extends ToXStrDecoderOps {
     implicit class XStrDecoderOps(private val x: XString) extends AnyVal {
-      def decode[A: XStrDecoder]: Out[A] = XStrDecoder[A].fromXml(x)
+      def decode[A: XStrDecoder]: String \/ A = XStrDecoder[A].fromXml(x)
     }
   }
+
+  import Isomorphism.<~>
+  val iso: XStrDecoder <~> Kleisli[String \/ ?, XString, ?] = Kleisli.iso(
+    λ[λ[a => (XString => String \/ a)] ~> XStrDecoder](instance(_)),
+    λ[XStrDecoder ~> λ[a => (XString => String \/ a)]](_.fromXml)
+  )
+  implicit val monad: MonadError[XStrDecoder, String] = MonadError.fromIso(iso)
 
   // WORKAROUND https://github.com/scalaz/scalaz/issues/1590
   private def str[A](f: String => A)(implicit A: Typeable[A]): XStrDecoder[A] =
@@ -95,17 +97,4 @@ trait XStrDecoderStdlib {
     if (i >= 0) \/-(i.millis)
     else -\/(s"got a negative number of milliseconds: $i")
   }
-}
-
-trait XStrDecoderRefined {
-  this: XStrDecoder.type =>
-
-  import eu.timepit.refined
-  import eu.timepit.refined.api._
-
-  implicit def aRefinedB[A: XStrDecoder, B](
-    implicit V: Validate[A, B]
-  ): XStrDecoder[A Refined B] =
-    XStrDecoder[A].emap(refined.refineV(_).disjunction)
-
 }

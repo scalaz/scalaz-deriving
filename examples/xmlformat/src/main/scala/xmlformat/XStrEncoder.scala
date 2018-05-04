@@ -4,21 +4,19 @@
 package xmlformat
 
 import scalaz._, Scalaz._
+import simulacrum._
 
-/**
- * Encoder for the XString half of the XNode ADT.
- */
-@simulacrum.typeclass
-trait XStrEncoder[A] { self =>
+/** Encoder for the XString half of the XNode ADT. */
+@typeclass trait XStrEncoder[A] { self =>
   def toXml(a: A): XString
-
-  def contramap[B](f: B => A): XStrEncoder[B]               = b => self.toXml(f(b))
-  def xmap[B](@unused f: A => B, g: B => A): XStrEncoder[B] = contramap(g)
 }
-object XStrEncoder
-    extends XStrEncoderScalaz
-    with XStrEncoderRefined
-    with XStrEncoderStdlib {
+object XStrEncoder extends XStrEncoderScalaz with XStrEncoderStdlib {
+
+  implicit val contravariant: Contravariant[XStrEncoder] =
+    new Contravariant[XStrEncoder] {
+      def contramap[A, B](fa: XStrEncoder[A])(f: B => A): XStrEncoder[B] =
+        b => fa.toXml(f(b))
+    }
 
   // JVM data types
   implicit val boolean: XStrEncoder[Boolean]           = a => XAtom(a.toString)
@@ -60,13 +58,4 @@ trait XStrEncoderStdlib {
 
   import scala.concurrent.duration.FiniteDuration
   implicit def finite: XStrEncoder[FiniteDuration] = long.contramap(_.toMillis)
-}
-
-trait XStrEncoderRefined {
-  this: XStrEncoder.type =>
-
-  import eu.timepit.refined.api.Refined
-
-  implicit def aRefinedB[A: XStrEncoder, B]: XStrEncoder[A Refined B] =
-    XStrEncoder[A].contramap(_.value)
 }

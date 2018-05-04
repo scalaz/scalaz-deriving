@@ -86,15 +86,6 @@ class XDecoderTests extends FreeSpec {
       xml.as[Seq[Int]].shouldBe(Seq(1, 2, 3))
       xml.as[Set[Int]].shouldBe(Set(1, 2, 3))
 
-      // because ListSet hates us
-      XChildren(
-        IList(
-          XTag(XAtom("value"), XAtom("3")),
-          XTag(XAtom("value"), XAtom("2")),
-          XTag(XAtom("value"), XAtom("1"))
-        )
-      ).as[ListSet[Int]].shouldBe(ListSet(1, 2, 3))
-
       // sometimes single element things come through like this
       XTag(XAtom("value"), XAtom("1")).as[List[Int]].shouldBe(List(1))
 
@@ -167,6 +158,8 @@ class XDecoderTests extends FreeSpec {
     "should support refined types" in {
       import refined.api.Refined
       import refined.numeric.Positive
+      import refined.scalaz._
+      import XStrDecoder.monad
 
       XAtom("-1000")
         .decode[Long Refined Positive]

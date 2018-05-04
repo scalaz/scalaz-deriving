@@ -9,16 +9,14 @@ import scalaz.{ ICons, INil }
 import shapeless._
 import shapeless.labelled._
 
-abstract class DerivedXEncoderTag[R] {
-  private[generic] def to(r: R): XTag
-}
+trait DerivedXEncoderTag[A] extends XEncoderTag[A]
 object DerivedXEncoderTag {
   def gen[A, Repr](
     implicit
     G: LabelledGeneric.Aux[A, Repr],
     LER: Cached[Strict[DerivedXEncoderTag[Repr]]]
-  ): XEncoder[A] = { t =>
-    LER.value.value.to(G.to(t)).asChild
+  ): XEncoderTag[A] = { t =>
+    LER.value.value.toXTag(G.to(t))
   }
 
   implicit val cnil: DerivedXEncoderTag[CNil] = _ => sys.error("bad coproduct")
@@ -35,7 +33,7 @@ object DerivedXEncoderTag {
           t.copy(name = name)
         case c => XTag(name, c)
       }
-    case Inr(rem) => ER.to(rem)
+    case Inr(rem) => ER.toXTag(rem)
   }
 
 }

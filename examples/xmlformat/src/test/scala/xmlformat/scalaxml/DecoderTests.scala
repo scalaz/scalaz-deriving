@@ -18,7 +18,7 @@ class DecoderTests extends FreeSpec {
   implicit class XmlHelper(x: xml.NodeSeq) {
     def as[T: XNodeDecoder](implicit P: Position): T =
       XNodeDecoder[T].fromXml(asX).rightValue
-    def asX: XNode = xnode.fromXml(x).rightValue
+    def asX: XNode = xnode.fromScalaXml(x).rightValue
   }
 
   implicit class StringHelper(txt: String) {
@@ -36,7 +36,7 @@ class DecoderTests extends FreeSpec {
       }
 
     def parsedAs[T: Decoder](implicit P: Position): T =
-      Decoder[T].fromXml(parseChild).rightValue
+      Decoder[T].fromScalaXml(parseChild).rightValue
   }
 
   "XNode Decoder" - {
@@ -54,7 +54,7 @@ class DecoderTests extends FreeSpec {
 
     "should fail on unparsed input" in {
       Decoder[XNode]
-        .fromXml(xml.Unparsed("foo"))
+        .fromScalaXml(xml.Unparsed("foo"))
         .leftValue
         .shouldBe("encountered unparsed xml: foo")
     }
@@ -195,7 +195,6 @@ class DecoderTests extends FreeSpec {
     }
 
     "should support Traversables" in {
-      import collection.immutable.ListSet
 
       "<value>1</value><value>2</value><value>3</value>"
         .as[List[Int]]
@@ -206,10 +205,6 @@ class DecoderTests extends FreeSpec {
       "<value>1</value><value>2</value><value>3</value>"
         .as[Set[Int]]
         .shouldBe(Set(1, 2, 3))
-      "<value>3</value><value>2</value><value>1</value>"
-        .as[ListSet[Int]]
-        .shouldBe(ListSet(1, 2, 3))
-
       "<value>1</value>".as[Seq[Int]].shouldBe(Seq(1))
 
       "".as[List[Int]].shouldBe(Nil)
@@ -248,6 +243,8 @@ class DecoderTests extends FreeSpec {
     "should support Refined types" in {
       import refined.api.Refined
       import refined.numeric.Positive
+      import refined.scalaz._
+      import XStrDecoder.monad
 
       "1000".as[Long Refined Positive].value.shouldBe(1000)
 

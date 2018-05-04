@@ -3,12 +3,7 @@
 
 package xmlformat.examples
 
-import scalaz.{ -\/, @@, \/-, Semigroup }
-import scalaz.std.string._
-import scalaz.std.list._
-import scalaz.syntax.invariantFunctor._
-import scalaz.{ deriving, xderiving }
-
+import scalaz._, Scalaz._
 import xmlformat._
 
 @xderiving(XStrEncoder, XStrDecoder)
@@ -81,11 +76,8 @@ final case class Inliners(foos: List[Foo] @@ XInlined)
 final case class Outliners(id: Option[String] @@ XAttribute,
                            body: Option[String] @@ XInlined)
 
+@deriving(XEncoderTag, XDecoderTag)
 sealed abstract class TaggyNames
-object TaggyNames {
-  implicit val xencoder: XEncoder[TaggyNames] = generic.DerivedXEncoderTag.gen
-  implicit val xdecoder: XDecoder[TaggyNames] = generic.DerivedXDecoderTag.gen
-}
 
 @deriving(XEncoder, XDecoder)
 final case class TaggyA() extends TaggyNames

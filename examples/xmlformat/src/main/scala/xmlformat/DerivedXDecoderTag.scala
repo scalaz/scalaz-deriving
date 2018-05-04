@@ -4,33 +4,25 @@
 package xmlformat
 package generic
 
-import scalaz.{ ICons, INil }
 import scalaz.Scalaz._
 
 import shapeless._
 import shapeless.labelled._
 
-import XDecoder.{ fail, Out }
+import XDecoder.fail
 
-abstract class DerivedXDecoderTag[R] {
-  private[generic] def from(x: XTag): Out[R]
-}
+trait DerivedXDecoderTag[A] extends XDecoderTag[A]
 object DerivedXDecoderTag {
   def gen[T, Repr](
     implicit
     G: LabelledGeneric.Aux[T, Repr],
     LER: Cached[Strict[DerivedXDecoderTag[Repr]]],
     T: Typeable[T]
-  ): XDecoder[T] = {
-    case XChildren(ICons(t, INil())) =>
-      LER.value.value
-        .from(t)
-        .map(G.from)
-        .leftMap(reason => s"${T.describe} -> $reason")
-
-    case got =>
-      fail("one tag", got)
-        .leftMap(reason => s"${T.describe} -> $reason")
+  ): XDecoderTag[T] = { t =>
+    LER.value.value
+      .fromXTag(t)
+      .map(G.from)
+      .leftMap(reason => s"${T.describe} -> $reason")
   }
 
   implicit val cnil: DerivedXDecoderTag[CNil] = x =>
@@ -45,7 +37,7 @@ object DerivedXDecoderTag {
     if (in.name == hint)
       LDI.value.fromXml(in.asChild).map(a => Inl(field[K](a)))
     else
-      DR.from(in).map(a => Inr(a))
+      DR.fromXTag(in).map(a => Inr(a))
   }
 
   implicit def cconsStr[K <: Symbol, A, T <: Coproduct](
@@ -61,7 +53,7 @@ object DerivedXDecoderTag {
         fail("a body", in.asChild)
       )
     else
-      DR.from(in).map(a => Inr(a))
+      DR.fromXTag(in).map(a => Inr(a))
   }
 
 }

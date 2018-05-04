@@ -98,10 +98,10 @@ val xmlformat = (project in file("examples/xmlformat"))
   .dependsOn(macros)
   .settings(ScalazDeriving)
   .settings(
+    KindProjector,
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"             %% "refined"        % "0.9.0",
       "eu.timepit"             %% "refined-scalaz" % "0.9.0" % "test",
       "org.scalaz"             %% "scalaz-core"    % scalazVersion,
       "com.chuusai"            %% "shapeless"      % shapelessVersion,

@@ -4,34 +4,35 @@
 package xmlformat
 
 import scalaz._, Scalaz._
+import simulacrum._
 
-@simulacrum.typeclass(generateAllOps = false)
+@typeclass(generateAllOps = false)
 trait XDecoder[A] { self =>
-  import XDecoder.Out
-
-  def fromXml(x: XChildren): Out[A]
-
-  def map[B](f: A => B): XDecoder[B]                     = x => self.fromXml(x).map(f)
-  def xmap[B](f: A => B, @unused g: B => A): XDecoder[B] = map(f)
-  def emap[B](f: A => Out[B]): XDecoder[B]               = x => self.fromXml(x).flatMap(f)
+  def fromXml(x: XChildren): String \/ A
 }
 object XDecoder
     extends XDecoderScalaz1
     with XDecoderStdlib1
-    with XDecoderRefined
     with XDecoderStdlib2 {
+  @inline def instance[A](f: XChildren => String \/ A): XDecoder[A] = f(_)
 
-  type Out[A] = String \/ A
   object ops extends ToXDecoderOps {
     implicit class XDecoderOps(private val x: XChildren) extends AnyVal {
-      def decode[A: XDecoder]: Out[A] = XDecoder[A].fromXml(x)
+      def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x)
     }
   }
 
-  // DESNOTE(2018-05-03, SHalliday) suppress long messages from the failure
-  // messages as they are never useful and better to look at the source XML.
+  // suppress long messages from the failure messages as they are never useful
+  // and better to look at the source XML.
   def fail[A](expected: String, got: XNode): -\/[String] =
     -\/(s"expected $expected, got ${got.toString.take(200)}")
+
+  import Isomorphism.<~>
+  val iso: XDecoder <~> Kleisli[String \/ ?, XChildren, ?] = Kleisli.iso(
+    λ[λ[a => (XChildren => String \/ a)] ~> XDecoder](instance(_)),
+    λ[XDecoder ~> λ[a => (XChildren => String \/ a)]](_.fromXml)
+  )
+  implicit val monad: MonadError[XDecoder, String] = MonadError.fromIso(iso)
 }
 
 trait XDecoderScalaz1 {
@@ -123,18 +124,5 @@ trait XDecoderStdlib2 {
   implicit def cbf[T[_], A: XDecoder](
     implicit CBF: collection.generic.CanBuildFrom[Nothing, A, T[A]]
   ): XDecoder[T[A]] = list[A].map(_.to[T])
-
-}
-
-trait XDecoderRefined {
-  this: XDecoder.type =>
-
-  import eu.timepit.refined
-  import refined.api._
-
-  implicit def aRefinedB[A: XDecoder, B](
-    implicit V: Validate[A, B]
-  ): XDecoder[A Refined B] =
-    XDecoder[A].emap(refined.refineV(_).disjunction)
 
 }
