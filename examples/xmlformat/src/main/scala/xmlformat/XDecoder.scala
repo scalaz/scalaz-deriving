@@ -27,6 +27,14 @@ object XDecoder
   def fail[A](expected: String, got: XNode): -\/[String] =
     -\/(s"expected $expected, got ${got.toString.take(200)}")
 
+  // sometimes we need a disambiguating tag when decoding
+  def tagged[A](name: String, delegate: XDecoder[A]): XDecoder[A] = {
+    case x @ XChildren(ICons(XTag(XAtom(`name`), _, _, _), INil())) =>
+      delegate.fromXml(x)
+    case other =>
+      XDecoder.fail(name, other)
+  }
+
   import Isomorphism.<~>
   val iso: XDecoder <~> Kleisli[String \/ ?, XChildren, ?] = Kleisli.iso(
     λ[λ[a => (XChildren => String \/ a)] ~> XDecoder](instance(_)),
@@ -39,14 +47,13 @@ trait XDecoderScalaz1 {
   this: XDecoder.type =>
 
   implicit def disjunction[A: XDecoder, B: XDecoder]: XDecoder[A \/ B] = { x =>
-    XDecoder[A]
-      .fromXml(x)
-      .map(_.left[B])
-      .orElse(
-        XDecoder[B]
-          .fromXml(x)
-          .map(_.right[A])
-      )
+    (XDecoder[A].fromXml(x), XDecoder[B].fromXml(x)) match {
+      case (\/-(value), -\/(_)) => value.left[B].right[String]
+      case (-\/(_), \/-(value)) => value.right[A].right[String]
+      case (\/-(_), \/-(_))     => fail(s"only one branch to succeed", x)
+      case (-\/(erl), -\/(err)) =>
+        fail(s"one branch to succeed:\n$erl\n$err", x)
+    }
   }
 
   implicit def ilistStr[A: XStrDecoder]: XDecoder[IList[A]] = { xs =>

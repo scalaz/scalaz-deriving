@@ -16,7 +16,7 @@ import simulacrum._
 trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
 }
-object XStrDecoder extends XStrDecoderStdlib {
+object XStrDecoder extends XStrDecoderScalaz with XStrDecoderStdlib {
   @inline def instance[A](f: XString => String \/ A): XStrDecoder[A] = f(_)
 
   object ops extends ToXStrDecoderOps {
@@ -74,23 +74,30 @@ object XStrDecoder extends XStrDecoderStdlib {
 
 }
 
-/** data types in the scala stdlib */
+trait XStrDecoderScalaz {
+  this: XStrDecoder.type =>
+
+  implicit def disjunction[
+    A: XStrDecoder,
+    B: XStrDecoder
+  ]: XStrDecoder[A \/ B] = { x =>
+    (XStrDecoder[A].fromXml(x), XStrDecoder[B].fromXml(x)) match {
+      case (\/-(value), -\/(_)) => value.left[B].right[String]
+      case (-\/(_), \/-(value)) => value.right[A].right[String]
+      case (\/-(_), \/-(_))     => s"unable to disambiguate '$x'".left
+      case (-\/(erl), -\/(err)) =>
+        s"both branches failed for '$x':\n$erl\n$err".left
+    }
+  }
+}
+
 trait XStrDecoderStdlib {
   this: XStrDecoder.type =>
 
   implicit def either[
     A: XStrDecoder,
     B: XStrDecoder
-  ]: XStrDecoder[Either[A, B]] = { x =>
-    XStrDecoder[A]
-      .fromXml(x)
-      .map(Left(_))
-      .orElse(
-        XStrDecoder[B]
-          .fromXml(x)
-          .map(Right(_))
-      )
-  }
+  ]: XStrDecoder[Either[A, B]] = disjunction[A, B].map(_.toEither)
 
   import scala.concurrent.duration._
   implicit def finite: XStrDecoder[FiniteDuration] = long.emap { i =>

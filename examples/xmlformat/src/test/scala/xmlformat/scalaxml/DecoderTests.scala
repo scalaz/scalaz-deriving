@@ -191,7 +191,9 @@ class DecoderTests extends FreeSpec {
 
     "should special-case Either" in {
       "hello".as[Either[Int, String]].shouldBe(Right("hello"))
-      "13".as[Either[Int, String]].shouldBe(Left(13))
+      "13"
+        .failsAs[Either[Int, String]]
+        .shouldBe("unable to disambiguate 'XText(13)'")
     }
 
     "should support Traversables" in {

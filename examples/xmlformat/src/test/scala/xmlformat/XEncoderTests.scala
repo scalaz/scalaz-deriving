@@ -56,6 +56,50 @@ class XEncoderTests extends FreeSpec {
       encoder.toXml(Right(13)).shouldBe(XAtom("13"))
     }
 
+    "should special-case Either for objects" in {
+      import examples._
+
+      Stringy("hello")
+        .left[Inty]
+        .toXml
+        .shouldBe(
+          XTag(
+            XAtom("Stringy"),
+            XTag(XAtom("value"), XText("hello")).asChild
+          ).asChild
+        )
+
+      Stringy("hello")
+        .right[Inty]
+        .toXml
+        .shouldBe(
+          XTag(
+            XAtom("Stringy"),
+            XTag(XAtom("value"), XText("hello")).asChild
+          ).asChild
+        )
+
+      StringyTagged("hello")
+        .left[Inty]
+        .toXml
+        .shouldBe(
+          XTag(
+            XAtom("StringyTagged"),
+            XTag(XAtom("value"), XText("hello")).asChild
+          ).asChild
+        )
+
+      StringyTagged("hello")
+        .right[Inty]
+        .toXml
+        .shouldBe(
+          XTag(
+            XAtom("StringyTagged"),
+            XTag(XAtom("value"), XText("hello")).asChild
+          ).asChild
+        )
+    }
+
     "should support Traversables of string content" in {
       val expected = XChildren(
         IList(

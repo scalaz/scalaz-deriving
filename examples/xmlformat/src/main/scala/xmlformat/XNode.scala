@@ -73,7 +73,6 @@ object XString {
   }
 
   implicit val semigroup: Semigroup[XString] = new Semigroup[XString] {
-    @SuppressWarnings(Array("org.wartremover.warts.OptionPartial")) // Some.get is fine
     def append(f1: XString, f2: =>XString): XString =
       XCdata(unapply(f1).get + unapply(f2).get)
   }

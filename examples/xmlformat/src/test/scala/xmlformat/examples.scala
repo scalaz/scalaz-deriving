@@ -86,3 +86,25 @@ final case class TaggyB(body: String) extends TaggyNames
 
 @deriving(XEncoder, XDecoder)
 final case class TaggyCoproduct(foo: TaggyNames @@ XInlined)
+
+@deriving(XEncoder, XDecoder)
+final case class Stringy(value: String)
+@deriving(XEncoder, XDecoder)
+final case class Inty(value: Int)
+
+@deriving(XEncoder)
+final case class StringyTagged(value: String)
+object StringyTagged {
+  private[this] val ambiguous: XDecoder[StringyTagged] =
+    generic.DerivedXDecoder.gen
+  implicit val xdecoder: XDecoder[StringyTagged] =
+    XDecoder.tagged("StringyTagged", ambiguous)
+}
+@deriving(XEncoder)
+final case class IntyTagged(value: Int)
+object IntyTagged {
+  private[this] val ambiguous: XDecoder[IntyTagged] =
+    generic.DerivedXDecoder.gen
+  implicit val xdecoder: XDecoder[IntyTagged] =
+    XDecoder.tagged("IntyTagged", ambiguous)
+}

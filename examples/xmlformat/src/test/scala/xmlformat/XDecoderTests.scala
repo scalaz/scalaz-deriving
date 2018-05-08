@@ -64,13 +64,47 @@ class XDecoderTests extends FreeSpec {
 
     "should special-case Either" in {
       XText("hello").as[Either[String, Int]].shouldBe(Left("hello"))
-
-      // NOTE! we wanted the Right but we got a Left because it is valid and
-      // preferred
-      XText("13").as[Either[String, Int]].shouldBe(Left("13"))
-
-      XText("13").as[Either[Int, String]].shouldBe(Left(13))
       XText("foo").as[Either[Int, String]].shouldBe(Right("foo"))
+
+      // the danger of Eithers...
+      XText("13")
+        .decode[Either[String, Int]]
+        .leftValue
+        .shouldBe("unable to disambiguate 'XText(13)'")
+      XText("13")
+        .decode[Either[Int, String]]
+        .leftValue
+        .shouldBe("unable to disambiguate 'XText(13)'")
+    }
+
+    "should special-case Either for objects" in {
+      import examples._
+
+      val stringy = XTag(
+        XAtom("StringyTagged"),
+        XTag(XAtom("value"), XText("hello")).asChild
+      ).asChild
+      val ambiguous =
+        XTag(XAtom("IntyTagged"), XTag(XAtom("value"), XText("13")).asChild).asChild
+
+      stringy.as[Stringy \/ Inty].shouldBe(-\/(Stringy("hello")))
+      stringy.as[Inty \/ Stringy].shouldBe(\/-(Stringy("hello")))
+
+      // the danger of Eithers...
+      val failure =
+        "expected only one branch to succeed, got XChildren([XTag(XAtom(IntyTagged),[],[XTag(XAtom(value),[],[],Just(XText(13)))],Empty())])"
+      ambiguous.decode[Stringy \/ Inty].leftValue.shouldBe(failure)
+      ambiguous.decode[Inty \/ Stringy].leftValue.shouldBe(failure)
+
+      // but when used with disambiguating tags, it works...
+      stringy
+        .as[StringyTagged \/ IntyTagged]
+        .shouldBe(-\/(StringyTagged("hello")))
+      stringy
+        .as[IntyTagged \/ StringyTagged]
+        .shouldBe(\/-(StringyTagged("hello")))
+      ambiguous.as[StringyTagged \/ IntyTagged].shouldBe(\/-(IntyTagged(13)))
+      ambiguous.as[IntyTagged \/ StringyTagged].shouldBe(-\/(IntyTagged(13)))
     }
 
     "should support Traversables" in {
