@@ -31,6 +31,8 @@ object XDecoder
   def tagged[A](name: String, delegate: XDecoder[A]): XDecoder[A] = {
     case x @ XChildren(ICons(XTag(XAtom(`name`), _, _, _), INil())) =>
       delegate.fromXml(x)
+    case XChildren(ICons(XTag(XAtom(got), _, _, _), INil())) =>
+      -\/(s"expected tag '$name' but got '$got'")
     case other =>
       XDecoder.fail(name, other)
   }
@@ -52,7 +54,7 @@ trait XDecoderScalaz1 {
       case (-\/(_), \/-(value)) => value.right[A].right[String]
       case (\/-(_), \/-(_))     => fail(s"only one branch to succeed", x)
       case (-\/(erl), -\/(err)) =>
-        fail(s"one branch to succeed:\n$erl\n$err", x)
+        s"expected one branch to succeed, got:\nLeft: $erl\nRight: $err".left
     }
   }
 

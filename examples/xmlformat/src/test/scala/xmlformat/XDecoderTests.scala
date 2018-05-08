@@ -96,6 +96,19 @@ class XDecoderTests extends FreeSpec {
       ambiguous.decode[Stringy \/ Inty].leftValue.shouldBe(failure)
       ambiguous.decode[Inty \/ Stringy].leftValue.shouldBe(failure)
 
+      val bad = XTag(
+        XAtom("StringyTagged"),
+        XTag(XAtom("not-a-value"), XText("hello")).asChild
+      ).asChild
+      bad
+        .decode[Stringy \/ Inty]
+        .leftValue
+        .shouldBe(
+          """expected one branch to succeed, got:
+Left: Stringy -> expected a tag named 'value' with a body, got XChildren([XTag(XAtom(StringyTagged),[],[XTag(XAtom(not-a-value),[],[],Just(XText(hello)))],Empty())])
+Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAtom(StringyTagged),[],[XTag(XAtom(not-a-value),[],[],Just(XText(hello)))],Empty())])"""
+        )
+
       // but when used with disambiguating tags, it works...
       stringy
         .as[StringyTagged \/ IntyTagged]

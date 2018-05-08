@@ -86,7 +86,7 @@ trait XStrDecoderScalaz {
       case (-\/(_), \/-(value)) => value.right[A].right[String]
       case (\/-(_), \/-(_))     => s"unable to disambiguate '$x'".left
       case (-\/(erl), -\/(err)) =>
-        s"both branches failed for '$x':\n$erl\n$err".left
+        s"both branches failed for '$x':\nLeft: $erl\nRight: $err".left
     }
   }
 }
