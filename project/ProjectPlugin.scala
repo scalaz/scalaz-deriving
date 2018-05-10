@@ -19,7 +19,7 @@ object ProjectKeys {
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
 
   def MonadicFor =
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.3")
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -28,8 +28,8 @@ object ProjectKeys {
           "-Ywarn-extra-implicit",
           "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
           "-opt:l:method,inline",
-          "-opt-inline-from:scalaz.**",
-          "-opt-inline-from:xmlformat.**"
+          "-opt-inline-from:scala.**",
+          "-opt-inline-from:scalaz.**"
         )
       case _ =>
         Seq(

@@ -101,6 +101,12 @@ val xmlformat = (project in file("examples/xmlformat"))
     KindProjector,
     MacroParadise,
     MonadicFor,
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 12)) => "-opt-inline-from:xmlformat.**" :: Nil
+        case _             => Nil
+      }
+    },
     libraryDependencies ++= Seq(
       "eu.timepit"             %% "refined-scalaz" % "0.9.0" % "test",
       "org.scalaz"             %% "scalaz-core"    % scalazVersion,
