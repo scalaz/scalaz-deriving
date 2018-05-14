@@ -117,8 +117,8 @@ object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
       case -\/(product) =>
         val (attrs, content) = product.separate
         val (children, body) = content.separate
-        XTag(XAtom(T.describe), attrs, children, body.fold1Opt.toMaybe).asChild
-      case \/-(coproduct) => coproduct.copy(name = XAtom(T.describe)).asChild
+        XTag(T.describe, attrs, children, body.fold1Opt.toMaybe).asChild
+      case \/-(coproduct) => coproduct.copy(name = T.describe).asChild
     }
   }
 
@@ -141,12 +141,8 @@ object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
     ER: PXEncoder[T]
   ): PXEncoder[FieldType[K, A @@ XAttribute] :: T] = {
     case head :: tail =>
-      val key = XAtom(K.value.name)
-      val value: XString = EV.toXml(XAttribute.unwrap(head)) match {
-        case a @ XAtom(_) => a
-        case t @ XText(_) => t
-        case XCdata(d)    => XText(d)
-      }
+      val key   = K.value.name
+      val value = EV.toXml(XAttribute.unwrap(head))
       -\/(XAttr(key, value)) :: ER.product(tail)
   }
 
@@ -212,7 +208,7 @@ object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
       }
   }
 
-  private[this] val typehint         = XAtom("typehint")
+  private[this] val typehint: String = "typehint"
   implicit val cnil: CXEncoder[CNil] = _ => sys.error("bad coproduct")
   implicit def ccons[K <: Symbol, A, T <: Coproduct](
     implicit
@@ -221,12 +217,12 @@ object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
     ER: CXEncoder[T]
   ): CXEncoder[FieldType[K, A] :+: T] = {
     case Inl(ins) =>
-      val hint = XAttr(typehint, XAtom(K.value.name))
+      val hint = XAttr(typehint, XString(K.value.name))
       LEI.value.toXml(ins) match {
         case XChildren(ICons(XTag(n, as, ts, b), INil())) =>
           XTag(n, hint :: as, ts, b)
         case c =>
-          XTag(XAtom("value"), c).copy(attrs = IList.single(hint))
+          XTag("value", c).copy(attrs = IList.single(hint))
       }
 
     case Inr(rem) => ER.coproduct(rem)
@@ -243,11 +239,9 @@ trait LowPriorityDerivedXEncoder1 extends LowPriorityDerivedXEncoder2 {
     ER: PXEncoder[T]
   ): PXEncoder[FieldType[K, A] :: T] = {
     case head :: tail =>
-      val name = XAtom(K.value.name)
-
       LEV.value.toXml(head).tree.map {
         case XTag(_, as, ts, bd) =>
-          XTag(name, as, ts, bd).left[XString].right[XAttr]
+          XTag(K.value.name, as, ts, bd).left[XString].right[XAttr]
       } ::: ER.product(tail)
   }
 
@@ -270,8 +264,7 @@ trait LowPriorityDerivedXEncoder1 extends LowPriorityDerivedXEncoder2 {
     ER: PXEncoder[T]
   ): PXEncoder[FieldType[K, A] :: T] = {
     case head :: tail =>
-      val name = XAtom(K.value.name)
-      val tag  = XTag(name, EV.toXml(head))
+      val tag = XTag(K.value.name, EV.toXml(head))
       \/-(-\/(tag)) :: ER.product(tail)
   }
 

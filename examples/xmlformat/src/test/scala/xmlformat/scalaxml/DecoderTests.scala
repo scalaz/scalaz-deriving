@@ -41,15 +41,15 @@ class DecoderTests extends FreeSpec {
 
   "XNode Decoder" - {
 
-    "should support XAtom" in {
-      xml.Text("wibble").asX.shouldBe(XText("wibble"))
+    "should support XString" in {
+      xml.Text("wibble").asX.shouldBe(XString("wibble"))
 
-      "&lt;wibble&gt;".parsedAs[XNode].shouldBe(XText("<wibble>"))
+      "&lt;wibble&gt;".parsedAs[XNode].shouldBe(XString("<wibble>"))
 
-      xml.PCData("wibble").asX.shouldBe(XCdata("wibble"))
+      xml.PCData("wibble").asX.shouldBe(XString("wibble"))
 
       // magical conversions inside scala.xml...
-      "<![CDATA[<wibble>]]>".parsedAs[XNode].shouldBe(XText("<wibble>"))
+      "<![CDATA[<wibble>]]>".parsedAs[XNode].shouldBe(XString("<wibble>"))
     }
 
     "should fail on unparsed input" in {
@@ -90,15 +90,12 @@ class DecoderTests extends FreeSpec {
           XChildren(
             IList(
               XTag(
-                XAtom("foo"),
-                IList(XAttr(XAtom("bar"), XText("<wobble>"))),
+                "foo",
+                IList(XAttr("bar", XString("<wobble>"))),
                 IList.empty,
-                Maybe.just(XText("wibble"))
+                Maybe.just(XString("wibble"))
               ),
-              XTag(
-                XAtom("bar"),
-                XText("wobble")
-              )
+              XTag("bar", XString("wobble"))
             )
           )
         )
@@ -109,20 +106,17 @@ class DecoderTests extends FreeSpec {
       "<foo>wibble</foo>"
         .parsedAs[XNode]
         .shouldBe(
-          XTag(
-            XAtom("foo"),
-            XText("wibble")
-          ).asChild
+          XTag("foo", XString("wibble")).asChild
         )
 
       "<foo bar='wobble'>wibble</foo>"
         .parsedAs[XNode]
         .shouldBe(
           XTag(
-            XAtom("foo"),
-            IList(XAttr(XAtom("bar"), XText("wobble"))),
+            "foo",
+            IList(XAttr("bar", XString("wobble"))),
             IList.empty,
-            Maybe.just(XText("wibble"))
+            Maybe.just(XString("wibble"))
           ).asChild
         )
 
@@ -130,14 +124,14 @@ class DecoderTests extends FreeSpec {
         .parsedAs[XNode]
         .shouldBe(
           XTag(
-            XAtom("foo"),
+            "foo",
             IList(
-              XAttr(XAtom("baz"), XText("BAZ")),
-              XAttr(XAtom("bar"), XText("BAR"))
+              XAttr("baz", XString("BAZ")),
+              XAttr("bar", XString("BAR"))
             ),
             IList(
-              XTag(XAtom("wobble"), XChildren(IList.empty)),
-              XTag(XAtom("fish"), XChildren(IList.empty))
+              XTag("wobble", XChildren(IList.empty)),
+              XTag("fish", XChildren(IList.empty))
             ),
             Maybe.empty
           ).asChild
@@ -153,7 +147,7 @@ class DecoderTests extends FreeSpec {
       cdata.data.shouldBe("<Foo><![CDATA[%s]]]]><![CDATA[></Foo>")
 
       // but we recover the original
-      cdata.asX.shouldBe(XCdata("<Foo><![CDATA[%s]]></Foo>"))
+      cdata.asX.shouldBe(XString("<Foo><![CDATA[%s]]></Foo>"))
     }
 
   }
@@ -193,7 +187,7 @@ class DecoderTests extends FreeSpec {
       "hello".as[Either[Int, String]].shouldBe(Right("hello"))
       "13"
         .failsAs[Either[Int, String]]
-        .shouldBe("unable to disambiguate 'XText(13)'")
+        .shouldBe("unable to disambiguate 'XString(13)'")
     }
 
     "should support Traversables" in {
@@ -279,7 +273,7 @@ class DecoderTests extends FreeSpec {
       "<meh/>"
         .failsAs[SimpleTrait]
         .shouldBe(
-          "SimpleTrait -> no valid typehint in 'XTag(XAtom(meh),[],[],Empty())'"
+          "SimpleTrait -> no valid typehint in 'XTag(meh,[],[],Empty())'"
         )
 
       """<SimpleTrait typehint="Foo"><s>hello</s></SimpleTrait>"""

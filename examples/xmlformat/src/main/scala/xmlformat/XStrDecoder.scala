@@ -68,9 +68,7 @@ object XStrDecoder extends XStrDecoderScalaz with XStrDecoderStdlib {
   implicit val longAttr: XStrDecoder[Long @@ XAttribute] =
     long.map(Tag(_))
 
-  implicit val xcdata: XStrDecoder[XCdata] = {
-    case XString(text) => \/-(XCdata(text))
-  }
+  implicit val xstring: XStrDecoder[XString] = _.right[String]
 
 }
 

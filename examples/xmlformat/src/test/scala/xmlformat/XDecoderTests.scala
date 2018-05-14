@@ -22,91 +22,85 @@ class XDecoderTests extends FreeSpec {
   "XNode Decoder" - {
 
     "should support Boolean" in {
-      XAtom("true").as[Boolean].shouldBe(true)
-      XAtom("false").as[Boolean].shouldBe(false)
+      XString("true").as[Boolean].shouldBe(true)
+      XString("false").as[Boolean].shouldBe(false)
 
-      XText("true").as[Boolean].shouldBe(true)
-      XText("false").as[Boolean].shouldBe(false)
-
-      XCdata("true").as[Boolean].shouldBe(true)
-      XCdata("false").as[Boolean].shouldBe(false)
-
-      XAtom("wibble")
+      XString("wibble")
         .decode[Boolean]
         .leftValue
         .shouldBe("""expected Boolean in 'wibble'""")
     }
 
     "should support integers" in {
-      XAtom("13").as[Short].shouldBe(13.toShort)
-      XAtom("13").as[Int].shouldBe(13.toInt)
-      XAtom("13").as[Long].shouldBe(13.toLong)
+      XString("13").as[Short].shouldBe(13.toShort)
+      XString("13").as[Int].shouldBe(13.toInt)
+      XString("13").as[Long].shouldBe(13.toLong)
     }
 
     "should support floating point numbers" in {
-      XAtom("0.1").as[Float].shouldBe(0.1.toFloat)
-      XAtom("0.1").as[Double].shouldBe(0.1.toDouble)
+      XString("0.1").as[Float].shouldBe(0.1.toFloat)
+      XString("0.1").as[Double].shouldBe(0.1.toDouble)
     }
 
     "should support single characters" in {
-      XAtom("ca").decode[Char].leftValue.shouldBe("text too long: ca")
+      XString("ca").decode[Char].leftValue.shouldBe("text too long: ca")
 
-      XAtom("c").as[Char].shouldBe('c')
+      XString("c").as[Char].shouldBe('c')
     }
 
     "should support Strings" in {
-      XText("<wibble><wobble").as[String].shouldBe("<wibble><wobble")
+      XString("<wibble><wobble").as[String].shouldBe("<wibble><wobble")
     }
 
     "should support Symbols" in {
-      XText("foo").as[Symbol].shouldEqual('foo)
+      XString("foo").as[Symbol].shouldEqual('foo)
     }
 
     "should special-case Either" in {
-      XText("hello").as[Either[String, Int]].shouldBe(Left("hello"))
-      XText("foo").as[Either[Int, String]].shouldBe(Right("foo"))
+      XString("hello").as[Either[String, Int]].shouldBe(Left("hello"))
+      XString("foo").as[Either[Int, String]].shouldBe(Right("foo"))
 
       // the danger of Eithers...
-      XText("13")
+      XString("13")
         .decode[Either[String, Int]]
         .leftValue
-        .shouldBe("unable to disambiguate 'XText(13)'")
-      XText("13")
+        .shouldBe("unable to disambiguate 'XString(13)'")
+      XString("13")
         .decode[Either[Int, String]]
         .leftValue
-        .shouldBe("unable to disambiguate 'XText(13)'")
+        .shouldBe("unable to disambiguate 'XString(13)'")
     }
 
     "should special-case Either for objects" in {
       import examples._
 
       val stringy = XTag(
-        XAtom("StringyTagged"),
-        XTag(XAtom("value"), XText("hello")).asChild
+        "StringyTagged",
+        XTag("value", XString("hello")).asChild
       ).asChild
       val ambiguous =
-        XTag(XAtom("IntyTagged"), XTag(XAtom("value"), XText("13")).asChild).asChild
+        XTag("IntyTagged", XTag("value", XString("13")).asChild).asChild
 
       stringy.as[Stringy \/ Inty].shouldBe(-\/(Stringy("hello")))
       stringy.as[Inty \/ Stringy].shouldBe(\/-(Stringy("hello")))
 
       // the danger of Eithers...
       val failure =
-        "expected only one branch to succeed, got XChildren([XTag(XAtom(IntyTagged),[],[XTag(XAtom(value),[],[],Just(XText(13)))],Empty())])"
+        "expected only one branch to succeed, got XChildren([XTag(IntyTagged,[],[XTag(value,[],[],Just(XString(13)))],Empty())])"
       ambiguous.decode[Stringy \/ Inty].leftValue.shouldBe(failure)
       ambiguous.decode[Inty \/ Stringy].leftValue.shouldBe(failure)
 
       val bad = XTag(
-        XAtom("StringyTagged"),
-        XTag(XAtom("not-a-value"), XText("hello")).asChild
+        "StringyTagged",
+        XTag("not-a-value", XString("hello")).asChild
       ).asChild
       bad
         .decode[Stringy \/ Inty]
         .leftValue
         .shouldBe(
           """expected one branch to succeed, got:
-Left: Stringy -> expected a tag named 'value' with a body, got XChildren([XTag(XAtom(StringyTagged),[],[XTag(XAtom(not-a-value),[],[],Just(XText(hello)))],Empty())])
-Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAtom(StringyTagged),[],[XTag(XAtom(not-a-value),[],[],Just(XText(hello)))],Empty())])"""
+Left: Stringy -> expected a tag named 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])
+Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])"""
         )
 
       // but when used with disambiguating tags, it works...
@@ -123,9 +117,9 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
     "should support Traversables" in {
       val xml = XChildren(
         IList(
-          XTag(XAtom("value"), XAtom("1")),
-          XTag(XAtom("value"), XAtom("2")),
-          XTag(XAtom("value"), XAtom("3"))
+          XTag("value", XString("1")),
+          XTag("value", XString("2")),
+          XTag("value", XString("3"))
         )
       )
 
@@ -134,7 +128,7 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       xml.as[Set[Int]].shouldBe(Set(1, 2, 3))
 
       // sometimes single element things come through like this
-      XTag(XAtom("value"), XAtom("1")).as[List[Int]].shouldBe(List(1))
+      XTag("value", XString("1")).as[List[Int]].shouldBe(List(1))
 
       // what about empty lists?
     }
@@ -143,29 +137,29 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       XChildren(
         IList(
           XTag(
-            XAtom("name_ignored"),
+            "name_ignored",
             XChildren(
               IList(
-                XTag(XAtom("key"), XAtom("1")),
-                XTag(XAtom("name_ignored"), XText("a"))
+                XTag("key", XString("1")),
+                XTag("name_ignored", XString("a"))
               )
             )
           ),
           XTag(
-            XAtom("entry"),
+            "entry",
             XChildren(
               IList(
-                XTag(XAtom("key"), XAtom("2")),
-                XTag(XAtom("value"), XText("b"))
+                XTag("key", XString("2")),
+                XTag("value", XString("b"))
               )
             )
           ),
           XTag(
-            XAtom("entry"),
+            "entry",
             XChildren(
               IList(
-                XTag(XAtom("key"), XAtom("3")),
-                XTag(XAtom("value"), XText("c"))
+                XTag("key", XString("3")),
+                XTag("value", XString("c"))
               )
             )
           )
@@ -177,9 +171,9 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       XChildren(
         IList(
           // note that the tag names are ignored
-          XTag(XAtom("wibble"), XAtom("1")),
-          XTag(XAtom("wobble"), XAtom("2")),
-          XTag(XAtom("woo"), XAtom("3"))
+          XTag("wibble", XString("1")),
+          XTag("wobble", XString("2")),
+          XTag("woo", XString("3"))
         )
       ).as[NonEmptyList[Int]]
         .shouldBe(
@@ -193,13 +187,13 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
     }
 
     "should support FiniteDuration" in {
-      XText("10000").as[FiniteDuration].shouldBe(10.seconds)
+      XString("10000").as[FiniteDuration].shouldBe(10.seconds)
     }
 
     "should support Instant" in {
       val iso     = "2013-05-30T23:38:23.085Z"
       val instant = Instant.parse(iso)
-      XAtom(iso).as[Instant].shouldBe(instant)
+      XString(iso).as[Instant].shouldBe(instant)
     }
 
     "should support refined types" in {
@@ -208,19 +202,19 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       import refined.scalaz._
       import XStrDecoder.monad
 
-      XAtom("-1000")
+      XString("-1000")
         .decode[Long Refined Positive]
         .leftValue
         .shouldBe("Predicate failed: (-1000 > 0).")
-      XAtom("1000").as[Long Refined Positive].value.shouldBe(1000)
+      XString("1000").as[Long Refined Positive].value.shouldBe(1000)
     }
 
     "should support generic products" in {
       import examples._
 
       XTag(
-        XAtom("Foo"),
-        XTag(XAtom("s"), XText("hello")).asChild
+        "Foo",
+        XTag("s", XString("hello")).asChild
       ).asChild
         .as[Foo]
         .shouldBe(
@@ -228,11 +222,11 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
             "hello"
           )
         )
-      XTag(XAtom("Caz.type"), XChildren(IList.empty)).asChild
+      XTag("Caz.type", XChildren(IList.empty)).asChild
         .as[Caz.type]
         .shouldBe(Caz)
-      XText("Baz!").as[Baz.type].shouldBe(Baz)
-      XTag(XAtom("Faz"), XTag(XAtom("o"), XText("hello")).asChild).asChild
+      XString("Baz!").as[Baz.type].shouldBe(Baz)
+      XTag("Faz", XTag("o", XString("hello")).asChild).asChild
         .as[Faz]
         .shouldBe(
           Faz(
@@ -240,15 +234,15 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
           )
         )
 
-      XText("").decode[Baz.type].leftValue.shouldBe("that's no Baz! ")
+      XString("").decode[Baz.type].leftValue.shouldBe("that's no Baz! ")
 
       // optional thing
-      XTag(XAtom("Faz"), XTag(XAtom("o"), XChildren(IList.empty)).asChild).asChild
+      XTag("Faz", XTag("o", XChildren(IList.empty)).asChild).asChild
         .as[Faz]
         .shouldBe(Faz(None))
 
       // optional thing, key missing
-      XTag(XAtom("Faz"), XChildren(IList.empty)).asChild
+      XTag("Faz", XChildren(IList.empty)).asChild
         .as[Faz]
         .shouldBe(Faz(None))
 
@@ -258,45 +252,45 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       import examples._
 
       XTag(
-        XAtom("SimpleTrait"),
-        IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
-        IList(XTag(XAtom("s"), XText("hello"))),
+        "SimpleTrait",
+        IList(XAttr("typehint", XString("Foo"))),
+        IList(XTag("s", XString("hello"))),
         Maybe.empty
       ).asChild.as[SimpleTrait].shouldBe(Foo("hello"))
 
       XTag(
-        XAtom("SimpleTrait"),
-        IList(XAttr(XAtom("typehint"), XAtom("Caz"))),
+        "SimpleTrait",
+        IList(XAttr("typehint", XString("Caz"))),
         IList.empty,
         Maybe.empty
       ).asChild.as[SimpleTrait].shouldBe(Caz)
 
       XTag(
-        XAtom("SimpleTrait"),
-        IList(XAttr(XAtom("typehint"), XAtom("Baz"))),
+        "SimpleTrait",
+        IList(XAttr("typehint", XString("Baz"))),
         IList.empty,
-        Maybe.just(XText("Baz!"))
+        Maybe.just(XString("Baz!"))
       ).asChild.as[SimpleTrait].shouldBe(Baz)
 
       XTag(
-        XAtom("AbstractThing"),
-        IList(XAttr(XAtom("typehint"), XAtom("Wobble"))),
-        IList(XTag(XAtom("id"), XText("fish"))),
+        "AbstractThing",
+        IList(XAttr("typehint", XString("Wobble"))),
+        IList(XTag("id", XString("fish"))),
         Maybe.empty
       ).asChild.as[AbstractThing].shouldBe(Wobble("fish"))
 
       XTag(
-        XAtom("AbstractThing"),
-        IList(XAttr(XAtom("typehint"), XAtom("Wibble"))),
+        "AbstractThing",
+        IList(XAttr("typehint", XString("Wibble"))),
         IList.empty,
         Maybe.empty
       ).asChild.as[AbstractThing].shouldBe(Wibble)
 
       XTag(
-        XAtom("CoproductInField"),
+        "CoproductInField",
         XTag(
-          XAtom("abs"),
-          IList(XAttr(XAtom("typehint"), XAtom("Wibble"))),
+          "abs",
+          IList(XAttr("typehint", XString("Wibble"))),
           IList.empty,
           Maybe.empty
         ).asChild
@@ -307,15 +301,15 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       import examples._
 
       XTag(
-        XAtom("Recursive"),
+        "Recursive",
         XChildren(
           IList(
-            XTag(XAtom("h"), XText("hello")),
+            XTag("h", XString("hello")),
             XTag(
-              XAtom("t"),
+              "t",
               XChildren(
                 IList(
-                  XTag(XAtom("h"), XText("goodbye"))
+                  XTag("h", XString("goodbye"))
                 )
               )
             )
@@ -330,23 +324,23 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       import examples._
 
       XTag(
-        XAtom("MultiField"),
-        IList(XAttr(XAtom("b"), XText("goodbye"))),
-        IList(XTag(XAtom("a"), XText("hello"))),
+        "MultiField",
+        IList(XAttr("b", XString("goodbye"))),
+        IList(XTag("a", XString("hello"))),
         Maybe.empty
       ).as[MultiField].shouldBe(MultiField("hello", Tag("goodbye")))
 
-      XTag(XAtom("MultiOptyField"), XTag(XAtom("a"), XText("hello")).asChild).asChild
+      XTag("MultiOptyField", XTag("a", XString("hello")).asChild).asChild
         .as[MultiOptyField]
         .shouldBe(MultiOptyField("hello", Tag(None)))
 
       XTag(
-        XAtom("MultiFieldParent"),
+        "MultiFieldParent",
         IList(
-          XAttr(XAtom("typehint"), XAtom("MultiField")),
-          XAttr(XAtom("b"), XText("goodbye"))
+          XAttr("typehint", XString("MultiField")),
+          XAttr("b", XString("goodbye"))
         ),
-        IList(XTag(XAtom("a"), XText("hello"))),
+        IList(XTag("a", XString("hello"))),
         Maybe.empty
       ).asChild
         .as[MultiFieldParent]
@@ -358,12 +352,12 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
         )
 
       XTag(
-        XAtom("MultiFieldParent"),
+        "MultiFieldParent",
         IList(
-          XAttr(XAtom("typehint"), XAtom("MultiOptyField")),
-          XAttr(XAtom("b"), XText("goodbye"))
+          XAttr("typehint", XString("MultiOptyField")),
+          XAttr("b", XString("goodbye"))
         ),
-        IList(XTag(XAtom("a"), XText("hello"))),
+        IList(XTag("a", XString("hello"))),
         Maybe.empty
       ).asChild
         .as[MultiFieldParent]
@@ -375,11 +369,11 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
         )
 
       XTag(
-        XAtom("MultiFieldParent"),
+        "MultiFieldParent",
         IList(
-          XAttr(XAtom("typehint"), XAtom("MultiOptyField"))
+          XAttr("typehint", XString("MultiOptyField"))
         ),
-        IList(XTag(XAtom("a"), XText("hello"))),
+        IList(XTag("a", XString("hello"))),
         Maybe.empty
       ).asChild
         .as[MultiFieldParent]
@@ -391,45 +385,45 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
       import xmlformat.implicits._
 
       XTag(
-        XAtom("Inliner"),
+        "Inliner",
         XChildren(
           IList(
             XTag(
-              XAtom("Foo"),
-              XTag(XAtom("s"), XText("hello")).asChild
+              "Foo",
+              XTag("s", XString("hello")).asChild
             ),
-            XTag(XAtom("nose"), XText("goodbye"))
+            XTag("nose", XString("goodbye"))
           )
         )
       ).asChild.as[Inliner].shouldBe(Inliner(Foo("hello"), "goodbye"))
 
       XTag(
-        XAtom("InlinerSingle"),
+        "InlinerSingle",
         XChildren(
           IList(
             XTag(
-              XAtom("Foo"),
-              XTag(XAtom("s"), XText("hello")).asChild
+              "Foo",
+              XTag("s", XString("hello")).asChild
             ),
             XTag(
-              XAtom("Foo"),
-              XTag(XAtom("s"), XText("world")).asChild
+              "Foo",
+              XTag("s", XString("world")).asChild
             )
           )
         )
       ).asChild.as[InlinerSingle].shouldBe(InlinerSingle(Foo("helloworld")))
 
       XTag(
-        XAtom("InlinerSingle"),
+        "InlinerSingle",
         XChildren(
           IList(
             XTag(
-              XAtom("Foo"),
-              XTag(XAtom("a"), XText("hello")).asChild
+              "Foo",
+              XTag("a", XString("hello")).asChild
             ),
             XTag(
-              XAtom("Foo"),
-              XTag(XAtom("b"), XText("world")).asChild
+              "Foo",
+              XTag("b", XString("world")).asChild
             )
           )
         )
@@ -438,8 +432,8 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(XAt
         .leftValue
         .shouldBe(
           """InlinerSingle -> wibble:
-Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[XTag(XAtom(a),[],[],Just(XText(hello)))],Empty())])
-Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[XTag(XAtom(b),[],[],Just(XText(world)))],Empty())])"""
+Foo -> expected a tag named 's' with a body, got XChildren([XTag(Foo,[],[XTag(a,[],[],Just(XString(hello)))],Empty())])
+Foo -> expected a tag named 's' with a body, got XChildren([XTag(Foo,[],[XTag(b,[],[],Just(XString(world)))],Empty())])"""
         )
     }
 
@@ -448,11 +442,11 @@ Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[
       import xmlformat.implicits._
 
       XTag(
-        XAtom("AmbiguousCoproduct"),
+        "AmbiguousCoproduct",
         XTag(
-          XAtom("SimpleTrait"),
-          IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
-          IList(XTag(XAtom("s"), XText("hello"))),
+          "SimpleTrait",
+          IList(XAttr("typehint", XString("Foo"))),
+          IList(XTag("s", XString("hello"))),
           Maybe.empty
         ).asChild
       ).asChild
@@ -463,11 +457,11 @@ Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[
 
       // sensible failure messages
       XTag(
-        XAtom("AmbiguousCoproduct"),
+        "AmbiguousCoproduct",
         XTag(
-          XAtom("SimpleTrait"),
-          IList(XAttr(XAtom("typehint"), XAtom("Foo"))),
-          IList(XTag(XAtom("a"), XText("hello"))),
+          "SimpleTrait",
+          IList(XAttr("typehint", XString("Foo"))),
+          IList(XTag("a", XString("hello"))),
           Maybe.empty
         ).asChild
       ).asChild
@@ -475,7 +469,7 @@ Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(Foo),[],[
         .leftValue
         .shouldBe(
           """AmbiguousCoproduct -> foo:
-SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(XAtom(SimpleTrait),[XAttr(XAtom(typehint),XAtom(Foo))],[XTag(XAtom(a),[],[],Just(XText(hello)))],Empty())])"""
+SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(SimpleTrait,[XAttr(typehint,XString(Foo))],[XTag(a,[],[],Just(XString(hello)))],Empty())])"""
         )
 
     }
@@ -485,11 +479,11 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       import xmlformat.implicits._
 
       val xml2 = XTag(
-        XAtom("Inliners"),
+        "Inliners",
         XChildren(
           IList(
-            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("hello")).asChild),
-            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("goodbye")).asChild)
+            XTag("Foo", XTag("s", XString("hello")).asChild),
+            XTag("Foo", XTag("s", XString("goodbye")).asChild)
           )
         )
       ).asChild
@@ -497,13 +491,13 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       xml2.as[Inliners].shouldBe(Inliners(List(Foo("hello"), Foo("goodbye"))))
 
       val xml3 = XTag(
-        XAtom("Inliners"),
+        "Inliners",
         XChildren(
           IList(
-            XTag(XAtom("Foo"), XTag(XAtom("s"), XText("hello")).asChild),
-            XTag(XAtom("Bar"), XTag(XAtom("s"), XText("goodbye")).asChild),
-            XTag(XAtom("Foo"), XTag(XAtom("o"), XText("invisible")).asChild),
-            XTag(XAtom("Baz"), XTag(XAtom("s"), XText("oops")).asChild) // note different tag name!
+            XTag("Foo", XTag("s", XString("hello")).asChild),
+            XTag("Bar", XTag("s", XString("goodbye")).asChild),
+            XTag("Foo", XTag("o", XString("invisible")).asChild),
+            XTag("Baz", XTag("s", XString("oops")).asChild) // note different tag name!
           )
         )
       ).asChild
@@ -513,13 +507,13 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
         .shouldBe(Inliners(List(Foo("hello"), Foo("goodbye"), Foo("oops"))))
 
       val xml4 = XTag(
-        XAtom("Inliners"),
+        "Inliners",
         XChildren(
           IList(
-            XTag(XAtom("Foo"), XTag(XAtom("a"), XText("hello")).asChild),
-            XTag(XAtom("Bar"), XTag(XAtom("b"), XText("goodbye")).asChild),
-            XTag(XAtom("Foo"), XTag(XAtom("c"), XText("invisible")).asChild),
-            XTag(XAtom("Baz"), XTag(XAtom("d"), XText("oops")).asChild) // note different tag name!
+            XTag("Foo", XTag("a", XString("hello")).asChild),
+            XTag("Bar", XTag("b", XString("goodbye")).asChild),
+            XTag("Foo", XTag("c", XString("invisible")).asChild),
+            XTag("Baz", XTag("d", XString("oops")).asChild) // note different tag name!
           )
         )
       ).asChild
@@ -533,17 +527,17 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       import xmlformat.implicits._
 
       val xml1 = XTag(
-        XAtom("Outliners"),
-        IList(XAttr(XAtom("id"), XText("hello"))),
+        "Outliners",
+        IList(XAttr("id", XString("hello"))),
         IList.empty,
-        Maybe.just(XText("goodbye"))
+        Maybe.just(XString("goodbye"))
       )
 
       xml1.as[Outliners].shouldBe(Outliners(Some("hello"), Some("goodbye")))
 
       val xml2 = XTag(
-        XAtom("Outliners"),
-        IList(XAttr(XAtom("id"), XText("hello"))),
+        "Outliners",
+        IList(XAttr("id", XString("hello"))),
         IList.empty,
         Maybe.empty
       )
@@ -551,10 +545,10 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       xml2.as[Outliners].shouldBe(Outliners(Some("hello"), None))
 
       val xml3 = XTag(
-        XAtom("Outliners"),
+        "Outliners",
         IList.empty,
         IList.empty,
-        Maybe.just(XText("goodbye"))
+        Maybe.just(XString("goodbye"))
       )
 
       xml3.as[Outliners].shouldBe(Outliners(None, Some("goodbye")))
@@ -564,9 +558,9 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       import examples._
 
       XTag(
-        XAtom("TaggyCoproduct"),
+        "TaggyCoproduct",
         XTag(
-          XAtom("TaggyA"),
+          "TaggyA",
           XChildren(IList.empty)
         ).asChild
       ).asChild
@@ -574,10 +568,10 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
         .shouldBe(TaggyCoproduct(XInlined(TaggyA())))
 
       XTag(
-        XAtom("TaggyCoproduct"),
+        "TaggyCoproduct",
         XTag(
-          XAtom("TaggyB"),
-          XText("hello")
+          "TaggyB",
+          XString("hello")
         ).asChild
       ).asChild
         .as[TaggyCoproduct]

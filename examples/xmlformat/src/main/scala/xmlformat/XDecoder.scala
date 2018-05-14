@@ -29,9 +29,9 @@ object XDecoder
 
   // sometimes we need a disambiguating tag when decoding
   def tagged[A](name: String, delegate: XDecoder[A]): XDecoder[A] = {
-    case x @ XChildren(ICons(XTag(XAtom(`name`), _, _, _), INil())) =>
+    case x @ XChildren(ICons(XTag(`name`, _, _, _), INil())) =>
       delegate.fromXml(x)
-    case XChildren(ICons(XTag(XAtom(got), _, _, _), INil())) =>
+    case XChildren(ICons(XTag(got, _, _, _), INil())) =>
       -\/(s"expected tag '$name' but got '$got'")
     case other =>
       XDecoder.fail(name, other)
@@ -106,7 +106,7 @@ trait XDecoderStdlib1 {
           XTag(
             _,
             _,
-            ICons(key @ XTag(XAtom("key"), _, _, _), value),
+            ICons(key @ XTag("key", _, _, _), value),
             _
           ),
           INil()

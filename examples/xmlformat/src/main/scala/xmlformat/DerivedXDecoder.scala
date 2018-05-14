@@ -74,7 +74,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     DV: XStrDecoder[A],
     DR: PXDecoder[T]
   ): PXDecoder[FieldType[K, Option[A] @@ XAttribute] :: T] = { in =>
-    val key = XAtom(K.value.name)
+    val key = K.value.name
 
     in.attrs
       .find(_.name == key)
@@ -119,7 +119,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       }
   }
 
-  private[this] val typehint = XAtom("typehint")
+  private[this] val typehint: String = "typehint"
   implicit val cnil: CXDecoder[CNil] = tag =>
     s"no valid typehint in '$tag'".left[CNil]
   implicit def ccons[K <: Symbol, A, T <: Coproduct](
@@ -128,7 +128,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     LDI: Lazy[XDecoder[A]],
     DR: CXDecoder[T]
   ): CXDecoder[FieldType[K, A] :+: T] = { in =>
-    val hint = XAttr(typehint, XAtom(K.value.name))
+    val hint = XAttr(typehint, XString(K.value.name))
 
     if (in.attrs.element(hint))
       LDI.value.fromXml(in.asChild).map(a => Inl(field[K](a)))
@@ -142,7 +142,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     DI: XStrDecoder[A],
     DR: CXDecoder[T]
   ): CXDecoder[FieldType[K, A] :+: T] = { in =>
-    val hint = XAttr(typehint, XAtom(K.value.name))
+    val hint = XAttr(typehint, XString(K.value.name))
 
     if (in.attrs.element(hint))
       in.body.cata(
@@ -184,7 +184,7 @@ trait LowPriorityDerivedXDecoder2 extends LowPriorityDerivedXDecoder3 {
     DR: PXDecoder[T]
   ): PXDecoder[FieldType[K, A] :: T] = { in =>
     // does not call hconsOptional as an optimisation
-    val key      = XAtom(K.value.name)
+    val key      = K.value.name
     val matching = XChildren(in.children.filter(_.name == key))
     LDV.value.fromXml(matching).flatMap { head =>
       DR.from(in).map { tail =>
@@ -198,7 +198,7 @@ trait LowPriorityDerivedXDecoder2 extends LowPriorityDerivedXDecoder3 {
     LDV: Lazy[XDecoder[A]],
     DR: PXDecoder[T]
   ): PXDecoder[FieldType[K, Option[A]] :: T] = { in =>
-    val key      = XAtom(K.value.name)
+    val key      = K.value.name
     val matching = in.children.filter(_.name == key)
 
     {
@@ -231,7 +231,7 @@ trait LowPriorityDerivedXDecoder2 extends LowPriorityDerivedXDecoder3 {
     DV: XStrDecoder[A],
     DR: PXDecoder[T]
   ): PXDecoder[FieldType[K, Option[A]] :: T] = { in =>
-    val key = XAtom(K.value.name)
+    val key = K.value.name
 
     in.children
       .filter(_.name == key)

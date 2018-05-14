@@ -28,7 +28,7 @@ trait XEncoderScalaz1 {
 
   implicit def ilistStr[A: XStrEncoder]: XEncoder[IList[A]] = { as =>
     XChildren(
-      as.map(a => XTag(XAtom("value"), XStrEncoder[A].toXml(a)))
+      as.map(a => XTag("value", XStrEncoder[A].toXml(a)))
     )
   }
 
@@ -73,14 +73,14 @@ trait XEncoderStdlib1 {
   implicit def tuple2[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[(A, B)] = {
     case (a, b) =>
       val key = XNodeEncoder[A].toXml(a) match {
-        case XChildren(ts)  => ts.map(_.copy(name = XAtom("key")))
-        case s @ XString(_) => IList.single(XTag(XAtom("key"), s))
+        case XChildren(ts)  => ts.map(_.copy(name = "key"))
+        case s @ XString(_) => IList.single(XTag("key", s))
       }
       val value = XNodeEncoder[B].toXml(b) match {
-        case XChildren(ts)  => ts.map(_.copy(name = XAtom("value")))
-        case s @ XString(_) => IList.single(XTag(XAtom("value"), s))
+        case XChildren(ts)  => ts.map(_.copy(name = "value"))
+        case s @ XString(_) => IList.single(XTag("value", s))
       }
-      XTag(XAtom("entry"), XChildren(key ::: value)).asChild
+      XTag("entry", XChildren(key ::: value)).asChild
   }
 
   implicit def dict[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[Map[A, B]] =

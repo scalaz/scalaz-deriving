@@ -26,36 +26,25 @@ class EncoderTests extends FreeSpec {
   }
 
   "XNode Encoder" - {
-    "should support XText" in {
-      XText("wibble").encode.shouldBe(xml.Text("wibble"))
+    "should support text that must be encoded" in {
+      XString("wibble").encode.shouldBe(xml.Text("wibble"))
 
-      XText("<wibble>").print.shouldBe("&lt;wibble&gt;")
-    }
+      XString("<wibble>").print.shouldBe("<![CDATA[<wibble>]]>")
 
-    "should support XCdata" in {
-      XCdata("wibble").encode.shouldBe(xml.Text("wibble"))
-
-      XCdata("<wibble>").print.shouldBe("<![CDATA[<wibble>]]>")
-    }
-
-    "should support nested CDATA" in {
       val raw = "<Foo><![CDATA[%s]]></Foo>"
 
       // a reminder that the PCData constructor escapes nested CDATA...
       xml.PCData(raw).data.shouldBe("<Foo><![CDATA[%s]]]]><![CDATA[></Foo>")
 
-      XCdata("<Foo><![CDATA[%s]]></Foo>").encode.shouldBe(xml.PCData(raw))
+      XString("<Foo><![CDATA[%s]]></Foo>").encode.shouldBe(xml.PCData(raw))
     }
 
-    "should support XAtom" in {
-      XAtom("foo").encode.shouldBe(xml.Unparsed("foo"))
-
-      // because, scala.xml...
-      XAtom("foo").encode.shouldBe(xml.Text("foo"))
+    "should support text that does not needed encoding" in {
+      XString("foo").encode.shouldBe(xml.Unparsed("foo"))
     }
 
     "should support XTag" in {
-      val tag = XTag(XAtom("foo"), XText("wibble"))
+      val tag = XTag("foo", XString("wibble"))
 
       tag.encode.shouldBe(
         xml.Elem(
@@ -72,7 +61,7 @@ class EncoderTests extends FreeSpec {
     }
 
     "should support XTag with children" in {
-      val tag = XTag(XAtom("foo"), XText("wibble"))
+      val tag = XTag("foo", XString("wibble"))
 
       tag.encode.shouldBe(
         xml.Elem(
@@ -90,10 +79,10 @@ class EncoderTests extends FreeSpec {
 
     "should support XTag with children and attributes" in {
       val tag = XTag(
-        XAtom("foo"),
-        IList(XAttr(XAtom("bar"), XText("<wobble>"))),
+        "foo",
+        IList(XAttr("bar", XString("<wobble>"))),
         IList.empty,
-        Maybe.just(XText("wibble"))
+        Maybe.just(XString("wibble"))
       )
 
       tag.encode.shouldBe(
@@ -114,14 +103,14 @@ class EncoderTests extends FreeSpec {
       val list = XChildren(
         IList(
           XTag(
-            XAtom("foo"),
-            IList(XAttr(XAtom("bar"), XText("<wobble>"))),
+            "foo",
+            IList(XAttr("bar", XString("<wobble>"))),
             IList.empty,
-            Maybe.just(XText("wibble"))
+            Maybe.just(XString("wibble"))
           ),
           XTag(
-            XAtom("bar"),
-            XText("wobble")
+            "bar",
+            XString("wobble")
           )
         )
       )
@@ -200,7 +189,7 @@ class EncoderTests extends FreeSpec {
 
     "should support Strings" in {
       "<wibble><wobble".encode.shouldBe(new xml.Text("<wibble><wobble"))
-      "<wibble><wobble".print.shouldBe("&lt;wibble&gt;&lt;wobble")
+      "<wibble><wobble".print.shouldBe("<![CDATA[<wibble><wobble]]>")
     }
 
     "should support Symbols" in {
@@ -232,9 +221,8 @@ class EncoderTests extends FreeSpec {
     }
 
     "should support Instant" in {
-      val iso     = "2013-05-30T23:38:23.085Z"
-      val instant = Instant.parse(iso)
-      instant.print.shouldBe(iso)
+      val instant = Instant.parse("2013-05-30T23:38:23.085Z")
+      instant.print.shouldBe("<![CDATA[2013-05-30T23:38:23.085Z]]>")
     }
 
     "should support generic products" in {
@@ -242,7 +230,7 @@ class EncoderTests extends FreeSpec {
 
       Foo("hello").print.shouldBe("<Foo><s>hello</s></Foo>")
       Caz.print.shouldBe("<Caz.type/>")
-      Baz.print.shouldBe("Baz!")
+      Baz.print.shouldBe("<![CDATA[Baz!]]>")
       Faz(Some("hello")).print.shouldBe("<Faz><o>hello</o></Faz>")
     }
 
@@ -253,7 +241,9 @@ class EncoderTests extends FreeSpec {
         .shouldBe("""<SimpleTrait typehint="Foo"><s>hello</s></SimpleTrait>""")
       (Caz: SimpleTrait).print.shouldBe("""<SimpleTrait typehint="Caz"/>""")
       (Baz: SimpleTrait).print
-        .shouldBe("""<SimpleTrait typehint="Baz">Baz!</SimpleTrait>""")
+        .shouldBe(
+          """<SimpleTrait typehint="Baz"><![CDATA[Baz!]]></SimpleTrait>"""
+        )
 
       (Wobble("fish"): AbstractThing).print
         .shouldBe(

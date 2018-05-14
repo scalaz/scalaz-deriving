@@ -4,6 +4,8 @@
 package xmlformat
 package scalaxml
 
+import java.net.URLEncoder
+
 import scalaz._
 import simulacrum._
 
@@ -26,16 +28,19 @@ object Encoder {
     }
 
   implicit val xnode: Encoder[XNode] = {
-    case XText(text)                                                        => xml.Text(text)
-    case XCdata(text)                                                       => xml.PCData(text)
-    case XAtom(text)                                                        => xml.Unparsed(text)
-    case XChildren(ICons(XTag(XAtom(name), attrs, children, body), INil())) =>
+    case XString(text) =>
+      val encoded = URLEncoder.encode(text, "UTF-8")
+      if (encoded == text)
+        xml.Unparsed(text) // avoids further xml.Text encoding checks
+      else
+        xml.PCData(text)
+    case XChildren(ICons(XTag(name, attrs, children, body), INil())) =>
       // I heard you like sequences, so I made a linked list for you, inside
       // your NodeSeq, which is also a Seq[Node].
       val metadata = attrs.foldRight(xml.Null: xml.MetaData) {
         case (XAttr(name, XString(text)), meta) =>
           new xml.UnprefixedAttribute(
-            name.text,
+            name,
             xml.Text(text),
             meta
           )

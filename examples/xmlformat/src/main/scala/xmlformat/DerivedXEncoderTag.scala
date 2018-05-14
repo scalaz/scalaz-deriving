@@ -27,11 +27,10 @@ object DerivedXEncoderTag {
     ER: DerivedXEncoderTag[T]
   ): DerivedXEncoderTag[FieldType[K, A] :+: T] = {
     case Inl(ins) =>
-      val name = XAtom(K.value.name)
       LEI.value.toXml(ins) match {
         case XChildren(ICons(t @ XTag(_, _, _, _), INil())) =>
-          t.copy(name = name)
-        case c => XTag(name, c)
+          t.copy(name = K.value.name)
+        case c => XTag(K.value.name, c)
       }
     case Inr(rem) => ER.toXTag(rem)
   }

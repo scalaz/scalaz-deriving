@@ -61,9 +61,9 @@ object Decoder {
     case d: xml.Document =>
       (Option(d.docElem) \/> "no content") >>= xnode.fromScalaXml
 
-    case t: xml.Text => \/-(XText(t.data))
+    case t: xml.Text => \/-(XString(t.data))
     case p: xml.PCData =>
-      \/-(XCdata(p.data.replaceAll("""]]]]><!\[CDATA\[>""", "]]>")))
+      \/-(XString(p.data.replaceAll("""]]]]><!\[CDATA\[>""", "]]>")))
     case u: xml.Unparsed => -\/(s"encountered unparsed xml: ${u.data}")
 
     case xml.Group(nodes) =>
@@ -88,9 +88,9 @@ object Decoder {
           }
         )
         .map { content =>
-          val name = XAtom(e.label)
+          val name = e.label
           val attrs = e.attributes.asAttrMap.toList.toIList.map {
-            case (k, v) => XAttr(XAtom(k), XText(v))
+            case (k, v) => XAttr(k, XString(v))
           }
 
           XTag(name, content).copy(attrs = attrs).asChild

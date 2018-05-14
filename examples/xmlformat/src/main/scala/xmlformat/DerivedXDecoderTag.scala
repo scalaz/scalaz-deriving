@@ -33,8 +33,7 @@ object DerivedXDecoderTag {
     LDI: Lazy[XDecoder[A]],
     DR: DerivedXDecoderTag[T]
   ): DerivedXDecoderTag[FieldType[K, A] :+: T] = { in =>
-    val hint = XAtom(K.value.name)
-    if (in.name == hint)
+    if (in.name == K.value.name)
       LDI.value.fromXml(in.asChild).map(a => Inl(field[K](a)))
     else
       DR.fromXTag(in).map(a => Inr(a))
@@ -46,8 +45,7 @@ object DerivedXDecoderTag {
     DI: XStrDecoder[A],
     DR: DerivedXDecoderTag[T]
   ): DerivedXDecoderTag[FieldType[K, A] :+: T] = { in =>
-    val hint = XAtom(K.value.name)
-    if (in.name == hint)
+    if (in.name == K.value.name)
       in.body.cata(
         b => DI.fromXml(b).map(a => Inl(field[K](a))),
         fail("a body", in.asChild)
