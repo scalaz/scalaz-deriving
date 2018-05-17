@@ -20,6 +20,9 @@ object XDecoder
     implicit class XDecoderOps(private val x: XChildren) extends AnyVal {
       def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x)
     }
+    implicit class XTagDecoderOps(private val x: XTag) extends AnyVal {
+      def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x.asChild)
+    }
   }
 
   // suppress long messages from the failure messages as they are never useful

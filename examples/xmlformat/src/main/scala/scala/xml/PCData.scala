@@ -18,7 +18,7 @@ class PCData(data: String) extends Atom[String](data) {
 }
 object PCData {
   def apply(data: String): PCData =
-    new PCData(data.replaceAll("]]>", "]]]]><![CDATA[>"))
+    new PCData(data.replace("]]>", "]]]]><![CDATA[>"))
   def unapply(other: Any): Option[String] = other match {
     case x: PCData => Some(x.data)
     case _         => None
