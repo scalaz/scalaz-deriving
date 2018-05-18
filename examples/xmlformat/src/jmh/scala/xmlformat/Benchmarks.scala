@@ -23,10 +23,10 @@ class Benchmarks {
     Await.result(Future.sequence(List.fill(16)(Future(f))), Duration.Inf)
   }.nonEmpty
 
-  @Benchmark
-  def parseScalaXml(data: Data): Boolean = parallel {
-    data.parseScala
-  }
+  // @Benchmark
+  // def parseScalaXml(data: Data): Boolean = parallel {
+  //   data.parseScala
+  // }
 
   @Benchmark
   def printScalaXml(data: Data): Boolean = parallel {
@@ -36,6 +36,11 @@ class Benchmarks {
   @Benchmark
   def printCord(data: Data): Boolean = parallel {
     data.printCord
+  }
+
+  @Benchmark
+  def printTree(data: Data): Boolean = parallel {
+    data.printTree
   }
 
 }
@@ -59,6 +64,7 @@ class Data {
 
   def printScala = parsed.map(t => Encoder.xnode.toScalaXml(t.asChild).toString)
   def printCord = parsed.map(t => CordEncoder.encode(t))
+  def printTree = parsed.map(t => TreeEncoder.encode(t))
 
   def getResourceAsString(res: String): String = {
     val is = getClass().getClassLoader().getResourceAsStream(res)

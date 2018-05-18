@@ -8,62 +8,75 @@ import java.util.regex.{ Matcher, Pattern }
 import scalaz._, Scalaz._
 
 object CordEncoder {
+  import Cord.{ stringToCord => s2c }
+
   def encode(t: XTag): String = toCord(t).toString
 
-  def toCord(t: XTag): Cord = preamble |+| xtag(t, 0)
+  def toCord(t: XTag): Cord = preamble ++ xtag(t, 0)
 
-  private[this] val preamble: Cord = Cord.stringToCord(
+  private[this] def fromList(cs: IList[Cord]): Cord       = cs.fold
+  private[this] def fromNel(cs: NonEmptyList[Cord]): Cord = cs.fold
+
+  private[this] val preamble: Cord = s2c(
     "<?xml version='1.0' encoding='UTF-8'?>"
   )
-  private[this] val space: Cord = Cord.stringToCord(" ")
-  private[this] val gt: Cord    = Cord.stringToCord(">")
-  private[this] val egt: Cord   = Cord.stringToCord("/>")
-  private[this] val lt: Cord    = Cord.stringToCord("<")
-  private[this] val elt: Cord   = Cord.stringToCord("</")
+  private[this] val space: Cord = s2c(" ")
+  private[this] val gt: Cord    = s2c(">")
+  private[this] val egt: Cord   = s2c("/>")
+  private[this] val lt: Cord    = s2c("<")
+  private[this] val elt: Cord   = s2c("</")
 
   private[this] def xtag(t: XTag, level: Int): Cord = {
-    val name = Cord.stringToCord(t.name)
+    val name = s2c(t.name)
     val start = {
-      val open = pad(level) ++ lt ++ name
+      val open = Cord(pad(level), lt, name)
       if (t.attrs.isEmpty)
         open
       else {
-        val attrs = t.attrs.map(xattr).intersperse(space).fold
-        open ++ space ++ attrs
+        val attrs = t.attrs.map(xattr).intersperse(space)
+        fromList(open :: space :: attrs)
       }
     }
 
     if (t.children.isEmpty && t.body.isEmpty)
       start ++ egt
-    else {
-      val children = t.children.foldMap(xtag(_, level + 1))
-      val padding  = if (t.children.isEmpty) Cord.empty else pad(level)
-      def spacing  = if (t.children.isEmpty) Cord.empty else pad(level + 1)
-      val body     = t.body.map(s => spacing ++ xstring(s)).orZero
-      val end      = elt ++ name ++ gt
-      start ++ gt ++ children ++ body ++ padding ++ end
-    }
+    else
+      t.children.toNel match {
+        case None =>
+          val body = t.body.map(xstring(_)).orZero
+          val end  = Cord(elt, name, gt)
+          Cord(start, gt, body, end)
+
+        case Some(cs) =>
+          val children = fromNel(cs.map(xtag(_, level + 1)))
+          val body     = t.body.map(s => pad(level + 1) |+| xstring(s)).orZero
+          val end      = Cord(elt, name, gt)
+          Cord(start, gt, children, body, pad(level), end)
+      }
   }
 
-  private[this] val pad: Int => Cord       = Memo.arrayMemo[Cord](16).apply(pad0(_))
-  private[this] def pad0(level: Int): Cord = "\n" + (" " * 2 * level)
+  private[this] val pad: Int => Cord = Memo.arrayMemo[Cord](16).apply(pad0(_))
+  private[this] def pad0(level: Int): Cord =
+    s2c("\n" + (" " * 2 * level))
 
   private[this] def xattr(a: XAttr): Cord =
-    s"""${a.name}="${replaceXmlEntities(a.value.text)}""""
+    s2c(
+      s"""${a.name}="${CordEncoder.replaceXmlEntities(a.value.text)}""""
+    )
 
   private[this] def xstring(s: XString): Cord =
-    if (!containsXmlEntities(s.text))
-      s.text
+    if (!CordEncoder.containsXmlEntities(s.text))
+      s2c(s.text)
     else {
-      val matcher = cdata.matcher(s.text)
+      val matcher = CordEncoder.cdata.matcher(s.text)
       val clean =
         if (!matcher.find()) s.text
-        else matcher.replaceAll(nested)
-      s"<![CDATA[$clean]]>"
+        else matcher.replaceAll(CordEncoder.nested)
+      s2c(s"<![CDATA[$clean]]>")
     }
 
-  private[this] val cdata  = Pattern.compile("]]>", Pattern.LITERAL)
-  private[this] val nested = Matcher.quoteReplacement("]]]]><![CDATA[>")
+  private[cord] val cdata  = Pattern.compile("]]>", Pattern.LITERAL)
+  private[cord] val nested = Matcher.quoteReplacement("]]]]><![CDATA[>")
 
   // https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
   def replaceXmlEntities(input: String): String = {
