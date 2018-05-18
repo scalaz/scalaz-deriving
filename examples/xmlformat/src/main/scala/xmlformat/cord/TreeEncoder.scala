@@ -6,37 +6,8 @@ package cord
 
 import scalaz._, Scalaz._
 
-sealed abstract class TCord {
-  override def toString: String = {
-    val sb = new StringBuilder
-    appendTo(sb)
-    sb.toString
-  }
-
-  private def appendTo(sb: StringBuilder): Unit = this match {
-    case TCord.TBranch(a, b) =>
-      a.appendTo(sb): Unit
-      b.appendTo(sb): Unit
-    case TCord.TLeaf(s) =>
-      val _ = sb.append(s)
-  }
-}
-object TCord {
-  private final case class TBranch(a: TCord, b: TCord) extends TCord
-  private final case class TLeaf(s: String)            extends TCord
-
-  def apply(s: String): TCord = TLeaf(s)
-
-  val empty: TCord = TLeaf("")
-
-  implicit val monoid: Monoid[TCord] = new Monoid[TCord] {
-    def zero: TCord                           = empty
-    def append(f1: TCord, f2: =>TCord): TCord = TBranch(f1, f2)
-  }
-}
-
 object TreeEncoder {
-  def encode(t: XTag): String = toTCord(t).toString
+  def encode(t: XTag): String = toTCord(t).shows
 
   def toTCord(t: XTag): TCord = preamble |+| xtag(t, 0)
 
