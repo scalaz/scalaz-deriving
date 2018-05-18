@@ -1,0 +1,175 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.10/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.10/ http://www.mediawiki.org/xml/export-0.10.xsd" version="0.10" xml:lang="en">
+  <siteinfo>
+    <sitename>Wikipedia</sitename>
+    <dbname>enwiki</dbname>
+    <base>https://en.wikipedia.org/wiki/Main_Page</base>
+    <generator>MediaWiki 1.32.0-wmf.3</generator>
+    <case>first-letter</case>
+    <namespaces>
+      <namespace key="-2" case="first-letter">Media</namespace>
+      <namespace key="-1" case="first-letter">Special</namespace>
+      <namespace key="0" case="first-letter" />
+      <namespace key="1" case="first-letter">Talk</namespace>
+      <namespace key="2" case="first-letter">User</namespace>
+      <namespace key="3" case="first-letter">User talk</namespace>
+      <namespace key="4" case="first-letter">Wikipedia</namespace>
+      <namespace key="5" case="first-letter">Wikipedia talk</namespace>
+      <namespace key="6" case="first-letter">File</namespace>
+      <namespace key="7" case="first-letter">File talk</namespace>
+      <namespace key="8" case="first-letter">MediaWiki</namespace>
+      <namespace key="9" case="first-letter">MediaWiki talk</namespace>
+      <namespace key="10" case="first-letter">Template</namespace>
+      <namespace key="11" case="first-letter">Template talk</namespace>
+      <namespace key="12" case="first-letter">Help</namespace>
+      <namespace key="13" case="first-letter">Help talk</namespace>
+      <namespace key="14" case="first-letter">Category</namespace>
+      <namespace key="15" case="first-letter">Category talk</namespace>
+      <namespace key="100" case="first-letter">Portal</namespace>
+      <namespace key="101" case="first-letter">Portal talk</namespace>
+      <namespace key="108" case="first-letter">Book</namespace>
+      <namespace key="109" case="first-letter">Book talk</namespace>
+      <namespace key="118" case="first-letter">Draft</namespace>
+      <namespace key="119" case="first-letter">Draft talk</namespace>
+      <namespace key="446" case="first-letter">Education Program</namespace>
+      <namespace key="447" case="first-letter">Education Program talk</namespace>
+      <namespace key="710" case="first-letter">TimedText</namespace>
+      <namespace key="711" case="first-letter">TimedText talk</namespace>
+      <namespace key="828" case="first-letter">Module</namespace>
+      <namespace key="829" case="first-letter">Module talk</namespace>
+      <namespace key="2300" case="first-letter">Gadget</namespace>
+      <namespace key="2301" case="first-letter">Gadget talk</namespace>
+      <namespace key="2302" case="case-sensitive">Gadget definition</namespace>
+      <namespace key="2303" case="case-sensitive">Gadget definition talk</namespace>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Hannu Rajaniemi</title>
+    <ns>0</ns>
+    <id>29789779</id>
+    <revision>
+      <id>821676349</id>
+      <parentid>819143584</parentid>
+      <timestamp>2018-01-21T23:29:06Z</timestamp>
+      <contributor>
+        <username>InternetArchiveBot</username>
+        <id>27015025</id>
+      </contributor>
+      <comment>Rescuing 1 sources and tagging 0 as dead. #IABot (v1.6.2) ([[User:Iggy the Swan|Iggy the Swan]])</comment>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text xml:space="preserve" bytes="12903">{{Infobox writer &lt;!-- for more information see [[:Template:Infobox writer/doc]] --&gt;
+| name = Hannu Rajaniemi
+| image = Hannu Rajaniemi.jpg
+| imagesize = 
+| caption = 
+| pseudonym =
+| birth_name = 
+| birth_date = {{birth date and age|df=yes|1978|03|09}}
+| birth_place = [[Ylivieska]], [[Finland]]
+| death_date =
+| death_place =
+| occupation = Writer, entrepreneur
+| nationality = Finnish
+| period = 2003–present
+| genre = [[Science fiction]], [[fantasy]]
+| subject =
+| movement =
+| influenced =
+}}
+
+'''Hannu Rajaniemi''' (born 9 March 1978) is a [[Finnish People|Finnish]] author of [[science fiction]] and [[fantasy]], who writes in both English and [[Finnish language|Finnish]]. He lives in [[Oakland]], [[California]], and was a founding director of a commercial research organisation, ThinkTank Maths.&lt;ref name=TTM&gt;{{Cite web |url=http://thinktankmaths.com/about/ |archiveurl=https://web.archive.org/web/20080612180907/http://thinktankmaths.com/about/ | title=About us | publisher=ThinkTank Maths| accessdate=7 January 2015 |archivedate=12 June 2008}}&lt;/ref&gt;
+
+==Early life==
+Rajaniemi was born in [[Ylivieska]], Finland in 1978.  He holds a BSc in Mathematics from the [[University of Oulu]], a [[Certificate of Advanced Study in Mathematics]] from the [[University of Cambridge]] and a PhD in [[Mathematical Physics]] from the [[University of Edinburgh]]. Prior to starting his PhD candidature, he completed his [[national service]] as a research scientist for the [[Finnish Defence Forces]].&lt;ref name=TTM/&gt;
+
+While pursuing his PhD in Edinburgh, Rajaniemi joined Writers' Bloc,&lt;ref&gt;{{Cite web| url=http://www.writers-bloc.org.uk/comrades/hannu-rajaniemi/ | title=Writers' Bloc » Hannu Rajaniemi | publisher=Writers' Bloc | accessdate=7 January 2015}}&lt;/ref&gt; a writers' group in Edinburgh that organizes semi-regular [[spoken word]] performances and counts [[Charles Stross|Charlie Stross]] amongst its members.
+
+==Career==
+Early works included his first published short story &quot;Shibuya no Love&quot;&lt;ref&gt;[https://web.archive.org/web/20050204085029/http://www.futurismic.com/fiction/shibuya.html &quot;Shibuya no Love&quot;]&lt;/ref&gt; in 2003 and his short story &quot;Deus Ex Homine&quot; in [[Nova Scotia: New Scottish Speculative Fiction|Nova Scotia]], a 2005 [[anthology]] of Scottish science fiction and fantasy, which caught the attention of his current literary agent, John Jarrold.&lt;ref name=SFN&gt;{{Cite web| url=http://www.scifinow.co.uk/news/interview-hannu-rajaniemi/ | title=Interview: Hannu Rajaniemi | author=Sam Bandah| publisher=SciFiNow |date=3 November 2010 | accessdate=7 January 2015}}&lt;/ref&gt;&lt;ref&gt;[http://www.johnjarrold.co.uk/clients/ John Jarrold: Clients]. Retrieved December 19, 2017.&lt;/ref&gt;
+
+Rajaniemi gained attention in October 2008 when John Jarrold secured a three-book deal for him with [[Victor Gollancz Ltd|Gollancz]],&lt;ref&gt;{{Cite web|url=http://jjarrold.livejournal.com/29142.html |title=Major three-book pre-empt deal for debut SF novelist |date=6 October 2008 |accessdate=7 January 2015 |first=John |last=Jarrold |publisher=[[LiveJournal]] |deadurl=yes |archiveurl=https://web.archive.org/web/20120316002650/http://jjarrold.livejournal.com/29142.html |archivedate=16 March 2012 |df= }}&lt;/ref&gt; on the basis of only twenty-four double-spaced pages.&lt;ref name=SFN/&gt;&lt;ref&gt;{{Cite news|url=https://www.theguardian.com/books/2010/nov/09/hannu-rajaniemi-quantum-thief | title= Hannu Rajaniemi: the science of fiction| author=Richard Lea | publisher=The Guardian | accessdate=7 January 2015 | location=London | date=9 November 2010}}&lt;/ref&gt;
+His debut novel, ''[[The Quantum Thief]]'', was published in September 2010 by Gollancz in Britain&lt;ref&gt;[http://www.orionbooks.co.uk/authors/rajaniemi-hannu Hannu Rajaniemi on the publisher's site]&lt;/ref&gt; and was published in May 2011 by [[Tor Books]] in the U.S.&lt;ref&gt;{{Cite web| url=http://www.johnjarrold.co.uk/news/310/three-book-us-rights-deal-for-hannu-rajaniemi/ | title=Three-book US rights deal for Hannu Rajaniemi | author=John Jarrold |date=23 July 2010 |accessdate=7 January 2015}}&lt;/ref&gt;&lt;ref name=jussi&gt;Jussi Ahlroth, Hannu Rajaniemen romaanit julkaistaan myös Yhdysvalloissa, Helsingin Sanomat, 20.7.2010, p. B 1&lt;/ref&gt; The novel has been nominated for the 2011 [[Locus Award for Best First Novel]].&lt;ref name=locus&gt;{{Cite web|url=http://www.locusmag.com/News/2011/05/2011-locus-award-finalists/| title=2011 Locus Award Finalists| publisher=[[Locus (magazine)|Locus]]| accessdate=2011-05-13}}&lt;/ref&gt; A sequel, ''[[The Fractal Prince]]'', was published in September 2012 by Gollancz in Britain, and in October 2012 by Tor in the U.S.&lt;ref&gt;[http://upcoming4.me/media-news/book-news/item/9332-hannu-rajaniemi-the-fractal-prince-cover-art,-release-date,-and-preorder-details Hannu Rajaniemi - The Fractal Prince cover art, release date, and preorder details on Upcoming4.me] {{webarchive|url=https://web.archive.org/web/20120414164651/http://www.upcoming4.me/media-news/book-news/item/9332-hannu-rajaniemi-the-fractal-prince-cover-art,-release-date,-and-preorder-details |date=2012-04-14 }}&lt;/ref&gt; The third book in the series is called ''[[The Causal Angel]]'', and was published in July 2014 by Gollancz in the U.K. and by Tor in the U.S.&lt;ref&gt;[http://www.tor.com/blogs/2014/07/book-review-the-causal-angel-hannu-rajaniemi Endgame: The Causal Angel by Hannu Rajaniemi]&lt;/ref&gt;
+
+Rajaniemi has stated that the literary works of [[Jules Verne]] originally inspired both his career in science as well as his science fiction writing.&lt;ref&gt;[http://www.study.eu/article/popular-finnish-authors-reveal-the-books-that-shaped-their-student-years Popular Finnish authors reveal the books that shaped their student years]. [http://www.study.eu/ Study.eu]. Retrieved December 19, 2017.&lt;/ref&gt; Other influences include [[Maurice Leblanc]], [[Arthur Conan Doyle]] and architecture blogger [[BLDGBLOG|Geoff Manaugh]].&lt;ref&gt;[http://www.iop.org/careers/working-life/profiles/page_57724.html Once a physicist: Hannu Rajaniemi]. Retrieved December 19, 2017.&lt;/ref&gt;
+
+==Awards and honors==
+
+* 2012 [[Tähtivaeltaja Award]], winner (best science fiction book published in Finnish) for ''[[The Quantum Thief]]''.&lt;ref&gt;[http://partialrecall.blogspot.com/2012/06/tahtivaeltaja-award-to-hannu-rajaniemi.html &quot;Tähtivaeltaja Award 2012&quot;]&lt;/ref&gt;
+*2011 [[Science Fiction &amp; Fantasy Translation Awards]], winner, Short Form category, translation of Hannu Rajaniemi's [https://web.archive.org/web/20101205004929/http://subterraneanpress.com/index.php/magazine/spring-2010/fiction-elegy-for-a-young-elk-by-hannu-rajaniemi &quot;Elegy for a Young Elk&quot;].&lt;ref&gt;[http://www.sfftawards.org/?p=424 &quot;And The Winners Are…&quot;], SF&amp;FTA website, June 18, 2011.&lt;/ref&gt;
+*2011 [[Locus Award for Best First Novel]], nominee, ''[[The Quantum Thief]]''&lt;ref name=locus/&gt;
+*2011 [[John W. Campbell Memorial Award]], third place, ''[[The Quantum Thief]]''&lt;ref&gt;{{cite web |url=http://www.locusmag.com/SFAwards/Db/Cmem2011.html |title=The Locus Index to SF Awards: 2011 John W. Campbell Memorial Award |work=[[Locus (magazine)|Locus]] |accessdate=2012-11-23 |archiveurl=https://www.webcitation.org/6CPHoxkMC?url=http://www.locusmag.com/SFAwards/Db/Cmem2011.html |archivedate=2012-11-24 |deadurl=yes |df= }}&lt;/ref&gt;
+*2013 [[John W. Campbell Memorial Award]], nominee, ''[[The Fractal Prince]]''&lt;ref&gt;{{cite web |url=http://www.locusmag.com/News/2013/05/campbell-memorial-award-finalists/ |title=Campbell Memorial Award Finalists |work=[[Locus (magazine)|Locus]] | date= May 10, 2013 | accessdate=2013-05-16 }}&lt;/ref&gt;
+
+==Personal life==
+Rajaniemi lives in [[Oakland]], [[California]] with his wife.
+
+==Bibliography==
+
+===Novels===
+* ''Summerland'' (2018, {{ISBN|978-1473203273}}) &lt;ref&gt;[https://www.fantasticfiction.com/r/hannu-rajaniemi/summerland.htm]&lt;/ref&gt;
+
+====The Jean le Flambeur series====
+
+* ''[[The Quantum Thief]]'' (2010, {{ISBN|978-0-575-08888-7}}) 
+** Third place, [[John W. Campbell Memorial Award for Best Science Fiction Novel]]&lt;ref name=CampbellMemorial&gt;
+[http://www.sfcenter.ku.edu/campbell.htm &quot;The John W. Campbell Memorial Award&quot;]. The John Wayne and Elsie M. Gunn [[Center for the Study of Science Fiction]]. The University of Kansas. Updated 11 July 2011. Retrieved 2012-04-24.&lt;/ref&gt;
+
+* ''[[The Fractal Prince]]'' (2012, {{ISBN|978-0-575-08891-7}})
+* ''[[The Causal Angel]]'' (2014, {{ISBN|978-0-575-08896-2}})&lt;ref name=&quot;causal&quot;&gt;[http://upcoming4.me/news/book-news/hannu-rajaniemi-the-causal-angel-announced Hannu Rajaniemi - The Causal Angel announced] {{webarchive|url=https://web.archive.org/web/20140323221241/http://upcoming4.me/news/book-news/hannu-rajaniemi-the-causal-angel-announced |date=2014-03-23 }}&lt;/ref&gt;
+
+===Collections===
+* ''Words of Birth and Death'' (2006, Bloc Press), as a limited edition chapbook.&lt;ref&gt;{{cite web|url=http://www.writers-bloc.org.uk/chapbooks/ |title=Writer's Bloc - Chapbooks |accessdate=31 July 2014}}&lt;/ref&gt;
+** &quot;The Viper Blanket&quot;
+** &quot;Barley Child&quot;
+** &quot;Fisher of Men&quot;
+* ''Hannu Rajaniemi: Collected Fiction'' (2015)&lt;ref&gt;{{cite web|title=Tachyon 2015 preview: HANNU RAJANIEMI: COLLECTED FICTION|url=http://tachyonpub.tumblr.com/post/103060246833/tachyon-2015-preview-hannu-rajaniemi-collected|publisher=Tumblr|accessdate=26 January 2015}}&lt;/ref&gt; {{ISBN|978-1-61696-192-3}}
+
+===Short fiction===
+
+A partial list follows.
+* &quot;Shibuya no Love&quot;
+** Published in ''futurismic.com'', 2003
+** [https://web.archive.org/web/20050204085029/http://www.futurismic.com/fiction/shibuya.html Available online]
+* &quot;Deus Ex Homine&quot;
+** First anthologized in ''[[Nova Scotia: New Scottish Speculative Fiction]]'', 2005, {{ISBN|978-1-84183-086-5}}
+** ''The Year's Best Science Fiction 23'', 2006, edited by Gardner Dozois, {{ISBN|0-312-35334-0}}
+** ''[[Year's Best SF 11]]'', 2006, edited by David Hartwell and Kathryn Cramer, {{ISBN|0-06-087341-8}}
+* &quot;His Master's Voice&quot;
+** Published in ''Interzone 218'', October 2008
+** Available online in [http://redstonesciencefiction.com/2010/09/his-masters-voice/ English] and [http://usvazine.net/usvazine305.pdf Finnish]
+** Audio version available online as a [[podcast]] on the Escape Pod ([http://escapepod.org/2009/12/03/ep227-his-masters-voice/ episode #227]) and Starship Sofa ([http://www.starshipsofa.com/20090902/aural-delights-no-98-hannu-rajaniemi/ Aural Delights No. 98])
+* &quot;Elegy for a Young Elk&quot;
+** Published in [https://web.archive.org/web/20101205004929/http://subterraneanpress.com/index.php/magazine/spring-2010/fiction-elegy-for-a-young-elk-by-hannu-rajaniemi ''Subterranean'', Spring 2010]
+** Won the award for short from in the 2011 [[Science Fiction &amp; Fantasy Translation Awards]].&lt;ref name=SFFTA&gt;{{Cite web| url=http://www.sfftawards.org/?p=424 | title=And The Winners Are... | publisher=Science Fiction &amp; Fantasy Translation Awards | accessdate=2011-06-26}}&lt;/ref&gt;
+* &quot;The Server and the Dragon&quot;
+**Published in ''[[Engineering Infinity]]'', edited by [[Jonathan Strahan]], December 2010&lt;ref name=&quot;Locus&quot;&gt;{{cite web |url=http://www.locusmag.com/Reviews/2010/12/lois-tilton-reviews-short-fiction-early-december/#enginfinity |title=Lois Tilton reviews Short Fiction, early December |work=[[Locus (magazine)|Locus]] |first=Lois |last=Tilton |authorlink=Lois Tilton |date=December 7, 2010 |accessdate=January 6, 2015}}&lt;/ref&gt;&lt;ref name=&quot;SF.com&quot;&gt;{{cite web |url=http://sciencefiction.com/2011/04/11/book-review-engineering-infinity-ed-jonathan-strahan/ |title=Book Review: ''Engineering Infinity'' (ed) Jonathan Strahan |first=Nigel |last=Seel |publisher=ScienceFiction.com |date=April 11, 2011 |accessdate=January 6, 2015}}&lt;/ref&gt;&lt;ref name=&quot;Tangent&quot;&gt;{{cite web |url=http://www.tangentonline.com/print--other-reviewsmenu-263/anthologies-reviewsmenu-107/1528-engineering-infinity-edited-by-jonathan-strahan |title=''Engineering Infinity'', edited by Jonathan Strahan |first=Robert E. |last=Waters |website=Tangent |date=March 8, 2011 |accessdate=January 6, 2015}}&lt;/ref&gt;
+* &quot;Invisible Planets&quot;
+**Published in ''[[Reach for Infinity]]'', edited by Jonathan Strahan, May 2014&lt;ref name=&quot;Tor Infinity&quot;&gt;{{cite web |url=http://www.tor.com/2014/06/12/book-review-anthology-reach-for-infinity-jonathan-strahan/ |title=Step into the Stars: ''Reach for Infinity'', ed. Jonathan Strahan |work=[[Tor.com]] |first=Niall |last=Alexander |date=12 June 2014 |accessdate=13 December 2015}}&lt;/ref&gt;
+
+==References==
+{{reflist|30em}}
+
+==External links==
+* {{Twitter}}
+* {{isfdb name |37533 |Hannu Rajaniemi}}
+
+{{Authority control}}
+
+{{DEFAULTSORT:Rajaniemi, Hannu}}
+[[Category:1978 births]]
+[[Category:English-language writers]]
+[[Category:Finnish businesspeople]]
+[[Category:Finnish male novelists]]
+[[Category:Finnish male short story writers]]
+[[Category:Finnish science fiction writers]]
+[[Category:Living people]]
+[[Category:University of Oulu alumni]]
+[[Category:People from Ylivieska]]
+[[Category:Alumni of the University of Edinburgh]]
+[[Category:Finnish expatriates in the United Kingdom]]
+[[Category:21st-century Finnish novelists]]
+[[Category:21st-century male writers]]</text>
+      <sha1>faojxlfluskr473e5mw61j8q58lohn9</sha1>
+    </revision>
+  </page>
+</mediawiki>

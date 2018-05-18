@@ -115,6 +115,7 @@ val xmlformat = (project in file("examples/xmlformat"))
       "org.scala-lang.modules" %% "scala-xml"      % "1.1.0"
     )
   )
+  .enablePlugins(NeoJmhPlugin)
 
 // root project
 skip in publish := true

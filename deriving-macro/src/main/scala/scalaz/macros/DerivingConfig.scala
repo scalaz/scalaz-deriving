@@ -74,7 +74,7 @@ private[scalaz] object DerivingConfig extends DerivingBackCompat {
       while (read != -1) {
         baos.write(data, 0, len)
       }
-      Right(new String(baos.toByteArray(), "UTF-8"))
+      Right(baos.toString("UTF-8"))
     } catch {
       case t: Throwable => Left(t.getMessage)
     } finally is.close()
