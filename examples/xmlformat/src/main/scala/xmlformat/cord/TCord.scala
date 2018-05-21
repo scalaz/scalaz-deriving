@@ -10,70 +10,74 @@ import scalaz._
 
 // backport of scalaz.Cord from 7.3
 sealed abstract class TCord {
-  final def shows: String = {
-    val sb = new StringBuilder
-    TCord.appendTo(this, sb)
-    sb.toString
-  }
+  override final def toString: String = shows
 
-  /** Strict evaluation variant of Monoid.append */
+  final def reset: TCord = TCord.Leaf(shows)
+
+  final def shows: String = this match {
+    case TCord.Leaf(str) => str
+    case _ =>
+      val sb = new StringBuilder
+      TCord.unsafeAppendTo(this, sb)
+      sb.toString
+  }
+  final def ::(o: TCord): TCord = TCord.Branch(o, this)
   final def ++(o: TCord): TCord = TCord.Branch(this, o)
 }
 object TCord {
-  private[cord] final case class Leaf(
-    s: String
-  ) extends TCord
+  def apply(s: String): TCord = Leaf.apply(s)
+  def apply(): TCord          = Leaf.Empty
 
-  // Limiting the depth of a branch ensures we don't get stack overflows, at the
-  // cost of forcing some intermediate strings.
-  //
-  // However, repeated monoidic appends produce large LEFT legs. A more
-  // efficient solution may come later which reassociates, allowing us to tail
-  // recurse down long RIGHT legs, and only use the rebalance for the shorter
-  // LEFT legs.
-  private[cord] final case class Branch private (
-    leftDepth: Int,
-    left: TCord,
-    right: TCord
+  private[cord] final class Leaf private (
+    val s: String
   ) extends TCord
-
-  private[cord] object Branch {
-    val max: Int = 100
-    def apply(a: TCord, b: TCord): TCord = a match {
-      case Leaf(_) =>
-        Branch(1, a, b)
-      case Branch(leftDepth, _, _) =>
-        val branch = Branch(leftDepth + 1, a, b)
-        if (leftDepth >= max)
-          Leaf(branch.shows)
-        else
-          branch
-    }
+  private[cord] object Leaf {
+    val Empty: Leaf = new Leaf("")
+    def apply(s: String): Leaf =
+      if (s.isEmpty) Empty
+      else new Leaf(s)
+    def unapply(l: Leaf): Some[String] = Some(l.s)
   }
 
-  def apply(s: String): TCord =
-    if (s.isEmpty) empty
-    else Leaf(s)
-
-  def apply(): TCord = empty
-  val empty: TCord   = Leaf("")
+  private[cord] final class Branch private (
+    val leftDepth: Int,
+    val left: TCord,
+    val right: TCord
+  ) extends TCord
+  private[cord] object Branch {
+    val max: Int = 100
+    def apply(a: TCord, b: TCord): TCord =
+      if (a.eq(Leaf.Empty)) b
+      else if (b.eq(Leaf.Empty)) a
+      else
+        a match {
+          case _: Leaf =>
+            new Branch(1, a, b)
+          case a: Branch =>
+            val branch = new Branch(a.leftDepth + 1, a, b)
+            if (a.leftDepth >= max)
+              branch.reset
+            else
+              branch
+        }
+    def unapply(b: Branch): Some[(Int, TCord, TCord)] =
+      Some((b.leftDepth, b.left, b.right))
+  }
 
   implicit val monoid: Monoid[TCord] = new Monoid[TCord] {
-    def zero: TCord                           = empty
+    def zero: TCord                           = Leaf.Empty
     def append(f1: TCord, f2: =>TCord): TCord = Branch(f1, f2)
   }
 
-  implicit val equal: Equal[TCord] = Equal.equal((a, b) => a.shows == b.shows)
-
-  @tailrec private def appendTo(c: TCord, sb: StringBuilder): Unit = c match {
-    case Branch(_, a, b) =>
-      appendTo_(a, sb) // not tail recursive, left legs need to be capped
-      appendTo(b, sb)  // tail recursive, right legs can be arbitrarilly long
-    case Leaf(s) =>
-      val _ = sb.append(s)
-  }
-  // breaks out of the tail recursion
-  private[this] def appendTo_(c: TCord, sb: StringBuilder): Unit =
-    appendTo(c, sb)
+  @tailrec private def unsafeAppendTo(c: TCord, sb: StringBuilder): Unit =
+    c match {
+      case Branch(_, a, b) =>
+        unsafeAppendTo_(a, sb)
+        unsafeAppendTo(b, sb)
+      case Leaf(s) =>
+        val _ = sb.append(s)
+    }
+  private[this] def unsafeAppendTo_(c: TCord, sb: StringBuilder): Unit =
+    unsafeAppendTo(c, sb)
 
 }

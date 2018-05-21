@@ -9,7 +9,7 @@ import scalaz._, Scalaz._
 object TreeEncoder {
   def encode(t: XTag): String = toTCord(t).shows
 
-  def toTCord(t: XTag): TCord = preamble |+| xtag(t, 0)
+  def toTCord(t: XTag): TCord = preamble :: xtag(t, 0)
 
   private[this] val preamble: TCord = TCord(
     "<?xml version='1.0' encoding='UTF-8'?>"
@@ -23,29 +23,30 @@ object TreeEncoder {
   private[this] def xtag(t: XTag, level: Int): TCord = {
     val name = TCord(t.name)
     val start = {
-      val open = pad(level) |+| lt |+| name
+      val open = pad(level) :: lt :: name
       if (t.attrs.isEmpty)
         open
       else {
-        val attrs = t.attrs.map(xattr).intersperse(space).fold
-        open |+| space |+| attrs
+        val attrs = t.attrs.map(xattr).intercalate(space)
+        open :: space :: attrs
       }
     }
 
     if (t.children.isEmpty && t.body.isEmpty)
-      start |+| egt
+      start :: egt
     else
       t.children.toNel match {
         case None =>
           val body = t.body.map(xstring(_)).orZero
-          val end  = elt |+| name |+| gt
-          start |+| gt |+| body |+| end
+          val end  = elt :: name :: gt
+          start :: gt :: body :: end
 
         case Some(cs) =>
-          val children = cs.map(xtag(_, level + 1)).fold
-          val body     = t.body.map(s => pad(level + 1) |+| xstring(s)).orZero
-          val end      = elt |+| name |+| gt
-          start |+| gt |+| children |+| body |+| pad(level) |+| end
+          val children =
+            cs.foldLeft(TCord())((acc, c) => acc :: xtag(c, level + 1))
+          val body = t.body.map(s => pad(level + 1) :: xstring(s)).orZero
+          val end  = elt :: name :: gt
+          start :: gt :: children :: body :: pad(level) :: end
       }
   }
 
