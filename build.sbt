@@ -108,6 +108,7 @@ val xmlformat = (project in file("examples/xmlformat"))
       }
     },
     libraryDependencies ++= Seq(
+      "com.fasterxml.woodstox" % "woodstox-core"   % "5.1.0",
       "eu.timepit"             %% "refined-scalaz" % "0.9.0" % "test",
       "org.scalaz"             %% "scalaz-core"    % scalazVersion,
       "com.chuusai"            %% "shapeless"      % shapelessVersion,

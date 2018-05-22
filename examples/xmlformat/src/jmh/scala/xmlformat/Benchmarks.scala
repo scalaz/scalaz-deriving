@@ -10,6 +10,7 @@ import scalaz._
 
 import xmlformat.scalaxml._
 import xmlformat.cord._
+import xmlformat.stax._
 
 // xmlformat/jmh:run -i 5 -wi 5 -f1 -t2 -w2 -r2 .*Benchmarks
 //
@@ -23,14 +24,24 @@ class Benchmarks {
     Await.result(Future.sequence(List.fill(16)(Future(f))), Duration.Inf)
   }.nonEmpty
 
-  // @Benchmark
-  // def parseScalaXml(data: Data): Boolean = parallel {
-  //   data.parseScala
-  // }
+  @Benchmark
+  def parseScalaXml(data: Data): Boolean = parallel {
+    data.parseScala
+  }
+
+  @Benchmark
+  def parseStax(data: Data): Boolean = parallel {
+    data.parseStax
+  }
 
   @Benchmark
   def printScalaXml(data: Data): Boolean = parallel {
     data.printScala
+  }
+
+  @Benchmark
+  def printStax(data: Data): Boolean = parallel {
+    data.printStax
   }
 
   @Benchmark
@@ -59,12 +70,19 @@ class Data {
       case other => throw new IllegalArgumentException(other.toString)
     }
   }
+  def parseStax = strings.map { s =>
+    StaxDecoder.parse(s) match {
+      case \/-(t) => t
+      case other => throw new IllegalArgumentException(other.toString)
+    }
+  }
 
   val parsed: List[XTag] = parseScala
 
   def printScala = parsed.map(t => Encoder.xnode.toScalaXml(t.asChild).toString)
   def printCord = parsed.map(t => CordEncoder.encode(t))
   def printTree = parsed.map(t => TreeEncoder.encode(t))
+  def printStax = parsed.map(t => StaxEncoder.encode(t))
 
   def getResourceAsString(res: String): String = {
     val is = getClass().getClassLoader().getResourceAsStream(res)

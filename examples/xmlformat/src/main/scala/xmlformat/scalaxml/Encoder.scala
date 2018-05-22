@@ -48,7 +48,7 @@ object Encoder {
 
       val content =
         body.map(xnode.toScalaXml).toOption.toList :::
-          children.map(t => xnode.toScalaXml(XChildren(IList(t)))).toList
+          children.map(t => xnode.toScalaXml(XChildren(IList.single(t)))).toList
 
       xml.Elem(
         null, // scalafix:ok
@@ -60,6 +60,8 @@ object Encoder {
       )
 
     case XChildren(list) =>
-      xml.Group(list.map(t => xnode.toScalaXml(XChildren(IList(t)))).toList)
+      xml.Group(
+        list.map(t => xnode.toScalaXml(XChildren(IList.single(t)))).toList
+      )
   }
 }

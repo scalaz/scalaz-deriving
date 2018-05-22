@@ -22,7 +22,7 @@ final case class XTag(name: String,
                       attrs: IList[XAttr],
                       children: IList[XTag],
                       body: Maybe[XString]) {
-  def asChild: XChildren = XChildren(IList(this))
+  def asChild: XChildren = XChildren(IList.single(this))
 }
 object XTag {
   def apply(key: String, content: XNode): XTag = content match {
