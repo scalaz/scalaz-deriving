@@ -74,14 +74,14 @@ object Foo {
 
 # `scalaz-deriving`
 
-`scalaz-deriving` adds new typeclasses to `scalaz`:
+`scalaz-deriving` adds two new typeclasses to `scalaz` (`Alt` and `Decidable`), available in scalaz 7.3:
 
-| Typeclass         | method      | given          | signature         | returns |
-|-------------------|-------------|----------------|-------------------|---------|
-|`LazyApplicative`  | `apply2`    | `F[A1], F[A2]` | `(A1, A2) => Z`   | `F[Z]`  |
-|`Coapplicative`    | `coapply2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` | `F[Z]`  |
-|`LazyDivisible`    | `divide2`   | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
-|`Codivide`         | `codivide2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
+| Typeclass    | method    | given          | signature         | returns |
+|--------------|-----------|----------------|-------------------|---------|
+|`Applicative` | `apply2`  | `F[A1], F[A2]` | `(A1, A2) => Z`   | `F[Z]`  |
+|`Alt`         | `altly2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` | `F[Z]`  |
+|`Divisible`   | `divide2` | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
+|`Decidable`   | `choose2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
 
 with `apply3` and `apply4` defined in terms of `apply2`, etc.
 

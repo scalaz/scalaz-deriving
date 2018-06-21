@@ -11,7 +11,7 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /** Implementation of Applicative in terms of a single, generic, method. */
-trait Applicativez[F[_]] extends LazyApplicative[F] {
+trait Applicativez[F[_]] extends Applicative[F] {
   import Prods._
 
   def applyz[Z, L <: TList, FL <: TList](

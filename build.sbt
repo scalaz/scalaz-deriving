@@ -70,8 +70,7 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-imports",
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
-    "com.chuusai" %% "shapeless"   % shapelessVersion,
-    "org.scalaz"  %% "scalaz-core" % scalazVersion
+    "org.scalaz" %% "scalaz-core" % scalazVersion
   )
 )
 

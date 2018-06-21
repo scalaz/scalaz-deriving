@@ -21,7 +21,7 @@ trait LawfulDerivez[F[_]] extends Derivez[F] with Derives[F]
 
 abstract class ContravariantDerivez[F[_]]
     extends LawfulDerivez[F]
-    with Codividez[F]
+    with Decidablez[F]
     with Divisiblez[F] {
 
   // although we don't leave the G as a free parameter, it is a useful reminder
@@ -82,9 +82,9 @@ abstract class ContravariantDerivez[F[_]]
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = codividez(tcs)(g)
+  ): F[Z] = choosez(tcs)(g)
 
-  final override def codividez[Z, L <: TList, FL <: TList](
+  final override def choosez[Z, L <: TList, FL <: TList](
     tcs: Prod[FL]
   )(
     g: Z => Cop[L]
@@ -120,7 +120,7 @@ object ContravariantDerivez {
 
 abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
     extends LawfulDerivez[F]
-    with Coapplicativez[F]
+    with Altz[F]
     with Applicativez[F] {
 
   def productz[Z](f: (F ~> Id) => Z): F[Z]
@@ -155,9 +155,9 @@ abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = coapplyz(tcs)(f)
+  ): F[Z] = altlyz(tcs)(f)
 
-  final override def coapplyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
+  final override def altlyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Cop[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
