@@ -49,8 +49,10 @@ abstract class LabelledContravariantDerivez[F[_]]
           .zip(labels.values)
           .map { tcv =>
             val ((v1, v2), lab) = tcv
-            /~\[F, L1, Any](v2.asInstanceOf[Name[F[Any]]].value,
-                            (lab.asInstanceOf[String], v1))
+            /~\[F, L1, Any](
+              v2.asInstanceOf[Name[F[Any]]].value,
+              (lab.asInstanceOf[String], v1)
+            )
           }(scala.collection.breakOut)
       def apply(z1: Z, z2: Z): List[F /~\ L2] =
         g(z1).values
@@ -59,8 +61,10 @@ abstract class LabelledContravariantDerivez[F[_]]
           .zip(labels.values)
           .map { tcv =>
             val (((v1, v2), tc), lab) = tcv
-            /~\[F, L2, Any](tc.asInstanceOf[Name[F[Any]]].value,
-                            (lab.asInstanceOf[String], v1, v2))
+            /~\[F, L2, Any](
+              tc.asInstanceOf[Name[F[Any]]].value,
+              (lab.asInstanceOf[String], v1, v2)
+            )
           }(scala.collection.breakOut)
     }
   }

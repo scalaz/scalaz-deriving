@@ -27,10 +27,12 @@ trait Derives[F[_]] { self =>
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z]
-  def xproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                   a2: =>F[A2],
-                                   a3: =>F[A3],
-                                   a4: =>F[A4])(
+  def xproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
   ): F[Z]
@@ -44,10 +46,12 @@ trait Derives[F[_]] { self =>
     f: A1 \/ (A2 \/ A3) => Z,
     g: Z => A1 \/ (A2 \/ A3)
   ): F[Z]
-  def xcoproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                     a2: =>F[A2],
-                                     a3: =>F[A3],
-                                     a4: =>F[A4])(
+  def xcoproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z,
     g: Z => A1 \/ (A2 \/ (A3 \/ A4))
   ): F[Z]
@@ -112,10 +116,10 @@ object Derives {
     ): Equal[Z] = Equal.equal { (z1, z2) =>
       val (s1, s2) = f(z1)
       val (t1, t2) = f(z2)
-      ((s1.asInstanceOf[AnyRef].eq(t1.asInstanceOf[AnyRef])) || a1.equal(s1,
-                                                                         t1)) &&
-      ((s2.asInstanceOf[AnyRef].eq(t2.asInstanceOf[AnyRef])) || a2.equal(s2,
-                                                                         t2))
+      ((s1.asInstanceOf[AnyRef].eq(t1.asInstanceOf[AnyRef])) || a1
+        .equal(s1, t1)) &&
+      ((s2.asInstanceOf[AnyRef].eq(t2.asInstanceOf[AnyRef])) || a2
+        .equal(s2, t2))
     }
     override def conquer[A]: Equal[A] = Equal.equal((_, _) => true)
 
@@ -145,8 +149,10 @@ trait IsomorphismDerives[F[_], G[_]] extends Derives[F] {
 
   def xcoproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
     iso.from(G.xcoproduct1(iso.to(a1))(f, g))
-  def xcoproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: A1 \/ A2 => Z,
-                                                       g: Z => A1 \/ A2): F[Z] =
+  def xcoproduct2[Z, A1, A2](
+    a1: =>F[A1],
+    a2: =>F[A2]
+  )(f: A1 \/ A2 => Z, g: Z => A1 \/ A2): F[Z] =
     iso.from(G.xcoproduct2(iso.to(a1), iso.to(a2))(f, g))
   def xcoproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: A1 \/ (A2 \/ A3) => Z,
@@ -167,8 +173,10 @@ trait IsomorphismDerives[F[_], G[_]] extends Derives[F] {
     iso.from(G.xproduct0(f))
   def xproduct1[Z, A1](a1: F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
     iso.from(G.xproduct1(iso.to(a1))(f, g))
-  def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: (A1, A2) => Z,
-                                                     g: Z => (A1, A2)): F[Z] =
+  def xproduct2[Z, A1, A2](
+    a1: =>F[A1],
+    a2: =>F[A2]
+  )(f: (A1, A2) => Z, g: Z => (A1, A2)): F[Z] =
     iso.from(G.xproduct2(iso.to(a1), iso.to(a2))(f, g))
   def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,

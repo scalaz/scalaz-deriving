@@ -30,7 +30,7 @@ object LazyOneAnd {
             ftl =>
               G.apply2(f(fa.head), ftl) {
                 case (h, t) => LazyOneAnd(h, t)
-            },
+              },
             tl => G.map(f(fa.head))(LazyOneAnd(_, tl))
           )
 
@@ -89,12 +89,14 @@ object LazyOneAnd {
       )(f: A => B)(implicit M: Monoid[B]): B =
         M.append(f(fa.head), F.foldMap(fa.tail)(f))
 
-      override def foldRight[A, B](fa: LazyOneAnd[F, A],
-                                   z: =>B)(f: (A, =>B) => B): B =
+      override def foldRight[A, B](fa: LazyOneAnd[F, A], z: =>B)(
+        f: (A, =>B) => B
+      ): B =
         f(fa.head, F.foldRight(fa.tail, z)(f))
 
-      override def foldLeft[A, B](fa: LazyOneAnd[F, A],
-                                  z: B)(f: (B, A) => B): B =
+      override def foldLeft[A, B](fa: LazyOneAnd[F, A], z: B)(
+        f: (B, A) => B
+      ): B =
         F.foldLeft(fa.tail, f(z, fa.head))(f)
 
       override def traverseS_[S, A, B](

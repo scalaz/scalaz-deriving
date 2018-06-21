@@ -27,10 +27,12 @@ trait Decidable[F[_]] extends LazyDivisible[F] with Derives[F] { self =>
     val a23: F[A2 \/ A3] = choose2(a2, a3)(identity)
     choose2(a1, a23)(f)
   }
-  def choose4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                 a2: =>F[A2],
-                                 a3: =>F[A3],
-                                 a4: =>F[A4])(
+  def choose4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: Z => A1 \/ (A2 \/ (A3 \/ A4))
   ): F[Z] = {
     val a34: F[A3 \/ A4]          = choose2(a3, a4)(identity)
@@ -64,10 +66,12 @@ trait Decidable[F[_]] extends LazyDivisible[F] with Derives[F] { self =>
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z] = divide3(a1, a2, a3)(g)
-  override def xproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                            a2: =>F[A2],
-                                            a3: =>F[A3],
-                                            a4: =>F[A4])(
+  override def xproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
   ): F[Z] = divide4(a1, a2, a3, a4)(g)
@@ -80,16 +84,20 @@ trait Decidable[F[_]] extends LazyDivisible[F] with Derives[F] { self =>
     f: (A1 \/ A2) => Z,
     g: Z => (A1 \/ A2)
   ): F[Z] = choose2(a1, a2)(g)
-  override def xcoproduct3[Z, A1, A2, A3](a1: =>F[A1],
-                                          a2: =>F[A2],
-                                          a3: =>F[A3])(
+  override def xcoproduct3[Z, A1, A2, A3](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3]
+  )(
     f: (A1 \/ (A2 \/ A3)) => Z,
     g: Z => (A1 \/ (A2 \/ A3))
   ): F[Z] = choose3(a1, a2, a3)(g)
-  override def xcoproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                              a2: =>F[A2],
-                                              a3: =>F[A3],
-                                              a4: =>F[A4])(
+  override def xcoproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
     g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))
   ): F[Z] = choose4(a1, a2, a3, a4)(g)

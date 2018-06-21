@@ -42,9 +42,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   def triggers: List[String]
 
   def updateClass(triggered: List[Tree], clazz: ClassDef): ClassDef
-  def updateCompanion(triggered: List[Tree],
-                      clazz: ClassDef,
-                      companion: ModuleDef): ModuleDef
+  def updateCompanion(
+    triggered: List[Tree],
+    clazz: ClassDef,
+    companion: ModuleDef
+  ): ModuleDef
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef
 
   /** Use to create code that shortcuts in ENSIME and ScalaIDE */
@@ -148,9 +150,13 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
               tpt.duplicate
           }
-          AppliedTypeTree(Select(Select(Ident(nme.ROOTPKG), nme.scala_),
-                                 TypeName(s"Function${accessors.size}")),
-                          accessors ::: List(Ident(clazz.name)))
+          AppliedTypeTree(
+            Select(
+              Select(Ident(nme.ROOTPKG), nme.scala_),
+              TypeName(s"Function${accessors.size}")
+            ),
+            accessors ::: List(Ident(clazz.name))
+          )
         } else
           Select(Ident(nme.scala_), nme.AnyRef.toTypeName)
 

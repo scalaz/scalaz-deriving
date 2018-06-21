@@ -19,7 +19,7 @@ val plugin = (project in file("deriving-plugin")).settings(
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "org.ensime"     %% "pcplod"        % "1.2.1"            % "test",
+    "org.ensime"     %% "pcplod"        % "1.2.1"            % "test"
   ),
   scalacOptions in Test ++= {
     val jar = (packageBin in Compile).value

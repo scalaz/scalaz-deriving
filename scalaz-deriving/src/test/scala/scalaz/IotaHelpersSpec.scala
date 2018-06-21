@@ -75,9 +75,11 @@ class IotaHelpersSpec extends FlatSpec {
   "CopGen" should "support sealed traits" in {
     val gen =
       CopGen
-        .gen[Traity1,
-             Traity1A :: Traity1B.type :: TNil,
-             String :: String :: TNil]
+        .gen[
+          Traity1,
+          Traity1A :: Traity1B.type :: TNil,
+          String :: String :: TNil
+        ]
 
     val a = Traity1A("hello")
     gen.to(gen.from(a)).shouldBe(a)

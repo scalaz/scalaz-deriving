@@ -46,10 +46,12 @@ trait Applicativez[F[_]] extends Applicative[F] {
     type L = A1 :: A2 :: A3 :: TNil
     applyz(LazyProd(a1, a2, a3))((as: Prod[L]) => f.tupled(to3T(as)))
   }
-  override def apply4[A1, A2, A3, A4, Z](a1: =>F[A1],
-                                         a2: =>F[A2],
-                                         a3: =>F[A3],
-                                         a4: =>F[A4])(
+  override def apply4[A1, A2, A3, A4, Z](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1, A2, A3, A4) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil

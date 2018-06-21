@@ -13,9 +13,13 @@ class DerivingPlugin(override val global: Global)
   import global._
 
   private val DerivingMacros =
-    Select(Select(Select(Ident(nme.ROOTPKG), TermName("scalaz")),
-                  TermName("macros")),
-           TermName("DerivingMacros"))
+    Select(
+      Select(
+        Select(Ident(nme.ROOTPKG), TermName("scalaz")),
+        TermName("macros")
+      ),
+      TermName("DerivingMacros")
+    )
   def toGen(f: Tree, a: Tree, target: TermName): Tree =
     if (isIde || isScaladoc) Literal(Constant(null))
     else
@@ -25,9 +29,11 @@ class DerivingPlugin(override val global: Global)
       )
 
   def updateClass(triggered: List[Tree], clazz: ClassDef): ClassDef = clazz
-  def updateCompanion(triggered: List[Tree],
-                      clazz: ClassDef,
-                      companion: ModuleDef): ModuleDef = {
+  def updateCompanion(
+    triggered: List[Tree],
+    clazz: ClassDef,
+    companion: ModuleDef
+  ): ModuleDef = {
     val extras = triggered.flatMap { ann =>
       val target = annotationName(ann)
       findTypeclasses(ann).map {
@@ -152,10 +158,12 @@ class DerivingPlugin(override val global: Global)
       comp,
       comp.mods,
       comp.name,
-      treeCopy.Template(comp.impl,
-                        comp.impl.parents,
-                        comp.impl.self,
-                        comp.impl.body ::: extras.map(_.withAllPos(comp.pos)))
+      treeCopy.Template(
+        comp.impl,
+        comp.impl.parents,
+        comp.impl.self,
+        comp.impl.body ::: extras.map(_.withAllPos(comp.pos))
+      )
     )
 
 }

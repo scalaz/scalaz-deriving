@@ -24,8 +24,9 @@ trait Decidablez[F[_]] extends Decidable[F] {
 
   override def choose1[Z, A1](a1: =>F[A1])(f: Z => A1): F[Z] =
     choosez(LazyProd(a1))(z => from1(f(z)))
-  override def choose2[Z, A1, A2](a1: =>F[A1],
-                                  a2: =>F[A2])(f: Z => A1 \/ A2): F[Z] =
+  override def choose2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
+    f: Z => A1 \/ A2
+  ): F[Z] =
     choosez(LazyProd(a1, a2))(z => from2(f(z)))
   override def choose3[Z, A1, A2, A3](
     a1: =>F[A1],

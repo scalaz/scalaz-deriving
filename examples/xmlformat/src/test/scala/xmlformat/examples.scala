@@ -30,9 +30,10 @@ case object Baz extends SimpleTrait {
 @deriving(XEncoder, XDecoder) final case class Faz(o: Option[String])
     extends SimpleTrait
 
-@deriving(XEncoder, XDecoder) final case class Recursive(h: String,
-                                                         t: Option[Recursive] =
-                                                           None)
+@deriving(XEncoder, XDecoder) final case class Recursive(
+  h: String,
+  t: Option[Recursive] = None
+)
 
 object orphans {
   implicit val e: XStrEncoder[Foo] = XStrEncoder[String].contramap(_.s)
@@ -73,8 +74,10 @@ final case class InlinerSingle(wibble: Foo @@ XInlined)
 @deriving(XEncoder, XDecoder)
 final case class Inliners(foos: List[Foo] @@ XInlined)
 @deriving(XEncoder, XDecoder)
-final case class Outliners(id: Option[String] @@ XAttribute,
-                           body: Option[String] @@ XInlined)
+final case class Outliners(
+  id: Option[String] @@ XAttribute,
+  body: Option[String] @@ XInlined
+)
 
 @deriving(XEncoderTag, XDecoderTag)
 sealed abstract class TaggyNames

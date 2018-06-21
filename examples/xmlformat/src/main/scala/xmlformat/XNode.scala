@@ -18,10 +18,12 @@ sealed abstract class XNode
  *
  * This is not an XNode, otherwise there is ambiguity with a one element list.
  */
-final case class XTag(name: String,
-                      attrs: IList[XAttr],
-                      children: IList[XTag],
-                      body: Maybe[XString]) {
+final case class XTag(
+  name: String,
+  attrs: IList[XAttr],
+  children: IList[XTag],
+  body: Maybe[XString]
+) {
   def asChild: XChildren = XChildren(IList.single(this))
 }
 object XTag {

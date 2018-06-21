@@ -44,10 +44,12 @@ trait Altz[F[_]] extends Alt[F] {
     type L = A1 :: A2 :: A3 :: TNil
     altlyz(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
   }
-  override def altly4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                         a2: =>F[A2],
-                                         a3: =>F[A3],
-                                         a4: =>F[A4])(
+  override def altly4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
   ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil

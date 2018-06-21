@@ -19,10 +19,12 @@ trait LazyDivide[F[_]] extends Contravariant[F] {
       val t = f(z)
       ((t._1, t._2), t._3)
     }
-  def divide4[A1, A2, A3, A4, Z](a1: =>F[A1],
-                                 a2: =>F[A2],
-                                 a3: =>F[A3],
-                                 a4: =>F[A4])(
+  def divide4[A1, A2, A3, A4, Z](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: Z => (A1, A2, A3, A4)
   ): F[Z] =
     divide2(tuple2(a1, a2), tuple2(a3, a4)) { z =>

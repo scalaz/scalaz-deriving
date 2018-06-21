@@ -26,10 +26,12 @@ trait Alt[F[_]] extends Applicative[F] with Derives[F] { self =>
   def altly3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: A1 \/ (A2 \/ A3) => Z
   ): F[Z] = altly2(a1, either2(a2, a3))(f)
-  def altly4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                a2: =>F[A2],
-                                a3: =>F[A3],
-                                a4: =>F[A4])(
+  def altly4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
   ): F[Z] = altly2(a1, either2(a2, either2(a3, a4)))(f)
   // ... altlyN
@@ -86,10 +88,12 @@ trait Alt[F[_]] extends Applicative[F] with Derives[F] { self =>
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z] = apply3(a1, a2, a3)(f)
-  override def xproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                            a2: =>F[A2],
-                                            a3: =>F[A3],
-                                            a4: =>F[A4])(
+  override def xproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
   ): F[Z] = apply4(a1, a2, a3, a4)(f)
@@ -102,16 +106,20 @@ trait Alt[F[_]] extends Applicative[F] with Derives[F] { self =>
     f: (A1 \/ A2) => Z,
     g: Z => (A1 \/ A2)
   ): F[Z] = altly2(a1, a2)(f)
-  override def xcoproduct3[Z, A1, A2, A3](a1: =>F[A1],
-                                          a2: =>F[A2],
-                                          a3: =>F[A3])(
+  override def xcoproduct3[Z, A1, A2, A3](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3]
+  )(
     f: (A1 \/ (A2 \/ A3)) => Z,
     g: Z => (A1 \/ (A2 \/ A3))
   ): F[Z] = altly3(a1, a2, a3)(f)
-  override def xcoproduct4[Z, A1, A2, A3, A4](a1: =>F[A1],
-                                              a2: =>F[A2],
-                                              a3: =>F[A3],
-                                              a4: =>F[A4])(
+  override def xcoproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
     f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
     g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))
   ): F[Z] = altly4(a1, a2, a3, a4)(f)
