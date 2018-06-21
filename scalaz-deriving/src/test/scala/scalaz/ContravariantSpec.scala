@@ -19,6 +19,7 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz
   val faz: Foo = Faz(true, 1)
+  val box: Foo = Box(2)
 
   "anyvals" should "behave as expected" in {
     assert(Thing("greetings") === Thing("greetings"))
@@ -39,6 +40,10 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
     assert(bar /== faz)
     assert(baz /== faz)
     assert(faz === faz)
+    assert(box /== bar)
+    assert(box /== baz)
+    assert(box /== faz)
+    assert(box === box)
   }
 
   val leaf1: Leaf    = Leaf("hello")

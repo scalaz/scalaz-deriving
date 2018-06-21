@@ -58,13 +58,26 @@ final class DerivezMacros(val c: blackbox.Context) {
       }.toList
     }
 
-    val data     = tlist(parts)
-    val tcsParts = parts.map(s => appliedType(F, List(s)))
-    val tcs      = tlist(tcsParts.map(tc => appliedType(Name, List(tc))))
-    val labels   = tlist(parts.map(_ => String))
+    val data   = tlist(parts)
+    val tcs    = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
+    val labels = tlist(parts.map(_ => String))
 
-    val tcs_rhs = tcsParts.map { tc =>
-      q"_root_.scalaz.Need(_root_.scala.Predef.implicitly[$tc])"
+    val tcs_rhs = parts.map { s =>
+      val tc = appliedType(F, s)
+      val imp =
+        c.inferImplicitValue(tc).orElse {
+          // when deriving a coproduct, if we can't find implicit evidence for
+          // the branches, derive one for use in the coproduct derivation only
+          if (aSym.isSealed)
+            q"_root_.scalaz.Derivez.gen[$F, $s]"
+          else
+            // this will fail later on, but with a compiler-generated implicit
+            // search failure message (respecting @implicitNotFound &c.)
+            // it would be slightly shorter to `inferImplicitValue` unsilently
+            // and use whatever message we find in the exception, but exceptions...
+            q"_root_.scala.Predef.implicitly[$tc]"
+        }
+      q"_root_.scalaz.Need($imp)"
     }
 
     if (aSym.isSealed) {

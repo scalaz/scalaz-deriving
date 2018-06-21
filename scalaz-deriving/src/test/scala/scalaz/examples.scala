@@ -26,6 +26,9 @@ package adt {
   final case class Faz(b: Boolean, i: Int) extends Foo
   @deriving(Equal, Default, Show)
   final case object Baz extends Foo
+
+  // the @deriving is implied by the parent!
+  final case class Box(i: Int) extends Foo
 }
 
 // more complex recursive type example

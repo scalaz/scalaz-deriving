@@ -67,7 +67,9 @@ object {
 }
 ```
 
-The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed trait` or `object`.
+The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed` classes, or `object`.
+
+Indeed, if it is used on a `sealed` class it is not necessary to add the annotation to the known subtypes.
 
 You can provide your own project-specific wirings in a `deriving.conf` file, which will also be available for users of your library if it is published.
 
@@ -251,6 +253,8 @@ The changelog will not be documented until 1.0.
 ## Caveats
 
 `scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided. Enforce this in your builds with the [`DisableSyntax`](https://scalacenter.github.io/scalafix/docs/rules/DisableSyntax) lint.
+
+When adding the `@deriving` annotation to a `sealed trait`: 1) the derivation will be repeated if there are multiple `sealed` layers (which might slow down compiles), 2) the implicit scope of the subtype's companion is not searched, 3) `@newtype`s will fail. To workaround, just add the `@deriving` to the `case class`es.
 
 The macro that generates the [iotaz](https://github.com/frees-io/iota) representation does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47).
 
