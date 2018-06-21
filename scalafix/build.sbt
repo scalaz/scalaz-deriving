@@ -13,13 +13,11 @@ lazy val input = project
     addCompilerPlugin(
       "org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
   )
-  .disablePlugins(ScalafmtPlugin)
 
-lazy val output = project.disablePlugins(ScalafmtPlugin)
+lazy val output = project
 
 lazy val tests = project
   .settings(
-    scalafmtConfig := Some(file("../project/scalafmt.conf")),
     libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.version % Test cross CrossVersion.full,
     buildInfoPackage := "fix",
     buildInfoKeys := Seq[BuildInfoKey](
