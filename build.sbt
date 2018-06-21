@@ -1,4 +1,4 @@
-val scalazVersion     = "7.2.22"
+val scalazVersion     = "7.2.24"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.12.0"
 
@@ -90,7 +90,7 @@ val derivez = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-      "io.frees"       %% "iotaz-core"    % "0.3.6"
+      "io.frees"       %% "iotaz-core"    % "0.3.8"
     )
   )
 

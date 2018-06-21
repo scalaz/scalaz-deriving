@@ -16,10 +16,14 @@ object ProjectKeys {
       ("org.scalamacros" % "paradise" % "2.1.1").cross(CrossVersion.full)
     )
   def KindProjector =
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.6")
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7")
 
   def MonadicFor =
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
+
+  def SemanticDB =
+    addCompilerPlugin(scalafixSemanticdb)
+  //("org.scalameta" % "semanticdb-scalac" % "4.0.0-M4").cross(CrossVersion.full)
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -62,7 +66,7 @@ object ProjectPlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
-      addCompilerPlugin(scalafixSemanticdb),
+      SemanticDB,
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
       scalacOptions ++= Seq(
         "-language:experimental.macros,higherKinds,implicitConversions",
