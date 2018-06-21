@@ -48,6 +48,25 @@ object Bar {
 }
 ```
 
+The annotation is compatible with the `@newtype` annotation [by estatico](https://github.com/estatico/scala-newtype)
+
+```scala
+@newtype
+@deriving(Encoder, Decoder)
+case class Bar(s: String)
+```
+
+expanding into
+
+```scala
+@newtype
+case class Bar(s: String)
+object {
+  implicit val _deriving_encoder: Encoder[Bar] = deriving
+  implicit val _deriving_decoder: Decoder[Bar] = deriving
+}
+```
+
 The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed trait` or `object`.
 
 You can provide your own project-specific wirings in a `deriving.conf` file, which will also be available for users of your library if it is published.

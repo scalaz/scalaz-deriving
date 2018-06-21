@@ -5,13 +5,10 @@ package testing.classes
 
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
-
 import scalaz.deriving
 import testing.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
-
 import play.api.libs.json
-
 import scalaz._
 import Scalaz._
 
@@ -65,4 +62,25 @@ final case class D(i: Int)
 package object d {
   val ValForwarder: Cofoo.type = Cofoo
   type ValForwarder[a] = Cofoo[a]
+}
+
+object newtypes {
+
+  import io.estatico.newtype.macros._
+
+  @deriving(json.Format)
+  @newtype final case class Spam(value: String)
+
+  @deriving(json.Format)
+  @newsubtype final case class Eggs(value: String)
+
+  @deriving(json.Format)
+  @newtype final case class Spammer[A](
+    value: scala.collection.immutable.List[A]
+  )
+
+  @deriving(json.Format)
+  @newsubtype final case class EggHead[A](
+    value: scala.collection.immutable.List[A]
+  )
 }

@@ -4,14 +4,14 @@
 package tests
 
 import java.lang.String
-
 import org.scalatest._
 import org.scalatest.Matchers._
 import play.api.libs.json
+import play.api.libs.json.{ JsArray, JsString }
+import scala.collection.immutable.List
 import shapeless.the
 import testing.classes._
 import testing.typeclasses._
-
 import Cofoo.ops._
 
 class DerivingTest extends FlatSpec {
@@ -81,4 +81,31 @@ class DerivingTest extends FlatSpec {
     (D._deriving_d_valforwarder should not).equal(null)
   }
 
+  it should "special case @newtype" in {
+    import newtypes._
+    val res = scala.Predef.implicitly[json.Format[Spam]].writes(Spam("hello"))
+    res.shouldBe(JsString("hello"))
+  }
+
+  it should "special case @newsubtype" in {
+    import newtypes._
+    val res = scala.Predef.implicitly[json.Format[Eggs]].writes(Eggs("hello"))
+    res.shouldBe(JsString("hello"))
+  }
+
+  it should "special case @newtype with type params" in {
+    import newtypes._
+    val res = scala.Predef
+      .implicitly[json.Format[Spammer[String]]]
+      .writes(Spammer(List("hello")))
+    res.shouldBe(JsArray(List(JsString("hello"))))
+  }
+
+  it should "special case @newsubtype with type params" in {
+    import newtypes._
+    val res = scala.Predef
+      .implicitly[json.Format[EggHead[String]]]
+      .writes(EggHead(List("hello")))
+    res.shouldBe(JsArray(List(JsString("hello"))))
+  }
 }

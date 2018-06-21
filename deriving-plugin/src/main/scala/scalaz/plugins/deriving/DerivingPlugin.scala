@@ -3,6 +3,7 @@
 
 package scalaz.plugins.deriving
 
+import scala.collection.immutable.Set
 import scala.tools.nsc._
 
 class DerivingPlugin(override val global: Global)
@@ -20,6 +21,7 @@ class DerivingPlugin(override val global: Global)
       ),
       TermName("DerivingMacros")
     )
+
   def toGen(f: Tree, a: Tree, target: TermName): Tree =
     if (isIde || isScaladoc) Literal(Constant(null))
     else
@@ -85,7 +87,8 @@ class DerivingPlugin(override val global: Global)
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
       AppliedTypeTree(typeclass.tree.duplicate, List(Ident(c.name))),
-      toGen(typeclass.tree, Ident(c.name), target)
+      if (isNewType(c)) Ident("deriving")
+      else toGen(typeclass.tree, Ident(c.name), target)
     )
 
   def genImplicitDef(
@@ -118,7 +121,8 @@ class DerivingPlugin(override val global: Global)
       c.tparams.map(_.duplicate),
       implicits,
       AppliedTypeTree(typeclass.tree.duplicate, List(a)),
-      toGen(typeclass.tree, a, target)
+      if (isNewType(c)) Ident("deriving")
+      else toGen(typeclass.tree, a, target)
     )
   }
 
@@ -165,5 +169,16 @@ class DerivingPlugin(override val global: Global)
         comp.impl.body ::: extras.map(_.withAllPos(comp.pos))
       )
     )
+
+  private val newtypes = Set("newtype", "newsubtype")
+  def isNewType(clazz: ClassDef): Boolean =
+    clazz.mods.annotations.collectFirst {
+      case Apply(Select(New(ann), termNames.CONSTRUCTOR), Nil) => ann
+    }.collect {
+      case Ident(TypeName(annName))     => annName
+      case Select(_, TypeName(annName)) => annName
+    }.exists(newtypes)
+
+  override def addSuperFunction(clazz: ClassDef): Boolean = !isNewType(clazz)
 
 }

@@ -6,6 +6,7 @@
 package scalaz.plugins.deriving
 
 import scala.Predef.ArrowAssoc
+import scala.deprecated
 import scala.collection.immutable.Map
 import scala.collection.breakOut
 import scala.reflect.internal.util._
@@ -34,6 +35,7 @@ import scala.tools.nsc.transform._
  * phase to remove the trigger annotations if needed.
  */
 abstract class AnnotationPlugin(override val global: Global) extends Plugin {
+
   import global._
   override lazy val description: String =
     s"Generates code for annotations $triggers"
@@ -65,6 +67,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       case Select(New(Ident(name)), _)     => name.toTermName
       case Select(New(Select(_, name)), _) => name.toTermName
     }.getOrElse(abort(s"no name for $ann"))
+
+  // case classes without companions should inherit Function
+  def addSuperFunction(@deprecated("unused", "") clazz: ClassDef): Boolean =
+    true
 
   implicit class RichTree[T <: Tree](private val t: T) {
 
@@ -145,7 +151,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       val isCase = clazz.mods.hasFlag(Flag.CASE)
 
       def sup =
-        if (isCase && clazz.tparams.isEmpty) {
+        if (isCase && clazz.tparams.isEmpty && addSuperFunction(clazz)) {
           val accessors = clazz.impl.collect {
             case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
               tpt.duplicate
