@@ -11,10 +11,12 @@ import examples.anyvals._
 import examples.adt._
 import examples.recadt._
 import examples.recgadt._
+import examples.Default
 
 import Scalaz._
 
-class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
+class GenericDerivesSpec extends FlatSpec with NonImplicitAssertions {
+  import Matchers._
 
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz
@@ -24,12 +26,16 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
   "anyvals" should "behave as expected" in {
     assert(Thing("greetings") === Thing("greetings"))
     assert(Thing("greetings") /== Thing("blessings"))
+
+    Default[Thing].default should equal(Thing(""))
   }
 
   "products" should "behave as expected" in {
     assert(Bar("hello") === Bar("hello"))
 
     assert(Bar("hello") /== Bar("goodbye"))
+
+    Default[Faz].default should equal(Faz(false, 0))
   }
 
   "coproducts" should "behave as expected" in {
@@ -44,6 +50,8 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
     assert(box /== baz)
     assert(box /== faz)
     assert(box === box)
+
+    Default[Foo].default should equal(Bar(""))
   }
 
   val leaf1: Leaf    = Leaf("hello")
@@ -56,11 +64,15 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
     assert(leaf1 === leaf1)
     assert(leaf2 === leaf2)
     assert(leaf1 /== leaf2)
+
+    Default[Leaf].default should equal(Leaf(""))
   }
 
   "recursive coproducts" should "behave as expected" in {
     assert(tree1 === tree1)
     assert(tree1 /== tree2)
+
+    Default[ATree].default should equal(Leaf(""))
   }
 
   val gleaf1: GLeaf[String]    = GLeaf("hello")
@@ -73,11 +85,16 @@ class ContravariantSpec extends FlatSpec with NonImplicitAssertions {
     assert(gleaf1 === gleaf1)
     assert(gleaf2 === gleaf2)
     assert(gleaf1 /== gleaf2)
+
+    Default[GLeaf[String]].default should equal(GLeaf(""))
   }
 
   "recursive GADT coproducts" should "behave as expected" in {
     assert(gtree1 === gtree1)
     assert(gtree1 /== gtree2)
+
+    Default[GTree[String]].default should equal(GLeaf(""))
   }
 
+  // tests for arity >4 https://gitlab.com/fommil/scalaz-deriving/issues/88
 }

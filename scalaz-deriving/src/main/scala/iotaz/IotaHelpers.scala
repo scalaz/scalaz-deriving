@@ -5,7 +5,7 @@ package iotaz
 
 import java.lang.String
 
-import scala.collection.immutable.{ Seq, Vector }
+import scala.collection.immutable.{ List, Seq }
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
@@ -115,13 +115,13 @@ object Prods {
   val empty: Prod[TNil] = Prod()
 
   def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
-    Prod.unsafeApply(Vector(e._1, e._2))
+    Prod.unsafeApply(List(e._1, e._2))
   def from3T[A1, A2, A3](e: (A1, A2, A3)): Prod[A1 :: A2 :: A3 :: TNil] =
-    Prod.unsafeApply(Vector(e._1, e._2, e._3))
+    Prod.unsafeApply(List(e._1, e._2, e._3))
   def from4T[A1, A2, A3, A4](
     e: (A1, A2, A3, A4)
   ): Prod[A1 :: A2 :: A3 :: A4 :: TNil] =
-    Prod.unsafeApply(Vector(e._1, e._2, e._3, e._4))
+    Prod.unsafeApply(List(e._1, e._2, e._3, e._4))
 
   def to1T[A1](a: Prod[A1 :: TNil]): A1 = a.values(0).asInstanceOf[A1]
   def to2T[A1, A2](a: Prod[A1 :: A2 :: TNil]): (A1, A2) = (

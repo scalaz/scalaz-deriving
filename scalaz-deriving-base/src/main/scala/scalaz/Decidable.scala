@@ -4,7 +4,7 @@
 package scalaz
 
 import scala.Predef.identity
-import scala.inline
+import scala.{ inline, Unit }
 
 /**
  * Coproduct analogue of Divide
@@ -12,8 +12,12 @@ import scala.inline
  * https://hackage.haskell.org/package/contravariant-1.4.1/docs/Data-Functor-Contravariant-Divisible.html#t:Decidable
  */
 ////
-trait Decidable[F[_]] extends LazyDivisible[F] with Derives[F] { self =>
+trait Decidable[F[_]] extends Divisible[F] with Derives[F] { self =>
   ////
+
+  // backport from 7.3's Divisible
+  override def contramap[A, B](fa: F[A])(f: B => A): F[B] =
+    divide2(conquer[Unit], fa)(c => ((), f(c)))
 
   final def choose[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: Z => A1 \/ A2
@@ -56,7 +60,7 @@ trait Decidable[F[_]] extends LazyDivisible[F] with Derives[F] { self =>
   // ... choosingX
 
   override def xproduct0[Z](z: =>Z): F[Z] = conquer
-  override def xproduct1[Z, A1](a1: F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
+  override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
     xmap(a1, f, g)
   override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z,

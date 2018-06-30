@@ -17,7 +17,7 @@ import Scalaz._
  * For encoder algebras (e.g. json, xml) that require access to label
  * information, thus cannot implement a lawful Decidable.
  */
-abstract class LabelledEncoder[F[_]] extends Contravariant[F] with Deriving[F] {
+abstract class LabelledEncoder[F[_]] extends Deriving[F] with Contravariant[F] {
 
   type =*>[Z, G[_]] = LabelledArityExists[Z, F, G]
   type =+>[Z, G[_]] = LabelledArityExists1[Z, F, G]

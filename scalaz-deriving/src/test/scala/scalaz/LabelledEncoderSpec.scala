@@ -15,7 +15,7 @@ import examples.recgadt._
 
 import Scalaz._
 
-class LabelledContravariantSpec extends FlatSpec with NonImplicitAssertions {
+class LabelledEncoderSpec extends FlatSpec with NonImplicitAssertions {
 
   "anyvals" should "behave as expected" in {
     Thing("greetings").shows should equal("\"greetings\"")

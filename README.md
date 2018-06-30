@@ -106,19 +106,19 @@ object Foo {
 
 with `apply3` and `apply4` defined in terms of `apply2`, etc.
 
-These typeclasses are a formalism to derive both covariant (reader) and contravariant (writer) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
+These typeclasses are a formalism to derive both covariant (decoder) and contravariant (encoder) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
 
 We provide generic variants (unlimited arity) using the [iotaz](https://github.com/frees-io/iota) high performance generic programming library.
 
 A typeclass author will implement one of the following interfaces:
 
 ```scala
-abstract class CovariantDeriving[F[_]] extends Deriving[F] {
+abstract class Altz[F[_]] extends Alt[F] with Deriving[F] {
   def productz[Z](f: (F ~> Id) => Z): F[Z]
   def coproductz[Z](f: (F ~> Maybe) => EStream[Z]): F[Z]
 }
 
-abstract class ContravariantDeriving[F[_]] extends Deriving[F] {
+abstract class Decidablez[F[_]] extends Decidable[F] with Deriving[F] {
   def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
   def coproductz[Z](f: Z =+> Maybe): F[Z]
 }
@@ -139,7 +139,7 @@ trait Default[A] {
 }
 object Default {
   ...
-  implicit val instance = new CovariantDeriving[Default] {
+  implicit val instance = new Altz[Default] {
     val extract = λ[Default ~> Id](a => a.default)
     override def productz[Z](f: (Default ~> Id) => Z) = instance { f(extract) }
 
@@ -158,7 +158,7 @@ trait Equal[F] {
 }
 object Equal {
   ...
-  implicit val instance = new ContravariantDeriving[Equal] {
+  implicit val instance = new Decidablez[Equal] {
     def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
       f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
     }
@@ -172,7 +172,7 @@ object Equal {
 
 which defines `InvariantFunctor[Equal]`, giving us `.xmap` and `.contramap` for free.
 
-If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDeriving` variants:
+If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDeriving` variants which are **not** part of the =Alt= / =Decidable= typeclass hierarchy:
 
 ```scala
 implicit val ShowDeriving: LabelledEncoder[Show] = new LabelledEncoder[Show] {

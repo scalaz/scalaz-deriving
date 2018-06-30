@@ -5,19 +5,23 @@ package scalaz
 
 import java.lang.String
 
-import scala.{ inline, AnyRef }
+import scala.inline
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
-import Scalaz._
-
 /**
- * Interface for the generic typeclass derivation of products, coproducts and
- * AnyVal.
+ * Interface for the generic typeclass derivation of products and coproducts.
+ *
+ * Typeclass authors provide an implementation of this by extending Altz,
+ * Decidablez, LabelledEncoder or LabelledDecoder, or by wrapping an existing
+ * Derives instance in GenericDerives.
+ *
+ * Downstream users call this API via the DerivingMacro.
  */
-trait Deriving[F[_]] extends InvariantFunctor[F] {
+trait Deriving[F[_]] {
+
   def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
     labels: Prod[N]
@@ -41,6 +45,7 @@ trait Deriving[F[_]] extends InvariantFunctor[F] {
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
   ): F[Z]
+
 }
 object Deriving {
   @inline def apply[F[_]](implicit F: Deriving[F]): Deriving[F] = F
@@ -64,30 +69,12 @@ object Deriving {
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
-  // orphans, should really lift the Decidable[Equal]
-  implicit val EqualDeriving: ContravariantDeriving[Equal] =
-    new ContravariantDeriving[Equal] {
-      def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = {
-        (z1: Z, z2: Z) =>
-          (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) ||
-          f(z1, z2).all {
-            case fa /~\ ((a1, a2)) =>
-              (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
-                fa.equal(a1, a2)
-          }
-      }
+  implicit val _deriving_equal: Deriving[Equal] = GenericDerives(Derives[Equal])
 
-      def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
-        (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) || f(z1, z2).map {
-          case fa /~\ ((a1, a2)) =>
-            (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
-              fa.equal(a1, a2)
-        }.getOrElse(false)
-      }
-    }
-
-  implicit val ShowDeriving: LabelledEncoder[Show] =
+  implicit val _deriving_show: LabelledEncoder[Show] =
     new LabelledEncoder[Show] {
+      import Scalaz._
+
       def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
         r.show(f(b))
       }
