@@ -14,22 +14,10 @@ import iotaz.TList.Op.{ Map => ƒ }
 import Scalaz._
 
 /**
- * Typeclass Derivation for products, coproducts and AnyVal.
- *
- * Typeclasses with parameters in contravariant position (e.g. encoders,
- * comparators) should implement this typeclass with
- * LabelledContravariantDerivez or ContravariantDerivez.
- *
- * Typeclasses with parameters in covariant position (e.g. decoders, data
- * generators) should implement this typeclass with LabelledCovariantDerivez or
- * CovariantDerivez.
- *
- * Typeclasses with a mix of contravariant and covariant position methods (e.g.
- * a "format" that combines an encoder and a decoder) may implement this
- * typeclass directly but such constructs are usually best split into two parts,
- * with an implicit to create the combination where required.
+ * Interface for the generic typeclass derivation of products, coproducts and
+ * AnyVal.
  */
-trait Derivez[F[_]] extends InvariantFunctor[F] {
+trait Deriving[F[_]] extends InvariantFunctor[F] {
   def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
     labels: Prod[N]
@@ -54,14 +42,12 @@ trait Derivez[F[_]] extends InvariantFunctor[F] {
     ev2: λ[a => String] ƒ L ↦ N
   ): F[Z]
 }
-object Derivez {
-  @inline def apply[F[_]](
-    implicit i: Derivez[F]
-  ): Derivez[F] = i
+object Deriving {
+  @inline def apply[F[_]](implicit F: Deriving[F]): Deriving[F] = F
 
   /**
    * Generate, for a given case class, object, or sealed trait `A` a call to
-   * relevant `Derivez` method to produce an `F[A]`.
+   * relevant `Deriving` method to produce an `F[A]`.
    *
    * There is no magic in this macro, it is pure boilerplate generation. e.g.
    * for `case class Foo(s: String, i: Int)` and `Equal`, the following is
@@ -70,17 +56,17 @@ object Derivez {
    * {{{
    * val gen = ProdGen.gen[Foo]
    * val tcs = Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
-   * Derivez.xproductz(tcs, gen.labels)(gen.to, gen.from)
+   * implicitly[Deriving[Equal]].xproductz(tcs, gen.labels)(gen.to, gen.from)
    * }}}
    *
    * And similarly for a sealed trait (but instead calling `CopGen.gen` and
    * `xcoproductz`).
    */
-  def gen[F[_], A]: F[A] = macro macros.DerivezMacros.gen[F, A]
+  def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
-  // should really be on the companion of Equal
-  implicit val EqualDerivez: ContravariantDerivez[Equal] =
-    new ContravariantDerivez[Equal] {
+  // orphans, should really lift the Decidable[Equal]
+  implicit val EqualDeriving: ContravariantDeriving[Equal] =
+    new ContravariantDeriving[Equal] {
       def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = {
         (z1: Z, z2: Z) =>
           (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) ||
@@ -100,8 +86,8 @@ object Derivez {
       }
     }
 
-  implicit val ShowDerivez: LabelledContravariantDerivez[Show] =
-    new LabelledContravariantDerivez[Show] {
+  implicit val ShowDeriving: LabelledEncoder[Show] =
+    new LabelledEncoder[Show] {
       def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
         r.show(f(b))
       }

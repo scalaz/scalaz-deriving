@@ -8,24 +8,16 @@ import java.lang.String
 import scala.{ inline, Any }
 
 import iotaz._
+import iotaz.TList.::
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 import Scalaz._
+import Prods._
+import Cops._
 
-/**
- * Implementations of Derivez that are law-abiding and must therefore ignore
- * labels.
- */
-trait LawfulDerivez[F[_]] extends Derivez[F] with Derives[F]
-
-abstract class ContravariantDerivez[F[_]]
-    extends LawfulDerivez[F]
-    with Decidablez[F]
-    with Divisiblez[F] {
-
-  // although we don't leave the G as a free parameter, it is a useful reminder
-  // to the author of the instance of what they receive after providing a Z.
+/** A convenient API that typeclass authors may use to implement Decidablez */
+abstract class ContravariantDeriving[F[_]] extends Decidablez[F] {
   type =*>[Z, G[_]] = ArityExists[Z, F, G]
   type =+>[Z, G[_]] = ArityExists1[Z, F, G]
 
@@ -111,62 +103,55 @@ abstract class ContravariantDerivez[F[_]]
     }
   }
 
+  // derived combinators...
+  override def conquer[Z]: F[Z] =
+    dividez[Z, TNil, TNil](empty)(_ => empty)
+
+  override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
+    dividez(Prod(Value(a1)))(z => Prod[A1 :: TNil](f(z)))
+
+  override def divide2[A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(
+    f: Z => (A1, A2)
+  ): F[Z] =
+    dividez(LazyProd(a1, a2))(z => from2T(f(z)))
+  override def divide3[A1, A2, A3, Z](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
+    f: Z => (A1, A2, A3)
+  ): F[Z] =
+    dividez(LazyProd(a1, a2, a3))(z => from3T(f(z)))
+  override def divide4[A1, A2, A3, A4, Z](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
+    f: Z => (A1, A2, A3, A4)
+  ): F[Z] =
+    dividez(LazyProd(a1, a2, a3, a4))(z => from4T(f(z)))
+  // scalaz goes all the way to divide22, but we give up here for brevity
+
+  override def choose1[Z, A1](a1: =>F[A1])(f: Z => A1): F[Z] =
+    choosez(LazyProd(a1))(z => from1(f(z)))
+  override def choose2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
+    f: Z => A1 \/ A2
+  ): F[Z] =
+    choosez(LazyProd(a1, a2))(z => from2(f(z)))
+  override def choose3[Z, A1, A2, A3](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3]
+  )(f: Z => A1 \/ (A2 \/ A3)): F[Z] =
+    choosez(LazyProd(a1, a2, a3))(z => from3(f(z)))
+  override def choose4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(f: Z => A1 \/ (A2 \/ (A3 \/ A4))): F[Z] =
+    choosez(LazyProd(a1, a2, a3, a4))(z => from4(f(z)))
+
 }
-object ContravariantDerivez {
+object ContravariantDeriving {
   @inline def apply[F[_]](
-    implicit i: ContravariantDerivez[F]
-  ): ContravariantDerivez[F] = i
-}
-
-abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
-    extends LawfulDerivez[F]
-    with Altz[F]
-    with Applicativez[F] {
-
-  def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
-
-  final override def xproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
-  )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
-  )(
-    implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = applyz(tcs)(f)
-
-  final def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
-    f: Prod[L] => Z
-  )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] =
-    productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
-
-  final override def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
-  )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
-  )(
-    implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = altlyz(tcs)(f)
-
-  final override def altlyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
-    f: Cop[L] => Z
-  )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] =
-    coproductz((faa: (F ~> G)) => Cops.mapMaybe(tcs)(faa).map(f))
-
-}
-object CovariantDerivez {
-  @inline def apply[F[_], G[_]: Monad: FromFoldable1](
-    implicit i: CovariantDerivez[F, G]
-  ): CovariantDerivez[F, G] = i
+    implicit i: ContravariantDeriving[F]
+  ): ContravariantDeriving[F] = i
 }

@@ -23,13 +23,22 @@ object Default {
   implicit val string: Default[String]   = instance("")
   implicit val boolean: Default[Boolean] = instance(false)
 
-  implicit val Derivez: Derivez[Default] =
-    new CovariantDerivez[Default, Id] {
-      val choose: Default ~> Id = λ[Default ~> Id](_.default)
-      override def productz[Z](f: (Default ~> Id) => Z): Default[Z] =
-        instance { f(choose) }
-      override def coproductz[Z](f: (Default ~> Id) => Id[Z]): Default[Z] =
-        instance { f(choose) }
+  implicit val instances: CovariantDeriving[Default] =
+    new CovariantDeriving[Default] {
+      val extract: Default ~> Id = λ[Default ~> Id](a => a.default)
+      override def productz[Z](
+        f: (Default ~> Id) => Z
+      ): Default[Z] =
+        instance { f(extract) }
+
+      val always: Default ~> Maybe = λ[Default ~> Maybe](_.default.just)
+      override def coproductz[Z](
+        f: (Default ~> Maybe) => EphemeralStream[Z]
+      ): Default[Z] =
+        instance { f(always).head() }
+      // NOTE: the typeclass does not allow failure, so we are forced to perform
+      // an unsafe .head() call. We should fix this by making Default return a
+      // Maybe.
     }
 
 }

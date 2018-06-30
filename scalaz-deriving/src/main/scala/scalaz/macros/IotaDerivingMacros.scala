@@ -6,7 +6,7 @@ package scalaz.macros
 import scala._
 import scala.reflect.macros.blackbox
 
-final class DerivezMacros(val c: blackbox.Context) {
+final class IotaDerivingMacros(val c: blackbox.Context) {
   import c.universe._
 
   def gen[F[_], A](
@@ -69,7 +69,7 @@ final class DerivezMacros(val c: blackbox.Context) {
           // when deriving a coproduct, if we can't find implicit evidence for
           // the branches, derive one for use in the coproduct derivation only
           if (aSym.isSealed)
-            q"_root_.scalaz.Derivez.gen[$F, $s]"
+            q"_root_.scalaz.Deriving.gen[$F, $s]"
           else
             // this will fail later on, but with a compiler-generated implicit
             // search failure message (respecting @implicitNotFound &c.)
@@ -84,13 +84,13 @@ final class DerivezMacros(val c: blackbox.Context) {
       q"""
        val gen = _root_.iotaz.CopGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Derivez[$F].xcoproductz(tcs, gen.labels)(gen.to, gen.from)
+       _root_.scalaz.Deriving[$F].xcoproductz(tcs, gen.labels)(gen.to, gen.from)
        """
     } else {
       q"""
        val gen = _root_.iotaz.ProdGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Derivez[$F].xproductz(tcs, gen.labels)(gen.to, gen.from)
+       _root_.scalaz.Deriving[$F].xproductz(tcs, gen.labels)(gen.to, gen.from)
        """
     }
   }

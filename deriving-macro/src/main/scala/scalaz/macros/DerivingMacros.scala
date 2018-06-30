@@ -19,7 +19,7 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
     val fqn = F.dealias.typeSymbol.fullName
     readConfig().targets.get(fqn) match {
       case Some(target) => parseTerm(target)
-      case None         => q"_root_.scalaz.Derivez.gen[$F, $A]"
+      case None         => q"_root_.scalaz.Deriving.gen[$F, $A]"
     }
   }
 

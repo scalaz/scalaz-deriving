@@ -14,14 +14,10 @@ import iotaz.TList.Op.{ Map => ƒ }
 import Scalaz._
 
 /**
- * Implementations of Derivez that make use of label information and can only
- * implement a subset of laws compared to LawfulDerivez.
+ * For encoder algebras (e.g. json, xml) that require access to label
+ * information, thus cannot implement a lawful Decidable.
  */
-trait LabelledDerivez[F[_]] extends Derivez[F]
-
-abstract class LabelledContravariantDerivez[F[_]]
-    extends LabelledDerivez[F]
-    with Contravariant[F] {
+abstract class LabelledEncoder[F[_]] extends Contravariant[F] with Deriving[F] {
 
   type =*>[Z, G[_]] = LabelledArityExists[Z, F, G]
   type =+>[Z, G[_]] = LabelledArityExists1[Z, F, G]
@@ -102,46 +98,8 @@ abstract class LabelledContravariantDerivez[F[_]]
   }
 
 }
-object LabelledContravariantDerivez {
+object LabelledEncoder {
   @inline def apply[F[_]](
-    implicit i: LabelledContravariantDerivez[F]
-  ): LabelledContravariantDerivez[F] = i
-}
-
-abstract class LabelledCovariantDerivez[F[_], G[_]: Monad: FromFoldable1]
-    extends LabelledDerivez[F]
-    with Functor[F] {
-
-  def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
-
-  final override def xproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
-  )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
-  )(
-    implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
-
-  final override def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
-  )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
-  )(
-    implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = coproductz((faa: (F ~> G)) => Cops.mapMaybe(tcs)(faa).map(f))
-
-}
-object LabelledCovariantDerivez {
-  @inline def apply[F[_], G[_]: Monad: FromFoldable1](
-    implicit i: LabelledCovariantDerivez[F, G]
-  ): LabelledCovariantDerivez[F, G] = i
+    implicit i: LabelledEncoder[F]
+  ): LabelledEncoder[F] = i
 }

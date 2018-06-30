@@ -22,7 +22,6 @@ build_job:
         exit 1 ;
       fi
     - sbt ";+check ;+cpl ;lint ;+test"
-    - cd scalafix ; sbt tests/test
 
 deploy_job:
   only:
@@ -36,4 +35,3 @@ deploy_job:
       - project/.sbt
   script:
     - sbt ";+update;+publish"
-    - cd scalafix ; sbt update

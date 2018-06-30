@@ -145,9 +145,11 @@ object Prods {
 }
 
 object Cops {
-  def mapMaybe[A, T[_], G[_]: Monad: FromFoldable1, L <: TList, TL <: TList](
+  type NonEmptyStream[a] = OneAnd[EphemeralStream, Name[a]]
+
+  def mapMaybe[A, T[_], L <: TList, TL <: TList](
     tcs: Prod[TL]
-  )(f: T ~> G)(
+  )(f: T ~> Maybe)(
     implicit
     // needs evidence for being non empty
     // https://github.com/frees-io/iota/issues/91
@@ -155,22 +157,19 @@ object Cops {
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
     // ev2: Cop.InjectL[Y, L]
-  ): G[Cop[L]] =
-    // until https://github.com/scalaz/scalaz/issues/1515 is resolved we have to
-    // use stdlib Stream which means always evaluating at least one element.
+  ): EphemeralStream[Cop[L]] =
     tcs.values
       .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
-      .toStream
+      .toList
       .indexed
-      .traverse {
-        case (i, v) =>
-          f(v.value).map { y =>
+      .toEphemeralStream
+      .flatMap {
+        case (i, nt: Name[T[scala.Any]]) =>
+          val t: T[scala.Any]                = nt.value
+          val ys: EphemeralStream[scala.Any] = f(t).toEphemeralStream
+          ys.map { y =>
             Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
           }
-      }
-      .flatMap { s =>
-        val loa = LazyOneAnd(s.head, s.tail) // from the non-empty evidence
-        FromFoldable1[G].fromFoldable1(loa)
       }
 
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)

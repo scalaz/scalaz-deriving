@@ -43,8 +43,8 @@ expands to
 
 ```scala
 object Bar {
-  implicit val _deriving_encoder: Encoder[Bar] = scalaz.Derivez.gen[Encoder, Bar]
-  implicit val _deriving_decoder: Decoder[Bar] = scalaz.Derivez.gen[Decoder, Bar]
+  implicit val _deriving_encoder: Encoder[Bar] = scalaz.Deriving.gen[Encoder, Bar]
+  implicit val _deriving_decoder: Decoder[Bar] = scalaz.Deriving.gen[Decoder, Bar]
 }
 ```
 
@@ -113,12 +113,12 @@ We provide generic variants (unlimited arity) using the [iotaz](https://github.c
 A typeclass author will implement one of the following interfaces:
 
 ```scala
-abstract class CovariantDerivez[F[_], G[_]: Monad: FromFoldable1] extends Derivez[F] {
+abstract class CovariantDeriving[F[_]] extends Deriving[F] {
   def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> G) => G[Z]): F[Z]
+  def coproductz[Z](f: (F ~> Maybe) => EStream[Z]): F[Z]
 }
 
-abstract class ContravariantDerivez[F[_]] extends Derivez[F] {
+abstract class ContravariantDeriving[F[_]] extends Deriving[F] {
   def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
   def coproductz[Z](f: Z =+> Maybe): F[Z]
 }
@@ -139,10 +139,12 @@ trait Default[A] {
 }
 object Default {
   ...
-  implicit val Derivez: CovariantDerivez[Default] = new CovariantDerivez[Default, Id] {
-    val choose = λ[Default ~> Id](_.default)
-    override def productz[Z](f: (Default ~> Id) => Z): Default[Z] = instance { f(choose) }
-    override def coproductz[Z](f: (Default ~> Id) => Id[Z]): Default[Z] = instance { f(choose) }
+  implicit val instance = new CovariantDeriving[Default] {
+    val extract = λ[Default ~> Id](a => a.default)
+    override def productz[Z](f: (Default ~> Id) => Z) = instance { f(extract) }
+
+    val always = λ[Default ~> Maybe](_.default.just)
+    override def coproductz[Z](f: (Default ~> Maybe) => EStream[Z]) = instance { f(always).head() }
   }
 ```
 
@@ -156,7 +158,7 @@ trait Equal[F] {
 }
 object Equal {
   ...
-  implicit val Derivez: ContravariantDerivez[Equal] = new ContravariantDerivez[Equal] {
+  implicit val instance = new ContravariantDeriving[Equal] {
     def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
       f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
     }
@@ -170,10 +172,10 @@ object Equal {
 
 which defines `InvariantFunctor[Equal]`, giving us `.xmap` and `.contramap` for free.
 
-If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDerivez` variants:
+If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDeriving` variants:
 
 ```scala
-implicit val ShowDerivez: LabelledContravariantDerivez[Show] = new LabelledContravariantDerivez[Show] {
+implicit val ShowDeriving: LabelledEncoder[Show] = new LabelledEncoder[Show] {
   def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b => r.show(f(b)) }
   def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
     "(" +: f(z).map { case fa /~\ ((label, a)) => label +: "=" +: fa.show(a) }.intercalate(",") :+ ")"
@@ -236,12 +238,12 @@ We provide some automated rules to migrate when we introduce breaking changes. Y
   - `@stalactite.deriving` renamed to `@scalaz.deriving`
     - `scalafix replace:stalactite.deriving/scalaz.deriving`
 - 0.10.0
-  - the default deriver was changed from `Foo.gen` to `scalaz.Derivez.gen`, add your typeclasses to `deriving.conf`
+  - the default deriver was changed from `Foo.gen` to `scalaz.Deriving.gen`, add your typeclasses to `deriving.conf`
   - the `-default.conf` derivations feature was removed
 - 0.11.0
   - the `.Aux` derivation feature was removed
   - `@scalaz.deriving` special casing for `extends AnyVal` was replaced with `@scalaz.xderiving`
-    - `scalafix https://gitlab.com/fommil/scalaz-deriving/raw/master/scalafix/rules/src/main/scala/fix/Deriving_0_11_0.scala`
+    - `scalafix https://gitlab.com/fommil/scalaz-deriving/raw/v0.14.0/scalafix/rules/src/main/scala/fix/Deriving_0_11_0.scala`
   - the compiler plugin must be enabled
 - 0.12.0
   - the `-Xmacro-settings:deriving` flag was removed, use `deriving.conf` in `resources`

@@ -61,7 +61,7 @@ val macros = (project in file("deriving-macro"))
   )
 
 // extensions to scalaz7.2
-val scalaz = (project in file("scalaz-deriving-base")).settings(
+val base = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
   MonadicFor,
   name := "scalaz-deriving-base",
@@ -75,9 +75,9 @@ val scalaz = (project in file("scalaz-deriving-base")).settings(
   )
 )
 
-val derivez = (project in file("scalaz-deriving"))
+val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
-    scalaz,
+    base,
     macros
   )
   .settings(inConfig(Test)(ScalazDeriving))
