@@ -10,21 +10,28 @@ import scalaz._
 import Scalaz._
 
 package anyvals {
-  @xderiving(Equal, Default, Defaultz, Show)
+  @xderiving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Thing(s: String) extends AnyVal
 
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Thong(s: String) extends AnyVal
 }
 
+object newtypes {
+  import io.estatico.newtype.macros.newtype
+
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
+  @newtype final case class Theng(s: String)
+}
+
 package adt {
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   sealed trait Foo
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Bar(s: String) extends Foo
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Faz(b: Boolean, i: Int) extends Foo
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case object Baz extends Foo
 
   // the @deriving is implied by the parent!
@@ -33,20 +40,20 @@ package adt {
 
 // more complex recursive type example
 package recadt {
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   sealed trait ATree
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Leaf(value: String) extends ATree
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class Branch(left: ATree, right: ATree) extends ATree
 }
 
 // more complex recursive GADT type example
 package recgadt {
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   sealed trait GTree[A]
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class GLeaf[A](value: A) extends GTree[A]
-  @deriving(Equal, Default, Defaultz, Show)
+  @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 }

@@ -89,8 +89,10 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-      "io.frees"       %% "iotaz-core"    % "0.3.8"
+      "io.estatico"          %% "newtype"       % "0.4.2" % "test",
+      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion % "test",
+      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
+      "io.frees"             %% "iotaz-core"    % "0.3.8"
     )
   )
 
