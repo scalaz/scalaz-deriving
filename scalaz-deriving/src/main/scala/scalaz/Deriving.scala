@@ -12,7 +12,8 @@ import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
 /**
- * Interface for the generic typeclass derivation of products and coproducts.
+ * Interface for generic derivation of typeclasses (and algebras) for products
+ * and coproducts.
  *
  * Typeclass authors provide an implementation of this by extending Altz,
  * Decidablez, LabelledEncoder or LabelledDecoder, or by wrapping an existing
