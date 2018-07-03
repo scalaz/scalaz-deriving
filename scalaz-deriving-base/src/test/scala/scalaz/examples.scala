@@ -8,6 +8,7 @@ import scala.{ Boolean, Int }
 import scala.Predef.implicitly
 
 import scalaz._, Scalaz._
+import orphans._
 
 // a simple adt with typeclass derivations
 package adt {

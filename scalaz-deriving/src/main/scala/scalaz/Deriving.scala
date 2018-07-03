@@ -5,7 +5,7 @@ package scalaz
 
 import java.lang.String
 
-import scala.inline
+import scala.{ inline, AnyRef }
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
@@ -70,9 +70,31 @@ object Deriving {
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
-  implicit val _deriving_equal: Deriving[Equal] = GenericDerives(Derives[Equal])
+  // hide the detail that this is an Altz to avoid exposing a Divide that breaks
+  // typeclass coherence. Optimised to use instance equality.
+  implicit val _deriving_equal: Deriving[Equal] = new Decidablez[Equal] {
+    import Scalaz._
 
-  implicit val _deriving_show: LabelledEncoder[Show] =
+    def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
+      (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) ||
+      f(z1, z2).all {
+        case fa /~\ ((a1, a2)) =>
+          (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
+            fa.equal(a1, a2)
+      }
+    }
+
+    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
+      (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) || f(z1, z2).map {
+        case fa /~\ ((a1, a2)) =>
+          (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
+            fa.equal(a1, a2)
+      }.getOrElse(false)
+    }
+  }
+
+  // not exposing the Contravariant to avoid typeclass incoherence
+  implicit val _deriving_show: Deriving[Show] =
     new LabelledEncoder[Show] {
       import Scalaz._
 

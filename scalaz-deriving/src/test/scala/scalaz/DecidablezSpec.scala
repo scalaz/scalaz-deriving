@@ -11,7 +11,6 @@ import org.scalatest._
 
 import examples._
 import examples.BadPack.ops._
-import examples.Same.ops._
 
 import examples.anyvals._
 import examples.newtypes._
@@ -34,7 +33,7 @@ class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
     true.encode.assert_===(Product(IList(Rational(1))))
   }
 
-  "BadBadPack products" should "break the Divide composition law" in {
+  "BadPack products" should "break the Divide composition law" in {
     val D: Divisible[BadPack] = Divisible[BadPack]
 
     val E: Equal[BadPack[String]] =
@@ -52,28 +51,27 @@ class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
   val box: Foo = Box(2)
 
   "anyvals" should "behave as expected" in {
-    assert(Thing("greetings").same(Thing("greetings")))
-    assert(Thing("greetings").different(Thing("blessings")))
+    assert(Thing("greetings") === Thing("greetings"))
+    assert(Thing("greetings") /== Thing("blessings"))
   }
 
   "products" should "behave as expected" in {
-    assert(Bar("hello").same(Bar("hello")))
-
-    assert(Bar("hello").different(Bar("goodbye")))
+    assert(Bar("hello") === Bar("hello"))
+    assert(Bar("hello") /== Bar("goodbye"))
   }
 
   "coproducts" should "behave as expected" in {
-    assert(bar.same(bar))
-    assert(bar.different(baz))
-    assert(baz.different(bar))
-    assert(baz.same(baz))
-    assert(bar.different(faz))
-    assert(baz.different(faz))
-    assert(faz.same(faz))
-    assert(box.different(bar))
-    assert(box.different(baz))
-    assert(box.different(faz))
-    assert(box.same(box))
+    assert(bar === bar)
+    assert(bar /== baz)
+    assert(baz /== bar)
+    assert(baz === baz)
+    assert(bar /== faz)
+    assert(baz /== faz)
+    assert(faz === faz)
+    assert(box /== bar)
+    assert(box /== baz)
+    assert(box /== faz)
+    assert(box === box)
   }
 
   val leaf1: Leaf    = Leaf("hello")
@@ -83,14 +81,14 @@ class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
   val tree2: ATree   = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
-    assert(leaf1.same(leaf1))
-    assert(leaf2.same(leaf2))
-    assert(leaf1.different(leaf2))
+    assert(leaf1 === leaf1)
+    assert(leaf2 === leaf2)
+    assert(leaf1 /== leaf2)
   }
 
   "recursive coproducts" should "behave as expected" in {
-    assert(tree1.same(tree1))
-    assert(tree1.different(tree2))
+    assert(tree1 === tree1)
+    assert(tree1 /== tree2)
   }
 
   val gleaf1: GLeaf[String]    = GLeaf("hello")
@@ -100,25 +98,14 @@ class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
   val gtree2: GTree[String]    = GBranch(gleaf2, gbranch)
 
   "recursive GADT products" should "behave as expected" in {
-    assert(gleaf1.same(gleaf1))
-    assert(gleaf2.same(gleaf2))
-    assert(gleaf1.different(gleaf2))
+    assert(gleaf1 === gleaf1)
+    assert(gleaf2 === gleaf2)
+    assert(gleaf1 /== gleaf2)
   }
 
   "recursive GADT coproducts" should "behave as expected" in {
-    assert(gtree1.same(gtree1))
-    assert(gtree1.different(gtree2))
-  }
-
-  "Same" should "obey the Divide composition law" in {
-    val D: Divisible[Same] = Divisible[Same]
-
-    // this could be more thorough...
-    val E: Equal[Same[String]] =
-      (p1, p2) => p1.same("hello", "hello") && p2.same("hello", "hello")
-
-    val S: Same[String] = Same[String]
-    assert(D.divideLaw.composition(S, S, S)(E))
+    assert(gtree1 === gtree1)
+    assert(gtree1 /== gtree2)
   }
 
 }
