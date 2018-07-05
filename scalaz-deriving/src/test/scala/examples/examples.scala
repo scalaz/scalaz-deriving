@@ -57,3 +57,75 @@ package recgadt {
   @deriving(Equal, Default, Defaultz, BadPack, Same, Show)
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 }
+
+// more than 4 entries for a product and coproduct
+package bigadt {
+
+  @deriving(Same, Default)
+  sealed abstract class Bigly
+  @deriving(Same, Default)
+  final case object BiglyO extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly0() extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly1(
+    a: String
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly2(
+    a: String,
+    b: Int
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly3(
+    a: String,
+    b: String,
+    c: Int
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly4(
+    a: String,
+    b: String,
+    c: Int,
+    d: String
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly5(
+    a: String,
+    b: String,
+    c: String,
+    d: String,
+    e: Int
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly6(
+    a: Int,
+    b: String,
+    c: String,
+    d: Int,
+    e: String,
+    f: String
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly7(
+    a: String,
+    b: String,
+    c: String,
+    d: Int,
+    e: Int,
+    f: String,
+    g: String
+  ) extends Bigly
+  @deriving(Same, Default)
+  final case class Bigly8(
+    a: Int,
+    b: String,
+    c: String,
+    d: Int,
+    e: String,
+    f: String,
+    g: String,
+    h: Int
+  ) extends Bigly
+
+}

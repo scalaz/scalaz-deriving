@@ -39,8 +39,7 @@ trait Decidable[F[_]] extends Divisible[F] with Derives[F] { self =>
   )(
     f: Z => A1 \/ (A2 \/ (A3 \/ A4))
   ): F[Z] = {
-    val a34: F[A3 \/ A4]          = choose2(a3, a4)(identity)
-    val a234: F[A2 \/ (A3 \/ A4)] = choose2(a2, a34)(identity)
+    val a234: F[A2 \/ (A3 \/ A4)] = choose3(a2, a3, a4)(identity)
     choose2(a1, a234)(f)
   }
   // ... chooseN

@@ -11,7 +11,7 @@ import scala.inline
  * Used for typeclass derivation of products, coproducts and value types.
  */
 ////
-trait Derives[F[_]] { self =>
+trait Derives[F[_]] extends InvariantFunctor[F] { self =>
   ////
 
   def xproduct0[Z](f: =>Z): F[Z]
@@ -111,7 +111,9 @@ object Derives {
   ////
 }
 
-trait IsomorphismDerives[F[_], G[_]] extends Derives[F] {
+trait IsomorphismDerives[F[_], G[_]]
+    extends Derives[F]
+    with IsomorphismInvariantFunctor[F, G] {
   implicit def G: Derives[G]
   ////
   import Isomorphism._

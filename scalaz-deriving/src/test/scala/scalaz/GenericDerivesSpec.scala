@@ -5,6 +5,8 @@ package scalaz
 
 import java.lang.String
 
+import scala.collection.immutable.List
+
 import org.scalatest._
 
 import examples.anyvals._
@@ -43,6 +45,20 @@ class GenericDerivesSpec extends FlatSpec with NonImplicitAssertions {
 
   "Alt recursive GADT coproducts" should "behave as expected" in {
     Default[GTree[String]].default should equal(GLeaf(""))
+  }
+
+  "Alt large ADTs" should "behave as expected" in {
+    import examples.bigadt._
+
+    Default[Bigly].default.shouldBe(BiglyO)
+
+    Default[BiglyO.type].default.shouldBe(BiglyO)
+    Default[Bigly0].default.shouldBe(Bigly0())
+    Default[Bigly1].default.shouldBe(Bigly1(""))
+    Default[Bigly5].default.shouldBe(Bigly5("", "", "", "", 0))
+    Default[Bigly6].default.shouldBe(Bigly6(0, "", "", 0, "", ""))
+    Default[Bigly7].default.shouldBe(Bigly7("", "", "", 0, 0, "", ""))
+    Default[Bigly8].default.shouldBe(Bigly8(0, "", "", 0, "", "", "", 0))
   }
 
   val bar: Foo = Bar("hello")
@@ -120,5 +136,46 @@ class GenericDerivesSpec extends FlatSpec with NonImplicitAssertions {
     assert(D.divideLaw.composition(S, S, S)(E))
   }
 
-  // tests for arity >4 https://gitlab.com/fommil/scalaz-deriving/issues/88
+  "Decidable large ADTs" should "behave as expected" in {
+    import examples.bigadt._
+    import Scalaz._
+
+    // some product only litmus tests...
+    assert(Bigly5("", "", "", "", 0).same(Bigly5("", "", "", "", 0)))
+    assert(Bigly5("", "", "", "", 0).different(Bigly5("", "", "", "", 1)))
+
+    assert(
+      Bigly8(0, "", "", 0, "", "", "", 0)
+        .same(Bigly8(0, "", "", 0, "", "", "", 0))
+    )
+    assert(
+      Bigly8(0, "", "", 0, "", "", "", 0)
+        .different(Bigly8(0, "", "", 0, "", "", "", 1))
+    )
+
+    // combined coproduct / product tests (fixed coproduct arity)...
+    val biglys = List[Bigly](
+      BiglyO,
+      Bigly0(),
+      Bigly1(""),
+      Bigly2("", 0),
+      Bigly3("", "", 0),
+      Bigly4("", "", 0, ""),
+      Bigly5("", "", "", "", 0),
+      Bigly6(0, "", "", 0, "", ""),
+      Bigly7("", "", "", 0, 0, "", ""),
+      Bigly8(0, "", "", 0, "", "", "", 0)
+    )
+
+    for {
+      i <- 0 |-> (biglys.length - 1)
+      j <- 0 |-> (biglys.length - 1)
+    } yield {
+      if (i == j)
+        assert(biglys(i).same(biglys(j)))
+      else
+        assert(biglys(i).different(biglys(j)))
+    }
+  }
+
 }

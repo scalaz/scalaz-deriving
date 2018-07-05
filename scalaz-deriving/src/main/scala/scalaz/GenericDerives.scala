@@ -5,13 +5,17 @@ package scalaz
 
 import java.lang.String
 
-import scala.{ inline, Any }
+import scala.Predef.identity
+import scala.{ inline, Any, AnyVal, Int }
 import scala.annotation.switch
-import scala.collection.immutable.{ List, Nil }
+import scala.collection.immutable.Seq
 
 import iotaz._
+import iotaz.TList.::
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
+
+import GenericDerives._
 
 /**
  * Implement `Deriving` (N-arity) by wrapping `Derives` (fixed arity).
@@ -23,6 +27,8 @@ final class GenericDerives[F[_]] private (
   private val F: Derives[F]
 ) extends Deriving[F] {
 
+  // I'm so sorry... I'm going to hell.
+
   override def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
     @unused labels: Prod[N]
@@ -33,47 +39,68 @@ final class GenericDerives[F[_]] private (
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = (tcs.values.size: @switch) match {
-    case 0 => F.xproduct0(f(Prod.unsafeApply[L](Nil)))
+  ): F[Z] = _xproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
+
+  private def _xproductz[Z, L <: TList](
+    tcs: Seq[Name[F[Any]]]
+  )(
+    f: Prod[L] => Z,
+    g: Z => Prod[L]
+  ): F[Z] = (tcs.size: @switch) match {
+    case 0 => F.xproduct0(f(Prod[TNil]().as[L]))
     case 1 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fz: Any => Z      = a1 => f(Prod.unsafeApply[L](List(a1)))
-      val gz: Z => Any      = z => g(z).values(0)
-      F.xproduct1(fa1.value)(fz, gz)
+      type One = Any :: TNil
+      val fz: Any => Z = a1 => f(Prod[One](a1).as[L])
+      val gz: Z => Any = z => g(z).values(0)
+      F.xproduct1(tcs(0).value)(fz, gz)
     case 2 =>
-      val fa1: Name[F[Any]]   = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]]   = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fz: (Any, Any) => Z = (a1, a2) => f(Prod.unsafeApply[L](List(a1, a2)))
+      type Two = Any :: Any :: TNil
+      val fz: (Any, Any) => Z = (a1, a2) => f(Prod[Two](a1, a2).as[L])
       val gz: Z => (Any, Any) = z => {
         val as = g(z).values
         (as(0), as(1))
       }
-      F.xproduct2(fa1.value, fa2.value)(fz, gz)
+      F.xproduct2(tcs(0).value, tcs(1).value)(fz, gz)
     case 3 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]] = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fa3: Name[F[Any]] = tcs.values(2).asInstanceOf[Name[F[Any]]]
+      type Three = Any :: Any :: Any :: TNil
       val fz: (Any, Any, Any) => Z = (a1, a2, a3) =>
-        f(Prod.unsafeApply[L](List(a1, a2, a3)))
+        f(Prod[Three](a1, a2, a3).as[L])
       val gz: Z => (Any, Any, Any) = z => {
         val as = g(z).values
         (as(0), as(1), as(2))
       }
-      F.xproduct3(fa1.value, fa2.value, fa3.value)(fz, gz)
+      F.xproduct3(tcs(0).value, tcs(1).value, tcs(2).value)(fz, gz)
     case 4 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]] = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fa3: Name[F[Any]] = tcs.values(2).asInstanceOf[Name[F[Any]]]
-      val fa4: Name[F[Any]] = tcs.values(3).asInstanceOf[Name[F[Any]]]
+      type Four = Any :: Any :: Any :: Any :: TNil
       val fz: (Any, Any, Any, Any) => Z = (a1, a2, a3, a4) =>
-        f(Prod.unsafeApply[L](List(a1, a2, a3, a4)))
+        f(Prod[Four](a1, a2, a3, a4).as[L])
       val gz: Z => (Any, Any, Any, Any) = z => {
         val as = g(z).values
         (as(0), as(1), as(2), as(3))
       }
-      F.xproduct4(fa1.value, fa2.value, fa3.value, fa4.value)(fz, gz)
+      F.xproduct4(tcs(0).value, tcs(1).value, tcs(2).value, tcs(3).value)(
+        fz,
+        gz
+      )
     case _ =>
-      scala.sys.error("https://gitlab.com/fommil/scalaz-deriving/issues/88")
+      type Four = Any :: Any :: Any :: Any :: TNil
+
+      val front: F[Prod[Four]] =
+        _xproductz[Prod[Four], TList](tcs.take(4))(_.as[Four], _.as[TList])
+      val back: F[Prod[TList]] =
+        _xproductz[Prod[TList], TList](tcs.drop(4))(identity, identity)
+
+      val fz: (Prod[Four], Prod[TList]) => Z =
+        (a, b) => f(Prod.unsafeApply[L](a.values ++ b.values))
+      val gz: Z => (Prod[Four], Prod[TList]) = { z =>
+        val as = g(z).values
+        (
+          Prod.unsafeApply[Four](as.take(4)),
+          Prod.unsafeApply[TList](as.drop(4))
+        )
+      }
+
+      F.xproduct2(front, back)(fz, gz)
   }
 
   override def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
@@ -86,68 +113,63 @@ final class GenericDerives[F[_]] private (
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = (tcs.values.size: @switch) match {
+  ): F[Z] = _xcoproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
+
+  private def _xcoproductz[Z, L <: TList](
+    tcs: Seq[Name[F[Any]]]
+  )(
+    f: Cop[L] => Z,
+    g: Z => Cop[L]
+  ): F[Z] = (tcs.size: @switch) match {
     case 1 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fz: Any => Z      = a1 => f(Cop.unsafeApply[L, Any](0, a1))
-      val gz: Z => Any      = z => g(z).value
-      F.xcoproduct1(fa1.value)(fz, gz)
+      val fz: Any => Z = a1 => f(Cops.from1(a1).as[L])
+      val gz: Z => Any = z => g(z).value
+      F.xcoproduct1(tcs(0).value)(fz, gz)
     case 2 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]] = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fz: (Any \/ Any) => Z = {
-        case -\/(a1) => f(Cop.unsafeApply[L, Any](0, a1))
-        case \/-(a2) => f(Cop.unsafeApply[L, Any](1, a2))
-      }
-      val gz: Z => (Any \/ Any) = z => {
-        val as = g(z)
-        (as.index: @switch) match {
-          case 0 => -\/(as.value)
-          case 1 => \/-(as.value)
-        }
-      }
-      F.xcoproduct2(fa1.value, fa2.value)(fz, gz)
+      type Two = Any :: Any :: TNil
+      val fz: (Any \/ Any) => Z = e => f(Cops.from2(e).as[L])
+      val gz: Z => (Any \/ Any) = z => Cops.to2(g(z).as[Two])
+      F.xcoproduct2(tcs(0).value, tcs(1).value)(fz, gz)
     case 3 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]] = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fa3: Name[F[Any]] = tcs.values(2).asInstanceOf[Name[F[Any]]]
-      val fz: (Any \/ (Any \/ Any)) => Z = {
-        case -\/(a1)      => f(Cop.unsafeApply[L, Any](0, a1))
-        case \/-(-\/(a2)) => f(Cop.unsafeApply[L, Any](1, a2))
-        case \/-(\/-(a3)) => f(Cop.unsafeApply[L, Any](2, a3))
-      }
-      val gz: Z => (Any \/ (Any \/ Any)) = z => {
-        val as = g(z)
-        (as.index: @switch) match {
-          case 0 => -\/(as.value)
-          case 1 => \/-(-\/(as.value))
-          case 2 => \/-(\/-(as.value))
-        }
-      }
-      F.xcoproduct3(fa1.value, fa2.value, fa3.value)(fz, gz)
-    case 4 =>
-      val fa1: Name[F[Any]] = tcs.values(0).asInstanceOf[Name[F[Any]]]
-      val fa2: Name[F[Any]] = tcs.values(1).asInstanceOf[Name[F[Any]]]
-      val fa3: Name[F[Any]] = tcs.values(2).asInstanceOf[Name[F[Any]]]
-      val fa4: Name[F[Any]] = tcs.values(3).asInstanceOf[Name[F[Any]]]
-      val fz: (Any \/ (Any \/ (Any \/ Any))) => Z = {
-        case -\/(a1)           => f(Cop.unsafeApply[L, Any](0, a1))
-        case \/-(-\/(a2))      => f(Cop.unsafeApply[L, Any](1, a2))
-        case \/-(\/-(-\/(a3))) => f(Cop.unsafeApply[L, Any](2, a3))
-        case \/-(\/-(\/-(a4))) => f(Cop.unsafeApply[L, Any](3, a4))
-      }
-      val gz: Z => (Any \/ (Any \/ (Any \/ Any))) = z => {
-        val as = g(z)
-        (as.index: @switch) match {
-          case 0 => -\/(as.value)
-          case 1 => \/-(-\/(as.value))
-          case 2 => \/-(\/-(-\/(as.value)))
-          case 3 => \/-(\/-(\/-(as.value)))
-        }
-      }
-      F.xcoproduct4(fa1.value, fa2.value, fa3.value, fa4.value)(fz, gz)
-    case _ =>
-      scala.sys.error("https://gitlab.com/fommil/scalaz-deriving/issues/88")
+      type Three = Any :: Any :: Any :: TNil
+      val fz: (Any \/ (Any \/ Any)) => Z = e => f(Cops.from3(e).as[L])
+      val gz: Z => (Any \/ (Any \/ Any)) = z => Cops.to3(g(z).as[Three])
+      F.xcoproduct3(tcs(0).value, tcs(1).value, tcs(2).value)(fz, gz)
+
+    case length =>
+      type Four    = Any :: Any :: Any :: Any :: TNil
+      type FourDis = Any \/ (Any \/ (Any \/ Any))
+      val fe: FourDis => Cop[Four] = e => Cops.from4(e).shift(length - 4)
+      val ge: Cop[Four] => FourDis = c => Cops.to4(c.shift(4 - length))
+      val end: F[Cop[Four]] = F.xcoproduct4(
+        tcs(length - 4).value,
+        tcs(length - 3).value,
+        tcs(length - 2).value,
+        tcs(length - 1).value
+      )(fe, ge)
+
+      val front: F[Cop[TList]] =
+        tcs
+          .take(length - 4)
+          .zipWithIndex
+          .foldRight(
+            end.asInstanceOf[F[Cop[TList]]]
+          ) {
+            case ((tc, i), acc) =>
+              val ff: (Any \/ Cop[TList]) => Cop[TList] = {
+                case -\/(a) => Cop.unsafeApply[TList, Any](i, a)
+                case \/-(c) => c
+              }
+              val fg: Cop[TList] => (Any \/ Cop[TList]) = { c =>
+                if (c.index == i) -\/(c.value)
+                else \/-(c)
+              }
+              F.xcoproduct2(tc.value, acc)(ff, fg)
+          }
+
+      val fz: Cop[TList] => Z = c => f(c.as[L])
+      val gz: Z => Cop[TList] = z => g(z).as[TList]
+      F.xmap(front, fz, gz)
   }
 
 }
@@ -158,4 +180,23 @@ object GenericDerives {
   @inline def apply[F[_]](F: Derives[F]): GenericDerives[F] =
     new GenericDerives(F)
 
+  private[scalaz] final implicit class UnsafeCops[T <: TList](
+    private val self: Cop[T]
+  ) extends AnyVal {
+    // a completely unsafe operation that is useful when we have some runtime
+    // information like we create a
+    //
+    //   Any :: Any :: Any :: TList
+    //
+    // and we know it is an instance of the more general type TList[A]
+    def as[A <: TList]: Cop[A] = self.asInstanceOf[Cop[A]]
+
+    def shift(i: Int): Cop[T] =
+      Cop.unsafeApply[T, Any](self.index + i, self.value)
+  }
+  private[scalaz] final implicit class UnsafeProds[T <: TList](
+    private val self: Prod[T]
+  ) extends AnyVal {
+    def as[A <: TList]: Prod[A] = self.asInstanceOf[Prod[A]]
+  }
 }

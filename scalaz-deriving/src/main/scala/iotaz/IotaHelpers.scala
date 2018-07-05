@@ -5,7 +5,8 @@ package iotaz
 
 import java.lang.String
 
-import scala.collection.immutable.{ List, Seq }
+import scala.annotation.switch
+import scala.collection.immutable.{ List, Nil, Seq }
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
@@ -114,6 +115,10 @@ object Prods {
 
   val empty: Prod[TNil] = Prod()
 
+  def from0T: Prod[TNil] =
+    Prod.unsafeApply(Nil)
+  def from1T[A1](e: A1): Prod[A1 :: TNil] =
+    Prod.unsafeApply(List(e))
   def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
     Prod.unsafeApply(List(e._1, e._2))
   def from3T[A1, A2, A3](e: (A1, A2, A3)): Prod[A1 :: A2 :: A3 :: TNil] =
@@ -194,19 +199,20 @@ object Cops {
     }
 
   def to1[A1](c: Cop[A1 :: TNil]): A1 = c.value.asInstanceOf[A1]
-  def to2[A1, A2](c: Cop[A1 :: A2 :: TNil]): A1 \/ A2 = c.index match {
-    case 0 => -\/(c.value.asInstanceOf[A1])
-    case 1 => \/-(c.value.asInstanceOf[A2])
-  }
+  def to2[A1, A2](c: Cop[A1 :: A2 :: TNil]): A1 \/ A2 =
+    (c.index: @switch) match {
+      case 0 => -\/(c.value.asInstanceOf[A1])
+      case 1 => \/-(c.value.asInstanceOf[A2])
+    }
   def to3[A1, A2, A3](c: Cop[A1 :: A2 :: A3 :: TNil]): A1 \/ (A2 \/ A3) =
-    c.index match {
+    (c.index: @switch) match {
       case 0 => -\/(c.value.asInstanceOf[A1])
       case 1 => \/-(-\/(c.value.asInstanceOf[A2]))
       case 2 => \/-(\/-(c.value.asInstanceOf[A3]))
     }
   def to4[A1, A2, A3, A4](
     c: Cop[A1 :: A2 :: A3 :: A4 :: TNil]
-  ): A1 \/ (A2 \/ (A3 \/ A4)) = c.index match {
+  ): A1 \/ (A2 \/ (A3 \/ A4)) = (c.index: @switch) match {
     case 0 => -\/(c.value.asInstanceOf[A1])
     case 1 => \/-(-\/(c.value.asInstanceOf[A2]))
     case 2 => \/-(\/-(-\/(c.value.asInstanceOf[A3])))
