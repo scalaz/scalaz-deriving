@@ -6,7 +6,7 @@ package iotaz
 import java.lang.String
 
 import scala.annotation.switch
-import scala.collection.immutable.{ List, Nil, Seq }
+import scala.collection.immutable.{ List, Seq }
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
@@ -97,26 +97,22 @@ object LazyProd {
 }
 
 object Prods {
-  // when calling this method, be sure to add an explicit type on `f` or the
-  // compiler may infer Nothing and runtime exceptions may ensue.
-  def map[T[_], Y, L <: TList, TL <: TList](
+  def traverse[F[_], G[_]: Applicative, L <: TList, TL <: TList](
     tcs: Prod[TL]
-  )(f: T[Y] => Y)(
+  )(f: F ~> G)(
     implicit
-    @unused ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
+    @unused ev1: λ[a => Name[F[a]]] ƒ L ↦ TL
     // although scala is unable to infer an Cop.Inject[Y, L], we can
     // mathematically prove one exists because L is aligned with TL.
-    // ev2: Cop.InjectL[Y, L]
-  ): Prod[L] = Prod.unsafeApply { // allowed by evidence of Y
+    // ev2: Cop.InjectL[a, L]
+  ): G[Prod[L]] =
     tcs.values
-      .asInstanceOf[Seq[Name[T[Y]]]] // from TMap
-      .map(nty => f(nty.value))
-  }
+      .asInstanceOf[Seq[Name[F[scala.Any]]]] // from TMap
+      .toList
+      .traverse(nty => f(nty.value))
+      .map(Prod.unsafeApply(_))
 
   val empty: Prod[TNil] = Prod()
-
-  def from0T: Prod[TNil] =
-    Prod.unsafeApply(Nil)
   def from1T[A1](e: A1): Prod[A1 :: TNil] =
     Prod.unsafeApply(List(e))
   def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
@@ -152,26 +148,26 @@ object Prods {
 object Cops {
   type NonEmptyStream[a] = OneAnd[EphemeralStream, Name[a]]
 
-  def mapMaybe[A, T[_], L <: TList, TL <: TList](
+  def traverse[A, T[_], L <: TList, TL <: TList](
     tcs: Prod[TL]
-  )(f: T ~> Maybe)(
+  )(f: T ~> EphemeralStream)(
     implicit
     // needs evidence for being non empty
     // https://github.com/frees-io/iota/issues/91
     @unused ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
-    // although scala is unable to infer an Cop.Inject[Y, L], we can
+    // although scala is unable to infer an Cop.Inject[a, L], we can
     // mathematically prove one exists because L is aligned with TL.
-    // ev2: Cop.InjectL[Y, L]
+    // ev2: Cop.InjectL[a, L]
   ): EphemeralStream[Cop[L]] =
     tcs.values
       .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
       .toList
       .indexed
-      .toEphemeralStream
+      .toEphemeralStream // a FromFoldable would allow abstraction
       .flatMap {
-        case (i, nt: Name[T[scala.Any]]) =>
+        case (i, nt) =>
           val t: T[scala.Any]                = nt.value
-          val ys: EphemeralStream[scala.Any] = f(t).toEphemeralStream
+          val ys: EphemeralStream[scala.Any] = f(t)
           ys.map { y =>
             Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
           }

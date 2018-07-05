@@ -19,28 +19,32 @@ import Cops._
 /**
  * Generic extension of Alt implementing Deriving, with a convenient API.
  */
-trait Altz[F[_]] extends Alt[F] with Deriving[F] {
+abstract class Altz[F[_]] extends Alt[F] with Deriving[F] {
+  type G[_]
+  def G: Applicative[G]
 
   /**
    * Implementors provide the application of F[A] to a generic product A (F ~>
-   * Id), receiving back the reconstructed concrete product Z.
+   * G), receiving back the reconstructed concrete product Z.
    *
    * This is only visible to implementors, it is not part of the public API.
    * Implementors may also choose to implement applyz directly for performance
    * reasons.
    */
-  protected def productz[Z](f: (F ~> Id) => Z): F[Z]
+  protected def productz[Z](f: (F ~> G) => G[Z]): F[Z]
 
   /**
    * Implementers provide the optional application of F[A] to a generic
-   * coproduct A (F ~> Maybe), receiving back a stream of reconstructed products
-   * Z.
+   * coproduct A (F ~> EphemeralStream), receiving back a stream of
+   * reconstructed products Z.
    *
    * This is only visible to implementors, it is not part of the public API.
    * Implementors may also choose to implement altlyz directly for performance
    * reasons.
    */
-  protected def coproductz[Z](f: (F ~> Maybe) => EphemeralStream[Z]): F[Z]
+  protected def coproductz[Z](
+    f: (F ~> EphemeralStream) => EphemeralStream[Z]
+  ): F[Z]
 
   override final def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
@@ -58,8 +62,10 @@ trait Altz[F[_]] extends Alt[F] with Deriving[F] {
     f: Prod[L] => Z
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] =
-    productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
+  ): F[Z] = {
+    implicit val GA: Applicative[G] = G
+    productz(((faa: F ~> G) => Prods.traverse(tcs)(faa).map(f)))
+  }
 
   override final def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
@@ -78,7 +84,7 @@ trait Altz[F[_]] extends Alt[F] with Deriving[F] {
   )(
     implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] =
-    coproductz((faa: (F ~> Maybe)) => Cops.mapMaybe(tcs)(faa).map(f))
+    coproductz((faa: (F ~> EphemeralStream)) => Cops.traverse(tcs)(faa).map(f))
 
   // derived combinators
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =

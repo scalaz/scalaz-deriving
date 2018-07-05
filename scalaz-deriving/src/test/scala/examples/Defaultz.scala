@@ -25,13 +25,17 @@ object Defaultz {
   implicit val boolean: Defaultz[Boolean] = instance(false)
 
   implicit val defaultz_altz: Altz[Defaultz] = new Altz[Defaultz] {
+    type G[a] = Id[a]
+    def G: Applicative[Id] = Applicative[Id]
+
     val extract: Defaultz ~> Id = λ[Defaultz ~> Id](a => a.default)
     override def productz[Z](f: (Defaultz ~> Id) => Z): Defaultz[Z] =
       instance(f(extract))
 
-    val always: Defaultz ~> Maybe = λ[Defaultz ~> Maybe](_.default.just)
+    val always: Defaultz ~> EStream =
+      λ[Defaultz ~> EStream](a => EphemeralStream(a.default))
     override def coproductz[Z](
-      f: (Defaultz ~> Maybe) => EStream[Z]
+      f: (Defaultz ~> EStream) => EStream[Z]
     ): Defaultz[Z] =
       instance(f(always).headOption.get)
   }

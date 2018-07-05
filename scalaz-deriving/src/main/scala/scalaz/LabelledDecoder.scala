@@ -20,7 +20,7 @@ import Scalaz._
 abstract class LabelledDecoder[F[_]] extends Deriving[F] with Functor[F] {
 
   def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> Maybe) => EphemeralStream[Z]): F[Z]
+  def coproductz[Z](f: (F ~> EphemeralStream) => EphemeralStream[Z]): F[Z]
 
   final override def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
@@ -32,7 +32,7 @@ abstract class LabelledDecoder[F[_]] extends Deriving[F] with Functor[F] {
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = productz(((faa: (F ~> Id)) => f(Prods.map(tcs)(faa))))
+  ): F[Z] = productz(((faa: (F ~> Id)) => f(Prods.traverse(tcs)(faa))))
 
   final override def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
@@ -44,7 +44,8 @@ abstract class LabelledDecoder[F[_]] extends Deriving[F] with Functor[F] {
     implicit
     ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
     ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z] = coproductz((faa: (F ~> Maybe)) => Cops.mapMaybe(tcs)(faa).map(f))
+  ): F[Z] =
+    coproductz((faa: F ~> EphemeralStream) => Cops.traverse(tcs)(faa).map(f))
 
 }
 object LabelledDecoder {
