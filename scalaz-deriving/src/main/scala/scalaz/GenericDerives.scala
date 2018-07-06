@@ -18,13 +18,13 @@ import iotaz.TList.Op.{ Map => ƒ }
 import GenericDerives._
 
 /**
- * Implement `Deriving` (N-arity) by wrapping `Derives` (fixed arity).
+ * Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity).
  *
  * This instance incurs a performance penalty and should only be used for legacy
- * code, prefer a direct implementation of `Derives`.
+ * code, prefer a direct implementation of `InvariantAlt`.
  */
 final class GenericDerives[F[_]] private (
-  private val F: Derives[F]
+  private val F: InvariantAlt[F]
 ) extends Deriving[F] {
 
   // I'm so sorry... I'm going to hell.
@@ -177,7 +177,7 @@ object GenericDerives {
   @inline def apply[F[_]](implicit F: GenericDerives[F]): GenericDerives[F] = F
 
   /** Not implicit, to avoid breaking coherence. Always manually assign. */
-  @inline def apply[F[_]](F: Derives[F]): GenericDerives[F] =
+  @inline def apply[F[_]](F: InvariantAlt[F]): GenericDerives[F] =
     new GenericDerives(F)
 
   private[scalaz] final implicit class UnsafeCops[T <: TList](

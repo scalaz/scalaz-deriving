@@ -12,7 +12,7 @@ import scala.{ inline, Unit }
  * https://hackage.haskell.org/package/contravariant-1.4.1/docs/Data-Functor-Contravariant-Divisible.html#t:Decidable
  */
 ////
-trait Decidable[F[_]] extends Divisible[F] with Derives[F] { self =>
+trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
   ////
 
   // backport from 7.3's Divisible

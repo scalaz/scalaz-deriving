@@ -17,7 +17,7 @@ import iotaz.TList.Op.{ Map => ƒ }
  *
  * Typeclass authors provide an implementation of this by extending Altz,
  * Decidablez, LabelledEncoder or LabelledDecoder, or by wrapping an existing
- * Derives instance in GenericDerives.
+ * InvariantAlt instance in GenericDerives.
  *
  * Downstream users call this API via the DerivingMacro.
  */

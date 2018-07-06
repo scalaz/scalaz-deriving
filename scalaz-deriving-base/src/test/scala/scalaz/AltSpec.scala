@@ -11,7 +11,7 @@ import examples.adt._
 import examples.recadt._
 import examples.recgadt._
 
-class CovariantSpec extends FlatSpec with NonImplicitAssertions {
+class AltSpec extends FlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "products" should "behave as expected" in {
