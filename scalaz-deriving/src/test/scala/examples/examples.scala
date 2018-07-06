@@ -36,6 +36,7 @@ package adt {
 
   // the @deriving is implied by the parent!
   final case class Box(i: Int) extends Foo
+  final case object Flooz      extends Foo
 }
 
 // more complex recursive type example

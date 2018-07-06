@@ -35,21 +35,25 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
         .map(_.asClass)
         .sortBy(_.pos.start)
         .map { cl =>
-          // this block is needed to handle the type parameter on a GADT
-          val t = cl.toType
-          val args = t.typeArgs.map { a =>
-            val sym = a.typeSymbol
-            val tSym = A
-              .find(_.typeSymbol.name == sym.name)
-              .getOrElse(
-                c.abort(
-                  c.enclosingPosition,
-                  s"type parameters on case classes ($t[${t.typeArgs}]) are not supported unless they are on the sealed trait ($A)"
+          if (cl.isModuleClass) {
+            internal.singleType(cl.thisPrefix, cl.module)
+          } else {
+            // this block is needed to handle the type parameter on a GADT
+            val t = cl.toType
+            val args = t.typeArgs.map { a =>
+              val sym = a.typeSymbol
+              val tSym = A
+                .find(_.typeSymbol.name == sym.name)
+                .getOrElse(
+                  c.abort(
+                    c.enclosingPosition,
+                    s"type parameters on case classes ($t[${t.typeArgs}]) are not supported unless they are on the sealed trait ($A)"
+                  )
                 )
-              )
-            a.substituteTypes(List(sym), List(tSym))
+              a.substituteTypes(List(sym), List(tSym))
+            }
+            appliedType(t, args)
           }
-          appliedType(t, args)
         }
     } else {
       A.decls.collect {
