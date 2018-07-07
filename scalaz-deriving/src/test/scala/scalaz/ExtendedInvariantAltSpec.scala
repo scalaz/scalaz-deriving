@@ -16,7 +16,7 @@ import examples.recgadt._
 import examples.{ Default, Same }
 import examples.Same.ops._
 
-class GenericDerivesSpec extends FlatSpec with NonImplicitAssertions {
+class ExtendedInvariantAltSpec extends FlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "Alt anyvals" should "behave as expected" in {

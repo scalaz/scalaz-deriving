@@ -95,98 +95,25 @@ object Foo {
 
 # `scalaz-deriving`
 
-`scalaz-deriving` adds two new typeclasses to `scalaz` (`Alt` and `Decidable`), available in scalaz 7.3:
+`scalaz-deriving` adds new typeclasses to `scalaz`:
 
-| Typeclass    | method    | given          | signature         | returns |
-|--------------|-----------|----------------|-------------------|---------|
-|`Applicative` | `apply2`  | `F[A1], F[A2]` | `(A1, A2) => Z`   | `F[Z]`  |
-|`Alt`         | `altly2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` | `F[Z]`  |
-|`Divisible`   | `divide2` | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
-|`Decidable`   | `choose2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
+| Typeclass        | method    | given          | signature         | returns |
+|------------------|-----------|----------------|-------------------|---------|
+|`Applicative`     | `apply2`  | `F[A1], F[A2]` | `(A1, A2) => Z`   | `F[Z]`  |
+|`Alt` (new)       | `altly2`  | `F[A1], F[A2]` | `(A1 \/ A2) => Z` | `F[Z]`  |
+|`Divisible`       | `divide2` | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
+|`Decidable` (new) | `choose2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
 
-with `apply3` and `apply4` defined in terms of `apply2`, etc.
+and =scalaz.Deriving=, which supports arbitrarily large =case class= and =sealed trait= ADTs and works out of the box with the =@deriving= annotation.
 
-These typeclasses are a formalism to derive both covariant (decoder) and contravariant (encoder) typeclasses, for products (`case classes`) and coproducts (`sealed traits`).
+As a typeclass author you only need to implement =Deriving= for your typeclass.
 
-We provide generic variants (unlimited arity) using the [iotaz](https://github.com/frees-io/iota) high performance generic programming library.
+If your typeclass can implement =Decidable= or =Alt= and satisfy their laws, you can:
 
-A typeclass author will implement one of the following interfaces:
+1. wrap your =Decidable= or =Alt= with =ExtendedInvariantAlt= (lowest cognitive overhead).
+2. directly implement the generic arbitrary variants =Decidablez= / =Altz= (highest performance, more complex).
 
-```scala
-abstract class Altz[F[_]] extends Alt[F] with Deriving[F] {
-  def productz[Z](f: (F ~> Id) => Z): F[Z]
-  def coproductz[Z](f: (F ~> Maybe) => EStream[Z]): F[Z]
-}
-
-abstract class Decidablez[F[_]] extends Decidable[F] with Deriving[F] {
-  def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
-  def coproductz[Z](f: Z =+> Maybe): F[Z]
-}
-```
-
-`~>` should be familiar to users of scalaz: a natural transformation. Covariant derivation requires a function from `F[A] => A` for products, or `F[A] => G` (a non-empty `Monad` of your choice).
-
-The operators `=*>` and `=+>` are introduced by this library and are used for contravariant derivation:
-
-- `=*>` takes a `Z` or `(Z, Z)`, returning a `Traverse` of `A`s and their corresponding `F[A]`.
-- `=+>` takes a `Z`, returning an `A` and its corresponding `F[A]`, or a `Maybe` if given `(Z, Z)`.
-
-For example, for a covariant typeclass `Default`:
-
-```scala
-trait Default[A] {
-  def default: A
-}
-object Default {
-  ...
-  implicit val instance = new Altz[Default] {
-    val extract = λ[Default ~> Id](a => a.default)
-    override def productz[Z](f: (Default ~> Id) => Z) = instance { f(extract) }
-
-    val always = λ[Default ~> Maybe](_.default.just)
-    override def coproductz[Z](f: (Default ~> Maybe) => EStream[Z]) = instance { f(always).head() }
-  }
-```
-
-which also defines `Functor[Default]`, giving us `.xmap` and `.map` for free.
-
-For a contravariant typeclass, `Equal` write:
-
-```scala
-trait Equal[F] {
-  def equal(a1: F, a2: F): Boolean
-}
-object Equal {
-  ...
-  implicit val instance = new Decidablez[Equal] {
-    def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
-      f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
-    }
-
-    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
-      f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }.getOrElse(false)
-    }
-  }
-}
-```
-
-which defines `InvariantFunctor[Equal]`, giving us `.xmap` and `.contramap` for free.
-
-If your typeclass requires access to labels (e.g. names of `case class` and `sealed trait` values) then you should use the `LabelledDeriving` variants which are **not** part of the =Alt= / =Decidable= typeclass hierarchy:
-
-```scala
-implicit val ShowDeriving: LabelledEncoder[Show] = new LabelledEncoder[Show] {
-  def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b => r.show(f(b)) }
-  def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
-    "(" +: f(z).map { case fa /~\ ((label, a)) => label +: "=" +: fa.show(a) }.intercalate(",") :+ ")"
-  }
-  def coproductz[Z](f: Z =+> Maybe): Show[Z] = Show.show { z: Z =>
-    f(z) match { case fa /~\ ((label, a)) => label +: fa.show(a) }
-  }
-}
-```
-
-Note that `contramap` (and `map`) are not provided automatically by these variants so must be implemented. The calls to `=*>` and `=+>` return a subtely different response than the non-label variants, with the `label` easily extracted with a pattern match.
+If your typeclass cannot satisfy the =Decidable= or =Alt= laws, write a fresh =LabelledEncoder= or =LabelledDecoder=, which will also give you access to field names.
 
 # Installation
 
@@ -210,7 +137,7 @@ The `scalaz-deriving` framework is a normal library dependency
 libraryDependencies += "com.fommil" %% "scalaz-deriving" % derivingVersion
 ```
 
-where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil a:scalaz-deriving_2.12).
+where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil%20a:scalaz-deriving_2.12).
 
 Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
 

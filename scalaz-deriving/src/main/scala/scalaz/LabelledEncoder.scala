@@ -17,13 +17,13 @@ import Scalaz._
  * For encoder algebras (e.g. json, xml) that require access to label
  * information, thus cannot implement a lawful Decidable.
  */
-abstract class LabelledEncoder[F[_]] extends Deriving[F] with Contravariant[F] {
+abstract class LabelledEncoder[F[_]] extends Deriving[F] {
 
   type =*>[Z, G[_]] = LabelledArityExists[Z, F, G]
   type =+>[Z, G[_]] = LabelledArityExists1[Z, F, G]
 
-  def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
-  def coproductz[Z](f: Z =+> Maybe): F[Z]
+  protected def productz[Z, G[_]: Traverse](f: Z =*> G): F[Z]
+  protected def coproductz[Z](f: Z =+> Maybe): F[Z]
 
   final override def xproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],

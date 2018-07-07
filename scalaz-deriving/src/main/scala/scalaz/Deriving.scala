@@ -17,7 +17,7 @@ import iotaz.TList.Op.{ Map => ƒ }
  *
  * Typeclass authors provide an implementation of this by extending Altz,
  * Decidablez, LabelledEncoder or LabelledDecoder, or by wrapping an existing
- * InvariantAlt instance in GenericDerives.
+ * InvariantAlt instance in ExtendedInvariantAlt.
  *
  * Downstream users call this API via the DerivingMacro.
  */
@@ -70,8 +70,7 @@ object Deriving {
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
-  // hide the detail that this is an Altz to avoid exposing a Divide that breaks
-  // typeclass coherence. Optimised to use instance equality.
+  // hide the detail that this is an Decidablez to avoid exposing Divide
   implicit val _deriving_equal: Deriving[Equal] = new Decidablez[Equal] {
     import Scalaz._
 
@@ -93,14 +92,10 @@ object Deriving {
     }
   }
 
-  // not exposing the Contravariant to avoid typeclass incoherence
   implicit val _deriving_show: Deriving[Show] =
     new LabelledEncoder[Show] {
       import Scalaz._
 
-      def contramap[A, B](r: Show[A])(f: B => A): Show[B] = Show.show { b =>
-        r.show(f(b))
-      }
       def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
         "(" +: f(z).map {
           case fa /~\ ((label, a)) => label +: "=" +: fa.show(a)

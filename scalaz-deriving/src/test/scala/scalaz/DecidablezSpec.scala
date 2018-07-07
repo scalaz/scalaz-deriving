@@ -19,6 +19,7 @@ import examples.recadt._
 import examples.recgadt._
 
 class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
+  import Packed._
 
   "BadPack contramap" should "behave in a counterintuitive way" in {
     // counterintuitive, we probably expected just Characters

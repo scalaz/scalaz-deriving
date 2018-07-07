@@ -6,6 +6,7 @@ package scalaz
 import java.lang.String
 
 import scala.inline
+import scala.collection.immutable.Seq
 
 import iotaz._
 import iotaz.TList.::
@@ -61,10 +62,16 @@ abstract class Altz[F[_]] extends Alt[F] with Deriving[F] {
   def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Prod[L] => Z
   )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit @unused ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] = {
     implicit val GA: Applicative[G] = G
-    productz(((faa: F ~> G) => Prods.traverse(tcs)(faa).map(f)))
+    productz { (faa: F ~> G) =>
+      tcs.values
+        .asInstanceOf[Seq[Name[F[scala.Any]]]] // from ev
+        .toList
+        .traverse(nty => faa(nty.value))
+        .map(v => f(Prod.unsafeApply(v)))
+    }
   }
 
   override final def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
@@ -82,9 +89,22 @@ abstract class Altz[F[_]] extends Alt[F] with Deriving[F] {
   def altlyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Cop[L] => Z
   )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit @unused ev: λ[a => Name[F[a]]] ƒ L ↦ FL
   ): F[Z] =
-    coproductz((faa: (F ~> EphemeralStream)) => Cops.traverse(tcs)(faa).map(f))
+    coproductz { (faa: F ~> EphemeralStream) =>
+      tcs.values
+        .asInstanceOf[Seq[Name[F[scala.Any]]]] // from TMap
+        .toList
+        .indexed
+        .toEphemeralStream // FromFoldable would allow abstraction
+        .flatMap {
+          case (i, nt) =>
+            val t: F[scala.Any]                = nt.value
+            val ys: EphemeralStream[scala.Any] = faa(t)
+            ys.map(y => (i, y)) // from implied InjectL
+        }
+        .map { case (i, y) => f(Cop.unsafeApply(i, y)) }
+    }
 
   // derived combinators
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =

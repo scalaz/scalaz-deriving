@@ -12,7 +12,7 @@ import scalaz._, Scalaz._
 import simulacrum._
 
 /**
- * Reimplementation of Equal, to test Decidable and GenericDerives.
+ * Reimplementation of Equal, to test Decidable and ExtendedInvariantAlt.
  */
 @typeclass trait Same[A] {
   def same(a1: A, a2: A): Boolean
@@ -45,7 +45,7 @@ object Same {
     }
   }
 
-  implicit val deriving: Deriving[Same] = GenericDerives(decidable)
+  implicit val deriving: Deriving[Same] = ExtendedInvariantAlt(decidable)
 
   implicit val int: Same[Int] = long.contramap(_.toLong)
 

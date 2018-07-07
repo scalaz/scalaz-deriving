@@ -5,7 +5,7 @@ package examples
 
 import java.lang.String
 
-import scala.{ Boolean, Int, Long }
+import scala.{ Boolean, Double, Int, Long }
 
 import scalaz._, Scalaz._
 import simulacrum.typeclass
@@ -20,11 +20,14 @@ import simulacrum.typeclass
 sealed abstract class Packed {
   def widen: Packed = this
 }
-//final case class Real(double: Double)               extends Packed
-final case class Rational(long: Long)               extends Packed
-final case class Characters(chars: String)          extends Packed
-final case class Collection(entries: IList[Packed]) extends Packed
-final case class Product(entries: IList[Packed])    extends Packed
+object Packed {
+  final case class Real(double: Double)               extends Packed
+  final case class Rational(long: Long)               extends Packed
+  final case class Characters(chars: String)          extends Packed
+  final case class Collection(entries: IList[Packed]) extends Packed
+  final case class Product(entries: IList[Packed])    extends Packed
+}
+import Packed._
 
 /**
  * Encoder for Packed.

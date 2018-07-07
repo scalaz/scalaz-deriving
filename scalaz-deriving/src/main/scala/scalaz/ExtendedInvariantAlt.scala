@@ -15,15 +15,10 @@ import iotaz.TList.::
 import iotaz.TList.Compute.{ Aux => ↦ }
 import iotaz.TList.Op.{ Map => ƒ }
 
-import GenericDerives._
+import ExtendedInvariantAlt._
 
-/**
- * Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity).
- *
- * This instance incurs a performance penalty and should only be used for legacy
- * code, prefer a direct implementation of `InvariantAlt`.
- */
-final class GenericDerives[F[_]] private (
+/** Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity). */
+final class ExtendedInvariantAlt[F[_]] private (
   private val F: InvariantAlt[F]
 ) extends Deriving[F] {
 
@@ -173,12 +168,14 @@ final class GenericDerives[F[_]] private (
   }
 
 }
-object GenericDerives {
-  @inline def apply[F[_]](implicit F: GenericDerives[F]): GenericDerives[F] = F
+object ExtendedInvariantAlt {
+  @inline def apply[F[_]](
+    implicit F: ExtendedInvariantAlt[F]
+  ): ExtendedInvariantAlt[F] = F
 
   /** Not implicit, to avoid breaking coherence. Always manually assign. */
-  @inline def apply[F[_]](F: InvariantAlt[F]): GenericDerives[F] =
-    new GenericDerives(F)
+  @inline def apply[F[_]](F: InvariantAlt[F]): ExtendedInvariantAlt[F] =
+    new ExtendedInvariantAlt(F)
 
   private[scalaz] final implicit class UnsafeCops[T <: TList](
     private val self: Cop[T]
@@ -186,9 +183,9 @@ object GenericDerives {
     // a completely unsafe operation that is useful when we have some runtime
     // information like we create a
     //
-    //   Any :: Any :: Any :: TList
+    //   Any :: Any :: Any :: TNil
     //
-    // and we know it is an instance of the more general type TList[A]
+    // and we know it is an instance of the more general type A
     def as[A <: TList]: Cop[A] = self.asInstanceOf[Cop[A]]
 
     def shift(i: Int): Cop[T] =

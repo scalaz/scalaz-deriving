@@ -97,20 +97,6 @@ object LazyProd {
 }
 
 object Prods {
-  def traverse[F[_], G[_]: Applicative, L <: TList, TL <: TList](
-    tcs: Prod[TL]
-  )(f: F ~> G)(
-    implicit
-    @unused ev1: λ[a => Name[F[a]]] ƒ L ↦ TL
-    // although scala is unable to infer an Cop.Inject[Y, L], we can
-    // mathematically prove one exists because L is aligned with TL.
-    // ev2: Cop.InjectL[a, L]
-  ): G[Prod[L]] =
-    tcs.values
-      .asInstanceOf[Seq[Name[F[scala.Any]]]] // from TMap
-      .toList
-      .traverse(nty => f(nty.value))
-      .map(Prod.unsafeApply(_))
 
   val empty: Prod[TNil] = Prod()
   def from1T[A1](e: A1): Prod[A1 :: TNil] =

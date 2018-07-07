@@ -34,5 +34,5 @@ object Default {
     }
 
   implicit val _deriving_default: Deriving[Default] =
-    GenericDerives(InvariantAlt[Default])
+    ExtendedInvariantAlt(InvariantAlt[Default])
 }
