@@ -104,16 +104,16 @@ object Foo {
 |`Divisible`       | `divide2` | `F[A1], F[A2]` | `Z => (A1, A2)`   | `F[Z]`  |
 |`Decidable` (new) | `choose2` | `F[A1], F[A2]` | `Z => (A1 \/ A2)` | `F[Z]`  |
 
-and =scalaz.Deriving=, which supports arbitrarily large =case class= and =sealed trait= ADTs and works out of the box with the =@deriving= annotation.
+and `scalaz.Deriving`, which supports arbitrarily large `case class` and `sealed trait` ADTs and works out of the box with the `@deriving` annotation.
 
-As a typeclass author you only need to implement =Deriving= for your typeclass.
+As a typeclass author you only need to implement `Deriving` for your typeclass.
 
-If your typeclass can implement =Decidable= or =Alt= and satisfy their laws, you can:
+If your typeclass can implement `Decidable` or `Alt` and satisfy their laws, you can:
 
-1. wrap your =Decidable= or =Alt= with =ExtendedInvariantAlt= (lowest cognitive overhead).
-2. directly implement the generic arbitrary variants =Decidablez= / =Altz= (highest performance, more complex).
+1. wrap your `Decidable` or `Alt` with `ExtendedInvariantAlt` (lowest cognitive overhead).
+2. directly implement the generic arbitrary variants `Decidablez` / `Altz` (highest performance, more complex).
 
-If your typeclass cannot satisfy the =Decidable= or =Alt= laws, write a fresh =LabelledEncoder= or =LabelledDecoder=, which will also give you access to field names.
+If your typeclass cannot satisfy the `Decidable` or `Alt` laws, write a fresh `LabelledEncoder` or `LabelledDecoder`, which will also give you access to field names.
 
 # Installation
 
