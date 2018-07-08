@@ -12,7 +12,9 @@ trait XDecoder[A] { self =>
 }
 object XDecoder
     extends XDecoderScalaz1
+    with XDecoderRefined
     with XDecoderStdlib1
+    with XDecoderScalaz2
     with XDecoderStdlib2 {
   @inline def instance[A](f: XChildren => String \/ A): XDecoder[A] = f(_)
 
@@ -48,7 +50,7 @@ object XDecoder
   implicit val monad: MonadError[XDecoder, String] = MonadError.fromIso(iso)
 }
 
-trait XDecoderScalaz1 {
+private[xmlformat] trait XDecoderScalaz1 {
   this: XDecoder.type =>
 
   implicit def disjunction[A: XDecoder, B: XDecoder]: XDecoder[A \/ B] = { x =>
@@ -82,10 +84,9 @@ trait XDecoderScalaz1 {
     ilist[A].emap { lst =>
       lst.toNel \/> "list was empty"
     }
-
 }
 
-trait XDecoderScalaz2 {
+private[xmlformat] trait XDecoderScalaz2 {
   this: XDecoder.type =>
 
   // https://github.com/scalaz/scalaz/issues/1513 if scalaz had an FromFoldable
@@ -93,7 +94,20 @@ trait XDecoderScalaz2 {
   // here...
 }
 
-trait XDecoderStdlib1 {
+// WORKAROUND https://github.com/scala/bug/issues/10753
+private[xmlformat] trait XDecoderRefined {
+  this: XDecoder.type =>
+
+  import eu.timepit.refined.refineV
+  import eu.timepit.refined.api._
+
+  implicit def refined[A: XDecoder, B](
+    implicit V: Validate[A, B]
+  ): XDecoder[A Refined B] =
+    XDecoder[A].emap(refineV(_).disjunction)
+}
+
+private[xmlformat] trait XDecoderStdlib1 {
   this: XDecoder.type =>
 
   implicit def either[A: XDecoder, B: XDecoder]: XDecoder[Either[A, B]] =
@@ -126,7 +140,7 @@ trait XDecoderStdlib1 {
 
 }
 
-trait XDecoderStdlib2 {
+private[xmlformat] trait XDecoderStdlib2 {
   this: XDecoder.type =>
 
   implicit def cbfStr[T[_], A: XStrDecoder](

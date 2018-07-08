@@ -16,7 +16,10 @@ import simulacrum._
 trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
 }
-object XStrDecoder extends XStrDecoderScalaz with XStrDecoderStdlib {
+object XStrDecoder
+    extends XStrDecoderScalaz
+    with XStrDecoderRefined
+    with XStrDecoderStdlib {
   @inline def instance[A](f: XString => String \/ A): XStrDecoder[A] = f(_)
 
   object ops extends ToXStrDecoderOps {
@@ -72,7 +75,7 @@ object XStrDecoder extends XStrDecoderScalaz with XStrDecoderStdlib {
 
 }
 
-trait XStrDecoderScalaz {
+private[xmlformat] trait XStrDecoderScalaz {
   this: XStrDecoder.type =>
 
   implicit def disjunction[
@@ -87,9 +90,23 @@ trait XStrDecoderScalaz {
         s"both branches failed for '$x':\nLeft: $erl\nRight: $err".left
     }
   }
+
 }
 
-trait XStrDecoderStdlib {
+// WORKAROUND https://github.com/scala/bug/issues/10753
+private[xmlformat] trait XStrDecoderRefined {
+  this: XStrDecoder.type =>
+
+  import eu.timepit.refined.refineV
+  import eu.timepit.refined.api._
+  implicit def refined[A: XStrDecoder, B](
+    implicit V: Validate[A, B]
+  ): XStrDecoder[A Refined B] =
+    XStrDecoder[A].emap(refineV(_).disjunction)
+
+}
+
+private[xmlformat] trait XStrDecoderStdlib {
   this: XStrDecoder.type =>
 
   implicit def either[

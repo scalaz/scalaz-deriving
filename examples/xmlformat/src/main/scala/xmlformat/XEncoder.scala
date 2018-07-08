@@ -11,6 +11,7 @@ import simulacrum._
 }
 object XEncoder
     extends XEncoderScalaz1
+    with XEncoderRefined
     with XEncoderStdlib1
     with XEncoderScalaz2
     with XEncoderStdlib2 {
@@ -23,7 +24,7 @@ object XEncoder
 
 }
 
-trait XEncoderScalaz1 {
+private[xmlformat] trait XEncoderScalaz1 {
   this: XEncoder.type =>
 
   implicit def ilistStr[A: XStrEncoder]: XEncoder[IList[A]] = { as =>
@@ -49,7 +50,7 @@ trait XEncoderScalaz1 {
 
 }
 
-trait XEncoderScalaz2 {
+private[xmlformat] trait XEncoderScalaz2 {
   this: XEncoder.type =>
 
   // Foldable derivers are not provided because they can pick up unexpected
@@ -59,7 +60,16 @@ trait XEncoderScalaz2 {
 
 }
 
-trait XEncoderStdlib1 {
+// WORKAROUND https://github.com/scala/bug/issues/10753
+private[xmlformat] trait XEncoderRefined {
+  this: XEncoder.type =>
+
+  import eu.timepit.refined.api.Refined
+  implicit def refined[A: XEncoder, B]: XEncoder[A Refined B] =
+    XEncoder[A].contramap(_.value)
+}
+
+private[xmlformat] trait XEncoderStdlib1 {
   this: XEncoder.type =>
 
   implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]] =
@@ -87,7 +97,7 @@ trait XEncoderStdlib1 {
     list[(A, B)].contramap(_.toList)
 }
 
-trait XEncoderStdlib2 {
+private[xmlformat] trait XEncoderStdlib2 {
   this: XEncoder.type =>
 
   implicit def traversableStr[T[_], A: XStrEncoder](

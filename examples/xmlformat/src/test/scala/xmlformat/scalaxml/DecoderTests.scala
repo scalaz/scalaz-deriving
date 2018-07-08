@@ -239,8 +239,6 @@ class DecoderTests extends FreeSpec {
     "should support Refined types" in {
       import refined.api.Refined
       import refined.numeric.Positive
-      import refined.scalaz._
-      import XStrDecoder.monad
 
       "1000".as[Long Refined Positive].value.shouldBe(1000)
 

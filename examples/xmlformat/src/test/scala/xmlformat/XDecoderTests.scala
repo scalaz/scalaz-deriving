@@ -199,8 +199,6 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
     "should support refined types" in {
       import refined.api.Refined
       import refined.numeric.Positive
-      import refined.scalaz._
-      import XStrDecoder.monad
 
       XString("-1000")
         .decode[Long Refined Positive]

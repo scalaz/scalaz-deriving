@@ -10,7 +10,10 @@ import simulacrum._
 @typeclass trait XStrEncoder[A] { self =>
   def toXml(a: A): XString
 }
-object XStrEncoder extends XStrEncoderScalaz with XStrEncoderStdlib {
+object XStrEncoder
+    extends XStrEncoderScalaz
+    with XStrEncoderRefined
+    with XStrEncoderStdlib {
 
   implicit val contravariant: Contravariant[XStrEncoder] =
     new Contravariant[XStrEncoder] {
@@ -35,7 +38,7 @@ object XStrEncoder extends XStrEncoderScalaz with XStrEncoderStdlib {
   implicit val xstring: XStrEncoder[XString] = identity
 }
 
-trait XStrEncoderScalaz {
+private[xmlformat] trait XStrEncoderScalaz {
   this: XStrEncoder.type =>
 
   implicit def disjunction[
@@ -48,7 +51,20 @@ trait XStrEncoderScalaz {
 
 }
 
-trait XStrEncoderStdlib {
+// WORKAROUND https://github.com/scala/bug/issues/10753
+private[xmlformat] trait XStrEncoderRefined {
+  this: XStrEncoder.type =>
+
+  import eu.timepit.refined.api.Refined
+  implicit def refined[
+    A: XStrEncoder,
+    B
+  ]: XStrEncoder[A Refined B] =
+    XStrEncoder[A].contramap(_.value)
+
+}
+
+private[xmlformat] trait XStrEncoderStdlib {
   this: XStrEncoder.type =>
 
   implicit def either[

@@ -164,8 +164,6 @@ class XEncoderTests extends FreeSpec {
       import refined.api.Refined
       import refined.auto._
       import refined.numeric.Positive
-      import refined.scalaz._
-      import XStrEncoder.contravariant
 
       val pos: Long Refined Positive = 1L
       pos.toXml.shouldBe(XString("1"))
