@@ -6,73 +6,48 @@ package iotaz
 import java.lang.String
 
 import scala.annotation.switch
-import scala.collection.immutable.{ List, Seq }
+import scala.collection.immutable.List
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
 import TList.Op.{ Map => ƒ }
 
-import scalaz._, Scalaz._
+import scalaz._
+import Isomorphism.IsoSet
 
-sealed abstract class ProdGen[A] {
-  type Repr <: TList
-  type Labels <: TList
-
-  def from(a: A): Prod[Repr]
-  def to(r: Prod[Repr]): A
-  def labels: Prod[Labels]
-}
+final class ProdGen[A, Repr <: TList, Labels <: TList] private (
+  val from: A => Prod[Repr],
+  val to: Prod[Repr] => A,
+  val labels: Prod[Labels]
+) extends IsoSet[Prod[Repr], A]
 object ProdGen {
-  type Aux[A, R <: TList, L <: TList] = ProdGen[A] {
-    type Repr   = R
-    type Labels = L
-  }
   def apply[A, R <: TList, L <: TList](
     f: A => Prod[R],
     t: Prod[R] => A,
     n: Prod[L]
   )(
     implicit @unused ev: λ[a => String] ƒ R ↦ L
-  ): Aux[A, R, L] = new ProdGen[A] {
-    type Repr   = R
-    type Labels = L
-    def from(a: A): Prod[Repr] = f(a)
-    def to(r: Prod[Repr]): A   = t(r)
-    def labels: Prod[Labels]   = n
-  }
+  ): ProdGen[A, R, L] = new ProdGen(f, t, n)
 
-  def gen[A, R <: TList, L <: TList]: ProdGen.Aux[A, R, L] =
+  def gen[A, R <: TList, L <: TList]: ProdGen[A, R, L] =
     macro IotaMacros.prodGen[A, R, L]
 }
 
-sealed abstract class CopGen[A] {
-  type Repr <: TList
-  type Labels <: TList
-
-  def from(a: A): Cop[Repr]
-  def to(r: Cop[Repr]): A
-  def labels: Prod[Labels]
-}
+final class CopGen[A, Repr <: TList, Labels <: TList] private (
+  val from: A => Cop[Repr],
+  val to: Cop[Repr] => A,
+  val labels: Prod[Labels]
+) extends IsoSet[Cop[Repr], A]
 object CopGen {
-  type Aux[A, R <: TList, L <: TList] = CopGen[A] {
-    type Repr   = R
-    type Labels = L
-  }
   def apply[A, R <: TList, L <: TList](
     f: A => Cop[R],
     t: Cop[R] => A,
     n: Prod[L]
   )(
     implicit @unused ev: λ[a => String] ƒ R ↦ L
-  ): Aux[A, R, L] = new CopGen[A] {
-    type Repr   = R
-    type Labels = L
-    def from(a: A): Cop[Repr] = f(a)
-    def to(r: Cop[Repr]): A   = t(r)
-    def labels: Prod[Labels]  = n
-  }
+  ): CopGen[A, R, L] = new CopGen(f, t, n)
 
-  def gen[A, R <: TList, L <: TList]: CopGen.Aux[A, R, L] =
+  def gen[A, R <: TList, L <: TList]: CopGen[A, R, L] =
     macro IotaMacros.copGen[A, R, L]
 }
 
@@ -132,33 +107,6 @@ object Prods {
 }
 
 object Cops {
-  type NonEmptyStream[a] = OneAnd[EphemeralStream, Name[a]]
-
-  def traverse[A, T[_], L <: TList, TL <: TList](
-    tcs: Prod[TL]
-  )(f: T ~> EphemeralStream)(
-    implicit
-    // needs evidence for being non empty
-    // https://github.com/frees-io/iota/issues/91
-    @unused ev1: λ[a => Name[T[a]]] ƒ L ↦ TL
-    // although scala is unable to infer an Cop.Inject[a, L], we can
-    // mathematically prove one exists because L is aligned with TL.
-    // ev2: Cop.InjectL[a, L]
-  ): EphemeralStream[Cop[L]] =
-    tcs.values
-      .asInstanceOf[Seq[Name[T[scala.Any]]]] // from TMap
-      .toList
-      .indexed
-      .toEphemeralStream // a FromFoldable would allow abstraction
-      .flatMap {
-        case (i, nt) =>
-          val t: T[scala.Any]                = nt.value
-          val ys: EphemeralStream[scala.Any] = f(t)
-          ys.map { y =>
-            Cop.unsafeApply[L, scala.Any](i, y) // from implied InjectL
-          }
-      }
-
   def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
   def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {
     case -\/(a) => Cop.unsafeApply(0, a)
