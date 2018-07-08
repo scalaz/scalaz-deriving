@@ -3,7 +3,8 @@
 
 package scalaz
 
-import scala.inline
+import scala.{ inline, Any }
+import scala.collection.immutable.Seq
 
 import iotaz._
 import iotaz.TList.::
@@ -13,31 +14,50 @@ import iotaz.TList.Op.{ Map => ƒ }
 import Prods._
 
 /**
- * Generic extension of Applicative implementing DerivingProduct, with a convenient API.
+ * Generic extension of Applicative implementing DerivingProduct.
  */
 trait Applicativez[F[_]] extends Applicative[F] with InvariantApplicativez[F] {
 
+  type G[_]
+  def G: Applicative[G]
+
   /**
-   * This is only visible to implementors, it is not part of the public API.
-   * Implementors may also choose to implement xproductz directly for
-   * performance reasons.
+   * Implementors can implement this or override applyz.
+   *
+   * This method adds some type safety to the raw iotaz API, at a small
+   * performance penalty and incurring extra restrictions.
    */
   protected def productz[Z](f: (F ~> G) => G[Z]): F[Z]
 
-  // implementation...
-  final protected def productz[Z, H[_]: Traverse](
-    f: (F ~> G) => G[Z],
-    @unused g: Z =*> H
-  ): F[Z] = productz(f)
-
+  /** Implementors may override this, subject to limitations of the iotaz API. */
   def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
     f: Prod[L] => Z
   )(
-    implicit ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = xproductz(tcs)(f, null) // scalafix:ok
-  // contravariant param is ignored
+    implicit @unused ev: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = {
+    import Scalaz._
+
+    val fz = { (faa: F ~> G) =>
+      implicit val GA: Applicative[G] = G
+      tcs.values
+        .asInstanceOf[Seq[Name[F[Any]]]] // from ev
+        .toList
+        .traverse(nty => faa(nty.value))
+        .map(v => f(Prod.unsafeApply(v)))
+    }
+    productz(fz)
+  }
 
   // derived combinators
+  override final def xproductz[Z, L <: TList, FL <: TList](
+    tcs: Prod[FL]
+  )(
+    f: Prod[L] => Z,
+    @unused g: Z => Prod[L]
+  )(
+    implicit ev1: λ[a => Name[F[a]]] ƒ L ↦ FL
+  ): F[Z] = applyz(tcs)(f)
+
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =
     apply2(fa, f)((a, abc) => abc(a))
 

@@ -85,11 +85,16 @@ class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
     assert(leaf1 === leaf1)
     assert(leaf2 === leaf2)
     assert(leaf1 /== leaf2)
+
+    assert(leaf1 > leaf2) // Order
   }
 
   "recursive coproducts" should "behave as expected" in {
     assert(tree1 === tree1)
     assert(tree1 /== tree2)
+
+    assert(tree1 > tree2) // Order
+    assert((leaf1: ATree) < (branch: ATree))
   }
 
   val gleaf1: GLeaf[String]    = GLeaf("hello")

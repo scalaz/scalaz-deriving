@@ -5,7 +5,8 @@ package scalaz
 
 import java.lang.String
 
-import scala.{ inline, AnyRef }
+import scala.{ inline, Any, Boolean }
+import scala.collection.immutable.Seq
 
 import iotaz._
 import iotaz.TList.Compute.{ Aux => ↦ }
@@ -76,27 +77,123 @@ object Deriving {
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
+  // scalafix:off
   // hide the detail that this is an Decidablez to avoid exposing Divide
   implicit val _deriving_equal: Deriving[Equal] = new Decidablez[Equal] {
     import Scalaz._
 
+    // since dividez is implemented, this is ignored and is just an example
     def productz[Z, H[_]: Traverse](f: Z =*> H): Equal[Z] = { (z1: Z, z2: Z) =>
-      (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) ||
-      f(z1, z2).all {
-        case fa /~\ ((a1, a2)) =>
-          (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
-            fa.equal(a1, a2)
+      f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
+    }
+
+    // since choosez is implemented, this is ignored and is just an example
+    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
+      f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
+        .getOrElse(false)
+    }
+
+    // if you like sausages, don't go to a sausage factory...
+    override def dividez[Z, L <: TList, FL <: TList](
+      tcs: Prod[FL]
+    )(
+      g: Z => Prod[L]
+    )(
+      implicit @unused ev: λ[a => Name[Equal[a]]] ƒ L ↦ FL
+    ): Equal[Z] = new Equal[Z] {
+
+      // SAM types and return keyword do not mix...
+      def equal(z1: Z, z2: Z): Boolean = {
+        val a1s = g(z1).values.toArray
+        val a2s = g(z2).values.toArray
+        val eqs = tcs.values.asInstanceOf[Seq[Name[Equal[Any]]]].toArray
+        var i   = 0
+        while (i < eqs.length) {
+          if (!eqs(i).value.equal(a1s(i), a2s(i)))
+            return false
+          i += 1
+        }
+        true
       }
     }
 
-    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
-      (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) || f(z1, z2).map {
-        case fa /~\ ((a1, a2)) =>
-          (a1.asInstanceOf[AnyRef].eq(a2.asInstanceOf[AnyRef])) ||
-            fa.equal(a1, a2)
-      }.getOrElse(false)
+    override def choosez[Z, L <: TList, FL <: TList](
+      tcs: Prod[FL]
+    )(
+      g: Z => Cop[L]
+    )(
+      implicit @unused ev: λ[a => Name[Equal[a]]] ƒ L ↦ FL
+    ): Equal[Z] = new Equal[Z] {
+      def equal(z1: Z, z2: Z): Boolean = {
+        val a1 = g(z1)
+        val a2 = g(z2)
+
+        (a1.index == a2.index) && {
+          tcs.values
+            .asInstanceOf[Seq[Name[Equal[Any]]]](a1.index)
+            .value
+            .equal(a1.value, a2.value)
+        }
+      }
     }
   }
+
+  implicit val _deriving_order: Deriving[Order] = new Decidablez[Order] {
+    def productz[Z, H[_]: Traverse](f: Z =*> H): Order[Z] = null
+    def coproductz[Z](f: Z =+> Maybe): Order[Z]           = null
+
+    override def dividez[Z, L <: TList, FL <: TList](
+      tcs: Prod[FL]
+    )(
+      g: Z => Prod[L]
+    )(
+      implicit @unused ev: λ[a => Name[Order[a]]] ƒ L ↦ FL
+    ): Order[Z] = {
+      val delegate =
+        _deriving_equal.asInstanceOf[Decidablez[Equal]].dividez(tcs)(g)(null)
+      new Order[Z] {
+        override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
+        def order(z1: Z, z2: Z): Ordering = {
+          val a1s = g(z1).values.toArray
+          val a2s = g(z2).values.toArray
+          val eqs = tcs.values.asInstanceOf[Seq[Name[Order[Any]]]].toArray
+          var i   = 0
+          while (i < eqs.length) {
+            val ord = eqs(i).value.order(a1s(i), a2s(i))
+            if (ord != Ordering.EQ) return ord
+            i += 1
+          }
+          Ordering.EQ
+        }
+      }
+    }
+
+    override def choosez[Z, L <: TList, FL <: TList](
+      tcs: Prod[FL]
+    )(
+      g: Z => Cop[L]
+    )(
+      implicit @unused ev: λ[a => Name[Order[a]]] ƒ L ↦ FL
+    ): Order[Z] = {
+      val delegate =
+        _deriving_equal.asInstanceOf[Decidablez[Equal]].choosez(tcs)(g)(null)
+      new Order[Z] {
+        override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
+        def order(z1: Z, z2: Z): Ordering = {
+          val a1 = g(z1)
+          val a2 = g(z2)
+
+          if (a1.index != a2.index)
+            return Ordering.fromInt(a1.index - a2.index)
+          tcs.values
+            .asInstanceOf[Seq[Name[Order[Any]]]](a1.index)
+            .value
+            .order(a1.value, a2.value)
+        }
+      }
+    }
+  }
+  // scalafix:on
 
   implicit val _deriving_show: Deriving[Show] =
     new LabelledEncoder[Show] {
@@ -122,10 +219,7 @@ object DerivingProducts {
 
   implicit val _deriving_semigroup: DerivingProducts[Semigroup] =
     new InvariantApplicativez[Semigroup] {
-      type G[a] = EphemeralStream[a]
-      def G: Applicative[G] = Applicative[G]
-
-      // *silent crying*
+      // *silent crying* the iotaz API doesn't give much type safety
       override def xproductz[Z, L <: TList, FL <: TList](
         tcs: Prod[FL]
       )(
@@ -147,21 +241,10 @@ object DerivingProducts {
           f(Prod.unsafeApply[L](els))
         }
       }
-
-      // it is a failure of the API that we cannot implement Semigroup with
-      // productz. We need a "map over H and reconstruct the product" operation.
-      def productz[Z, H[_]: Traverse](
-        f: (Semigroup ~> G) => G[Z],
-        g: Z =*> H
-      ): Semigroup[Z] = scala.Predef.???
     }
 
   implicit val _deriving_monoid: DerivingProducts[Monoid] =
     new InvariantApplicativez[Monoid] {
-      type G[a] = EphemeralStream[a]
-      def G: Applicative[G] = Applicative[G]
-
-      // *silent crying*
       override def xproductz[Z, L <: TList, FL <: TList](
         tcs: Prod[FL]
       )(
@@ -189,11 +272,6 @@ object DerivingProducts {
           f(Prod.unsafeApply[L](els))
         }
       }
-
-      def productz[Z, H[_]: Traverse](
-        f: (Monoid ~> G) => G[Z],
-        g: Z =*> H
-      ): Monoid[Z] = scala.Predef.???
     }
 
   // these must be duplicated here so they are in the implicit scope. This is not
@@ -202,5 +280,7 @@ object DerivingProducts {
   implicit val _deriving_show: DerivingProducts[Show] = Deriving._deriving_show
   implicit val _deriving_equal: DerivingProducts[Equal] =
     Deriving._deriving_equal
+  implicit val _deriving_order: DerivingProducts[Order] =
+    Deriving._deriving_order
 
 }

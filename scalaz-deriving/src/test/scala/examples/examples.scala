@@ -116,7 +116,7 @@ package adt {
 // more complex recursive type example
 package recadt {
   @deriving(
-    Equal,
+    Order,
     Default,
     Defaultz,
     Defaultzy,
@@ -128,7 +128,7 @@ package recadt {
   )
   sealed trait ATree
   @deriving(
-    Equal,
+    Order,
     Default,
     Defaultz,
     Defaultzy,
@@ -140,7 +140,7 @@ package recadt {
   )
   final case class Leaf(value: String) extends ATree
   @deriving(
-    Equal,
+    Order,
     Default,
     Defaultz,
     Defaultzy,

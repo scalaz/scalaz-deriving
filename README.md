@@ -117,7 +117,7 @@ If your typeclass cannot satisfy the `Decidable` or `Alt` laws, write a fresh `L
 
 The following derivations are provided out-of-the-box for scalaz-core typeclasses:
 
-1. `Equal`
+1. `Equal` / `Order`
 2. `Show`
 3. `Semigroup` / `Monoid`
 
