@@ -115,6 +115,14 @@ If your typeclass can implement `Decidable` or `Alt` and satisfy their laws, you
 
 If your typeclass cannot satisfy the `Decidable` or `Alt` laws, write a fresh `LabelledEncoder` or `LabelledDecoder`, which will also give you access to field names.
 
+The following derivations are provided out-of-the-box for scalaz-core typeclasses:
+
+1. `Equal`
+2. `Show`
+3. `Semigroup` / `Monoid`
+
+with more learn-by-example in `scalaz-deriving/src/test/scala/examples`.
+
 # Installation
 
 ## IntelliJ Users

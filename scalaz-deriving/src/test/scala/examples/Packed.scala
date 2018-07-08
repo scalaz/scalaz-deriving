@@ -45,7 +45,7 @@ object BadPack {
   implicit val string: BadPack[String] = i => Characters(i).widen
 
   implicit val decidablez: Decidablez[BadPack] = new Decidablez[BadPack] {
-    def productz[Z, G[_]: Traverse](f: Z =*> G): BadPack[Z] = { z =>
+    def productz[Z, H[_]: Traverse](f: Z =*> H): BadPack[Z] = { z =>
       val entries = f(z).map { case fa /~\ a => fa.encode(a) }
       Product(entries.toIList).widen
     }

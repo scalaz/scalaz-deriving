@@ -19,7 +19,8 @@ package anyvals {
     NamePacker,
     NameUnpacker,
     Same,
-    Show
+    Show,
+    Semigroup
   )
   final case class Thing(s: String) extends AnyVal
 
@@ -32,7 +33,8 @@ package anyvals {
     NamePacker,
     NameUnpacker,
     Same,
-    Show
+    Show,
+    Semigroup
   )
   final case class Thong(s: String) extends AnyVal
 }
@@ -76,7 +78,8 @@ package adt {
     NamePacker,
     NameUnpacker,
     Same,
-    Show
+    Show,
+    Monoid
   )
   final case class Bar(s: String) extends Foo
   @deriving(
@@ -100,7 +103,8 @@ package adt {
     NamePacker,
     NameUnpacker,
     Same,
-    Show
+    Show,
+    Semigroup
   )
   final case object Baz extends Foo
 

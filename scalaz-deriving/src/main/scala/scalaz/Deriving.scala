@@ -21,20 +21,7 @@ import iotaz.TList.Op.{ Map => ƒ }
  *
  * Downstream users call this API via the DerivingMacro.
  */
-trait Deriving[F[_]] {
-
-  def xproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
-  )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
-  )(
-    implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
-  ): F[Z]
-
+trait Deriving[F[_]] extends DerivingProducts[F] {
   def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
     tcs: Prod[FL],
     labels: Prod[N]
@@ -48,6 +35,25 @@ trait Deriving[F[_]] {
   ): F[Z]
 
 }
+
+/**
+ * A weaker form of Deriving for typeclasses that can only support products,
+ * e.g. Semigroup.
+ */
+trait DerivingProducts[F[_]] {
+  def xproductz[Z, L <: TList, FL <: TList, N <: TList](
+    tcs: Prod[FL],
+    labels: Prod[N]
+  )(
+    f: Prod[L] => Z,
+    g: Z => Prod[L]
+  )(
+    implicit
+    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
+    ev2: λ[a => String] ƒ L ↦ N
+  ): F[Z]
+}
+
 object Deriving {
   @inline def apply[F[_]](implicit F: Deriving[F]): Deriving[F] = F
 
@@ -74,7 +80,7 @@ object Deriving {
   implicit val _deriving_equal: Deriving[Equal] = new Decidablez[Equal] {
     import Scalaz._
 
-    def productz[Z, G[_]: Traverse](f: Z =*> G): Equal[Z] = { (z1: Z, z2: Z) =>
+    def productz[Z, H[_]: Traverse](f: Z =*> H): Equal[Z] = { (z1: Z, z2: Z) =>
       (z1.asInstanceOf[AnyRef].eq(z2.asInstanceOf[AnyRef])) ||
       f(z1, z2).all {
         case fa /~\ ((a1, a2)) =>
@@ -107,5 +113,94 @@ object Deriving {
         }
       }
     }
+}
+
+object DerivingProducts {
+  @inline def apply[F[_]](
+    implicit F: DerivingProducts[F]
+  ): DerivingProducts[F] = F
+
+  implicit val _deriving_semigroup: DerivingProducts[Semigroup] =
+    new InvariantApplicativez[Semigroup] {
+      type G[a] = EphemeralStream[a]
+      def G: Applicative[G] = Applicative[G]
+
+      // *silent crying*
+      override def xproductz[Z, L <: TList, FL <: TList](
+        tcs: Prod[FL]
+      )(
+        f: Prod[L] => Z,
+        g: Z => Prod[L]
+      )(
+        implicit @unused ev1: λ[a => Name[Semigroup[a]]] ƒ L ↦ FL
+      ): Semigroup[Z] = new Semigroup[Z] {
+        // can't use SAM types with by-name parameters
+        def append(z1: Z, z2: =>Z): Z = {
+          import scala.collection.immutable.Seq
+
+          val els = g(z1).values
+            .zip(g(z2).values)
+            .zip(tcs.values.asInstanceOf[Seq[Name[Semigroup[scala.Any]]]])
+            .map {
+              case ((a1, a2), tc) => tc.value.append(a1, a2)
+            }
+          f(Prod.unsafeApply[L](els))
+        }
+      }
+
+      // it is a failure of the API that we cannot implement Semigroup with
+      // productz. We need a "map over H and reconstruct the product" operation.
+      def productz[Z, H[_]: Traverse](
+        f: (Semigroup ~> G) => G[Z],
+        g: Z =*> H
+      ): Semigroup[Z] = scala.Predef.???
+    }
+
+  implicit val _deriving_monoid: DerivingProducts[Monoid] =
+    new InvariantApplicativez[Monoid] {
+      type G[a] = EphemeralStream[a]
+      def G: Applicative[G] = Applicative[G]
+
+      // *silent crying*
+      override def xproductz[Z, L <: TList, FL <: TList](
+        tcs: Prod[FL]
+      )(
+        f: Prod[L] => Z,
+        g: Z => Prod[L]
+      )(
+        implicit @unused ev1: λ[a => Name[Monoid[a]]] ƒ L ↦ FL
+      ): Monoid[Z] = new Monoid[Z] {
+        import scala.collection.immutable.Seq
+        def append(z1: Z, z2: =>Z): Z = {
+          val els = g(z1).values
+            .zip(g(z2).values)
+            .zip(tcs.values.asInstanceOf[Seq[Name[Monoid[scala.Any]]]])
+            .map {
+              case ((a1, a2), tc) => tc.value.append(a1, a2)
+            }
+          f(Prod.unsafeApply[L](els))
+        }
+
+        def zero: Z = {
+          val els = tcs.values.asInstanceOf[Seq[Name[Monoid[scala.Any]]]].map {
+            tc =>
+              tc.value.zero
+          }
+          f(Prod.unsafeApply[L](els))
+        }
+      }
+
+      def productz[Z, H[_]: Traverse](
+        f: (Monoid ~> G) => G[Z],
+        g: Z =*> H
+      ): Monoid[Z] = scala.Predef.???
+    }
+
+  // these must be duplicated here so they are in the implicit scope. This is not
+  // a problem when they are defined on the companion of the typeclass, but since
+  // we are retrofitting scalaz-core, we must endure a few hacks...
+  implicit val _deriving_show: DerivingProducts[Show] = Deriving._deriving_show
+  implicit val _deriving_equal: DerivingProducts[Equal] =
+    Deriving._deriving_equal
 
 }
