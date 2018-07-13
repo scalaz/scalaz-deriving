@@ -5,7 +5,7 @@ package scalaz
 
 import java.lang.String
 
-import scala.{ inline, Any, Boolean }
+import scala.{ inline, Any, AnyRef, Boolean }
 import scala.collection.immutable.Seq
 
 import iotaz._
@@ -109,7 +109,10 @@ object Deriving {
         val eqs = tcs.values.asInstanceOf[Seq[Name[Equal[Any]]]].toArray
         var i   = 0
         while (i < eqs.length) {
-          if (!eqs(i).value.equal(a1s(i), a2s(i)))
+          val a1 = a1s(i).asInstanceOf[AnyRef]
+          val a2 = a2s(i).asInstanceOf[AnyRef]
+          val eq = (a1.eq(a2)) || eqs(i).value.equal(a1, a2)
+          if (!eq)
             return false
           i += 1
         }
@@ -129,10 +132,13 @@ object Deriving {
         val a2 = g(z2)
 
         (a1.index == a2.index) && {
-          tcs.values
+          val a = a1.value.asInstanceOf[AnyRef]
+          val b = a2.value.asInstanceOf[AnyRef]
+
+          (a.eq(b)) || tcs.values
             .asInstanceOf[Seq[Name[Equal[Any]]]](a1.index)
             .value
-            .equal(a1.value, a2.value)
+            .equal(a, b)
         }
       }
     }
