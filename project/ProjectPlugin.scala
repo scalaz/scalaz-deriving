@@ -23,7 +23,6 @@ object ProjectKeys {
 
   def SemanticDB =
     addCompilerPlugin(scalafixSemanticdb)
-  //("org.scalameta" % "semanticdb-scalac" % "4.0.0-M4").cross(CrossVersion.full)
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -54,7 +53,7 @@ object ProjectPlugin extends AutoPlugin {
   override def buildSettings =
     Seq(
       organization := "com.fommil",
-      crossScalaVersions := Seq("2.12.4", "2.11.12"),
+      crossScalaVersions := Seq("2.12.6", "2.11.12"),
       scalaVersion := crossScalaVersions.value.head,
       sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),

@@ -6,8 +6,9 @@ package examples
 import java.lang.String
 import scala.{ AnyVal, Boolean, Int }
 
-import scalaz._
-import Scalaz._
+import scalaz._, Scalaz._
+import org.scalacheck.Arbitrary
+import DerivedArbitrary._
 
 package anyvals {
   @xderiving(
@@ -116,6 +117,7 @@ package adt {
 // more complex recursive type example
 package recadt {
   @deriving(
+    Arbitrary,
     Order,
     Default,
     Defaultz,
@@ -128,6 +130,7 @@ package recadt {
   )
   sealed trait ATree
   @deriving(
+    Arbitrary,
     Order,
     Default,
     Defaultz,
@@ -140,6 +143,7 @@ package recadt {
   )
   final case class Leaf(value: String) extends ATree
   @deriving(
+    Arbitrary,
     Order,
     Default,
     Defaultz,
@@ -156,6 +160,7 @@ package recadt {
 // more complex recursive GADT type example
 package recgadt {
   @deriving(
+    Arbitrary,
     Equal,
     Default,
     Defaultz,
@@ -168,6 +173,7 @@ package recgadt {
   )
   sealed trait GTree[A]
   @deriving(
+    Arbitrary,
     Equal,
     Default,
     Defaultz,
@@ -180,6 +186,7 @@ package recgadt {
   )
   final case class GLeaf[A](value: A) extends GTree[A]
   @deriving(
+    Arbitrary,
     Equal,
     Default,
     Defaultz,

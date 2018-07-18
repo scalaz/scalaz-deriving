@@ -75,7 +75,6 @@ class LabelledDecoderSpec
   }
 
   "recursive ADTs" should "round trip encoding and decoding" in {
-    import org.scalacheck.ScalacheckShapeless._
     import examples.recadt._
 
     forAll { (t: ATree) =>
@@ -84,7 +83,6 @@ class LabelledDecoderSpec
   }
 
   "recursive GADTs" should "round trip encoding and decoding" in {
-    import org.scalacheck.ScalacheckShapeless._
     import examples.recgadt._
 
     forAll { (t: GTree[String]) =>
