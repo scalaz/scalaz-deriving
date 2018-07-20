@@ -3,14 +3,10 @@
 
 package scalaz
 
-import scala.{ inline, Any }
-import scala.collection.immutable.Seq
+import scala.inline
 
 import iotaz._
 import iotaz.TList.::
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
-
 import Prods._
 
 /**
@@ -18,44 +14,20 @@ import Prods._
  */
 trait Applicativez[F[_]] extends Applicative[F] with InvariantApplicativez[F] {
 
-  type G[_]
-  def G: Applicative[G]
-
-  /**
-   * Implementors can implement this or override applyz.
-   *
-   * This method adds some type safety to the raw iotaz API, at a small
-   * performance penalty and incurring extra restrictions.
-   */
-  protected def productz[Z](f: (F ~> G) => G[Z]): F[Z]
-
-  /** Implementors may override this, subject to limitations of the iotaz API. */
-  def applyz[Z, L <: TList, FL <: TList](tcs: Prod[FL])(
-    f: Prod[L] => Z
+  def applyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+    f: Prod[A] => Z
   )(
-    implicit @unused ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = {
-    import Scalaz._
-
-    val fz = { (faa: F ~> G) =>
-      implicit val GA: Applicative[G] = G
-      tcs.values
-        .asInstanceOf[Seq[Name[F[Any]]]] // from ev
-        .toList
-        .traverse(nty => faa(nty.value))
-        .map(v => f(Prod.unsafeApply(v)))
-    }
-    productz(fz)
-  }
+    implicit ev: NameF ƒ A ↦ TC
+  ): F[Z]
 
   // derived combinators
-  override final def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  override final def xproductz[Z, A <: TList, TC <: TList](
+    tcs: Prod[TC]
   )(
-    f: Prod[L] => Z,
-    @unused g: Z => Prod[L]
+    f: Prod[A] => Z,
+    @unused g: Z => Prod[A]
   )(
-    implicit ev1: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit ev1: NameF ƒ A ↦ TC
   ): F[Z] = applyz(tcs)(f)
 
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =

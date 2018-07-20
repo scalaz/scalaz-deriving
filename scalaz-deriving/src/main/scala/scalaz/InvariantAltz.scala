@@ -4,14 +4,10 @@
 package scalaz
 
 import java.lang.String
-
 import scala.inline
 
 import iotaz._
 import iotaz.TList.::
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
-
 import Cops._
 
 /**
@@ -22,25 +18,26 @@ trait InvariantAltz[F[_]]
     with InvariantAlt[F]
     with Deriving[F] {
 
-  def xcoproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  def xcoproductz[Z, A <: TList, TC <: TList](
+    tcs: Prod[TC]
   )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
+    f: Cop[A] => Z,
+    g: Z => Cop[A]
   )(
-    implicit ev1: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit ev1: NameF ƒ A ↦ TC
   ): F[Z]
 
-  override final def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    @unused labels: Prod[N]
+  override final def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+    tcs: Prod[TC],
+    @unused labels: Prod[L],
+    @unused name: String
   )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
+    f: Cop[A] => Z,
+    g: Z => Cop[A]
   )(
     implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
+    ev1: NameF ƒ A ↦ TC,
+    ev2: Label ƒ A ↦ L
   ): F[Z] = xcoproductz(tcs)(f, g)(ev1)
 
   override def xcoproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] = {

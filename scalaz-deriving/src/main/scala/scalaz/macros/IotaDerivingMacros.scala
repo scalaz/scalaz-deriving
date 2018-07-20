@@ -90,13 +90,13 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
       q"""
        val gen = _root_.iotaz.CopGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Deriving[$F].xcoproductz(tcs, gen.labels)(gen.to, gen.from)
+       _root_.scalaz.Deriving[$F].xcoproductz(tcs, gen.labels, gen.name)(gen.to, gen.from)
        """
     } else {
       q"""
        val gen = _root_.iotaz.ProdGen.gen[$A, $data, $labels]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.DerivingProducts[$F].xproductz(tcs, gen.labels)(gen.to, gen.from)
+       _root_.scalaz.DerivingProducts[$F].xproductz(tcs, gen.labels, gen.name)(gen.to, gen.from)
        """
     }
   }

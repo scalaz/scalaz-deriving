@@ -5,29 +5,35 @@ package iotaz
 
 import java.lang.String
 
+import scala.{ Any, AnyVal, Int }
 import scala.annotation.switch
-import scala.collection.immutable.List
+import scala.collection.immutable.{ List, Seq }
+import scala.collection.breakOut
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
 import TList.Op.{ Map => ƒ }
 
-import scalaz._
+import scalaz._, Scalaz._
 import Isomorphism.IsoSet
+
+import Prods.Label
 
 final class ProdGen[A, Repr <: TList, Labels <: TList] private (
   val from: A => Prod[Repr],
   val to: Prod[Repr] => A,
-  val labels: Prod[Labels]
+  val labels: Prod[Labels],
+  val name: String
 ) extends IsoSet[Prod[Repr], A]
 object ProdGen {
   def apply[A, R <: TList, L <: TList](
     f: A => Prod[R],
     t: Prod[R] => A,
-    n: Prod[L]
+    n: Prod[L],
+    s: String
   )(
-    implicit @unused ev: λ[a => String] ƒ R ↦ L
-  ): ProdGen[A, R, L] = new ProdGen(f, t, n)
+    implicit @unused ev: Label ƒ R ↦ L
+  ): ProdGen[A, R, L] = new ProdGen(f, t, n, s)
 
   def gen[A, R <: TList, L <: TList]: ProdGen[A, R, L] =
     macro IotaMacros.prodGen[A, R, L]
@@ -36,16 +42,18 @@ object ProdGen {
 final class CopGen[A, Repr <: TList, Labels <: TList] private (
   val from: A => Cop[Repr],
   val to: Cop[Repr] => A,
-  val labels: Prod[Labels]
+  val labels: Prod[Labels],
+  val name: String
 ) extends IsoSet[Cop[Repr], A]
 object CopGen {
   def apply[A, R <: TList, L <: TList](
     f: A => Cop[R],
     t: Cop[R] => A,
-    n: Prod[L]
+    n: Prod[L],
+    s: String
   )(
-    implicit @unused ev: λ[a => String] ƒ R ↦ L
-  ): CopGen[A, R, L] = new CopGen(f, t, n)
+    implicit @unused ev: Label ƒ R ↦ L
+  ): CopGen[A, R, L] = new CopGen(f, t, n, s)
 
   def gen[A, R <: TList, L <: TList]: CopGen[A, R, L] =
     macro IotaMacros.copGen[A, R, L]
@@ -72,6 +80,7 @@ object LazyProd {
 }
 
 object Prods {
+  type Label[a] = String
 
   val empty: Prod[TNil] = Prod()
   def from1T[A1](e: A1): Prod[A1 :: TNil] =
@@ -103,6 +112,144 @@ object Prods {
     a.values(2).asInstanceOf[A3],
     a.values(3).asInstanceOf[A4]
   )
+
+  object ops {
+
+    final implicit class UnsafeProds[T <: TList](
+      private val self: Prod[T]
+    ) extends AnyVal {
+      def as[A <: TList]: Prod[A] = self.asInstanceOf[Prod[A]]
+    }
+
+    implicit final class ProdOps[A <: TList](private val a: Prod[A])
+        extends AnyVal {
+      def zip[B <: TList, H[_]](b: Prod[B])(
+        implicit ev: H ƒ A ↦ B
+      ): List[Id /~\ H] = {
+        val _ = ev
+
+        a.values
+          .zip(b.values.asInstanceOf[Seq[H[Any]]])
+          .map {
+            case (a, h) => /~\[Id, H, Any](a, h)
+          }(breakOut)
+      }
+
+      def zip[B <: TList, C <: TList, H[_]](b: Prod[B], c: Prod[C])(
+        implicit
+        ev1: H ƒ A ↦ B,
+        ev2: Label ƒ A ↦ C
+      ): List[(String, ?) /~\ H] = {
+        val _ = (ev1, ev2)
+
+        c.values
+          .asInstanceOf[Seq[String]]
+          .zip(a.values)
+          .zip(b.values.asInstanceOf[Seq[H[Any]]])
+          .map {
+            case (a, h) => /~\[(String, ?), H, Any](a, h)
+          }(breakOut)
+      }
+
+      def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(
+        implicit ev1: F ƒ B ↦ A
+      ): G[Prod[B]] = {
+        val _ = ev1
+        a.values
+          .asInstanceOf[Seq[F[Any]]]
+          .toList
+          .traverse(f)
+          .map(bs => Prod.unsafeApply[B](bs))
+      }
+
+      def traverse[B <: TList, C <: TList, F[_], G[_]: Applicative](
+        f: λ[α => (String, F[α])] ~> G,
+        c: Prod[C]
+      )(
+        implicit ev1: F ƒ B ↦ A,
+        ev2: Label ƒ B ↦ C
+      ): G[Prod[B]] = {
+        val _ = (ev1, ev2)
+        c.values
+          .asInstanceOf[Seq[String]]
+          .zip(a.values.asInstanceOf[Seq[F[Any]]])
+          .toList
+          .traverse(f(_))
+          .map(bs => Prod.unsafeApply[B](bs))
+      }
+
+      def ziptraverse2[B <: TList, C <: TList, F[_], G[_]: Applicative](
+        b1: Prod[B],
+        b2: Prod[B],
+        f: λ[α => (Pair[α], F[α])] ~> G
+      )(
+        implicit ev1: F ƒ B ↦ A
+      ): G[Prod[C]] = {
+        val _ = ev1
+        b1.values
+          .zip(b2.values)
+          .zip(a.values.asInstanceOf[Seq[F[Any]]])
+          .toList
+          .traverse(f(_))
+          .map(bs => Prod.unsafeApply[C](bs))
+      }
+
+      type E[g[_], a] = EphemeralStream[g[a]]
+
+      def coptraverse[B <: TList, F[_], G[_]: Applicative](f: F ~> E[G, ?])(
+        implicit ev1: F ƒ B ↦ A
+      ): EphemeralStream[G[Cop[B]]] = {
+        val _ = ev1
+        a.values
+          .asInstanceOf[Seq[F[Any]]]
+          .toList
+          .indexed
+          .toEphemeralStream
+          .flatMap {
+            case (i, fa) => f(fa).map(g => (i, g))
+          }
+          .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
+      }
+
+      def coptraverse[B <: TList, C <: TList, F[_], G[_]: Applicative](
+        f: λ[α => (String, F[α])] ~> E[G, ?],
+        c: Prod[C]
+      )(
+        implicit ev1: F ƒ B ↦ A,
+        ev2: Label ƒ B ↦ C
+      ): EphemeralStream[G[Cop[B]]] = {
+        val _ = (ev1, ev2)
+        c.values
+          .asInstanceOf[Seq[String]]
+          .zip(a.values.asInstanceOf[Seq[F[Any]]])
+          .toList
+          .indexed
+          .toEphemeralStream
+          .flatMap {
+            case (i, sfa) => f(sfa).map(y => (i, y))
+          }
+          .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
+      }
+    }
+
+    type Pair[a] = (a, a)
+    implicit final class ProdOps2[A <: TList](
+      private val as: (Prod[A], Prod[A])
+    ) extends AnyVal {
+      def zip[B <: TList, H[_]](b: Prod[B])(
+        implicit ev: H ƒ A ↦ B
+      ): List[Pair /~\ H] = {
+        val _        = ev
+        val (a1, a2) = as
+        a1.values
+          .zip(a2.values)
+          .zip(b.values.asInstanceOf[Seq[H[Any]]])
+          .map {
+            case (aa, h) => /~\[Pair, H, Any](aa, h)
+          }(breakOut)
+      }
+    }
+  }
 
 }
 
@@ -149,4 +296,68 @@ object Cops {
     case 3 => \/-(\/-(\/-(c.value.asInstanceOf[A4])))
   }
 
+  object ops {
+    final implicit class UnsafeCops[T <: TList](
+      private val self: Cop[T]
+    ) extends AnyVal {
+      // a completely unsafe operation that is useful when we have some runtime
+      // information like we create a
+      //
+      //   Any :: Any :: Any :: TNil
+      //
+      // and we know it is an instance of the more general type A
+      def as[A <: TList]: Cop[A] = self.asInstanceOf[Cop[A]]
+
+      def shift(i: Int): Cop[T] =
+        Cop.unsafeApply[T, Any](self.index + i, self.value)
+    }
+
+    implicit final class CopOps[A <: TList](private val a: Cop[A])
+        extends AnyVal {
+
+      def zip[B <: TList, H[_]](b: Prod[B])(
+        implicit ev: H ƒ A ↦ B
+      ): Id /~\ H = {
+        val _ = ev
+        /~\[Id, H, Any](
+          a.value,
+          b.values(a.index).asInstanceOf[H[Any]]
+        )
+      }
+
+      def zip[B <: TList, C <: TList, H[_]](b: Prod[B], c: Prod[C])(
+        implicit ev1: H ƒ A ↦ B,
+        ev2: Label ƒ A ↦ C
+      ): (String, ?) /~\ H = {
+        val _ = (ev1, ev2)
+
+        /~\[(String, ?), H, Any](
+          (c.values(a.index).asInstanceOf[String], a.value),
+          b.values(a.index).asInstanceOf[H[Any]]
+        )
+      }
+
+    }
+
+    type Pair[a] = (a, a)
+    implicit final class CopOps2[A <: TList](private val as: (Cop[A], Cop[A]))
+        extends AnyVal {
+      def zip[B <: TList, H[_]](b: Prod[B])(
+        implicit ev: H ƒ A ↦ B
+      ): (Int, Id /~\ H, Int, Id /~\ H) \/ (Pair /~\ H) = {
+        val _        = ev
+        val (a1, a2) = as
+        val bs       = b.values.asInstanceOf[Seq[H[Any]]]
+        val b1       = bs(a1.index)
+        if (a1.index == a2.index)
+          \/-(/~\[Pair, H, Any]((a1.value, a2.value), b1))
+        else {
+          val b2 = bs(a2.index)
+          val e1 = /~\[Id, H, Any](a1.value, b1)
+          val e2 = /~\[Id, H, Any](a2.value, b2)
+          -\/((a1.index, e1, a2.index, e2))
+        }
+      }
+    }
+  }
 }

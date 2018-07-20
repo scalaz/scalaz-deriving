@@ -6,9 +6,7 @@ package examples
 import java.lang.String
 
 import scala.{ inline, Boolean, Int }
-
 import scalaz._, Scalaz._
-import EphemeralStream.EStream
 
 // like Defaultz, but returns Maybe
 trait Defaultzy[A] {
@@ -25,21 +23,24 @@ object Defaultzy {
   implicit val boolean: Defaultzy[Boolean] = instance(false.just)
 
   implicit val defaultz_altz: Altz[Defaultzy] = new Altz[Defaultzy] {
-    type G[a] = Maybe[a]
-    def G: Applicative[Maybe] = Applicative[Maybe]
+    private val extract = λ[NameF ~> Maybe](a => a.value.default)
+    def applyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+      f: Prod[A] => Z
+    )(
+      implicit ev1: NameF ƒ A ↦ TC
+    ): Defaultzy[Z] = instance {
+      tcs.traverse[A, NameF, Maybe](extract).map(f)
+    }
 
-    val extract: Defaultzy ~> Maybe = λ[Defaultzy ~> Maybe](a => a.default)
-    override def productz[Z](
-      f: (Defaultzy ~> Maybe) => Maybe[Z]
-    ): Defaultzy[Z] =
-      instance(f(extract))
-
-    val always: Defaultzy ~> EStream =
-      λ[Defaultzy ~> EStream](a => a.default.toEphemeralStream)
-    override def coproductz[Z](
-      f: (Defaultzy ~> EStream) => EStream[Z]
-    ): Defaultzy[Z] =
-      instance(f(always).headOption.toMaybe)
+    private val always =
+      λ[NameF ~> EphemeralStream](a => a.value.default.toEphemeralStream)
+    def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+      f: Cop[A] => Z
+    )(
+      implicit ev1: NameF ƒ A ↦ TC
+    ): Defaultzy[Z] = instance {
+      tcs.coptraverse[A, NameF, Id](always).map(f).headOption.toMaybe
+    }
   }
 
 }

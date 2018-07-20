@@ -6,9 +6,7 @@ package examples
 import java.lang.String
 
 import scala.{ inline, Boolean, Int }
-
 import scalaz._, Scalaz._
-import EphemeralStream.EStream
 
 // like Default, but with an Altz
 trait Defaultz[A] {
@@ -25,19 +23,24 @@ object Defaultz {
   implicit val boolean: Defaultz[Boolean] = instance(false)
 
   implicit val defaultz_altz: Altz[Defaultz] = new Altz[Defaultz] {
-    type G[a] = Id[a]
-    def G: Applicative[Id] = Applicative[Id]
+    private val extract = λ[NameF ~> Id](a => a.value.default)
+    def applyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+      f: Prod[A] => Z
+    )(
+      implicit ev1: NameF ƒ A ↦ TC
+    ): Defaultz[Z] = instance {
+      f(tcs.traverse[A, NameF, Id](extract))
+    }
 
-    val extract: Defaultz ~> Id = λ[Defaultz ~> Id](a => a.default)
-    override def productz[Z](f: (Defaultz ~> Id) => Z): Defaultz[Z] =
-      instance(f(extract))
-
-    val always: Defaultz ~> EStream =
-      λ[Defaultz ~> EStream](a => EphemeralStream(a.default))
-    override def coproductz[Z](
-      f: (Defaultz ~> EStream) => EStream[Z]
-    ): Defaultz[Z] =
-      instance(f(always).headOption.get)
+    private val always =
+      λ[NameF ~> EphemeralStream](a => EphemeralStream(a.value.default))
+    def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+      f: Cop[A] => Z
+    )(
+      implicit ev1: NameF ƒ A ↦ TC
+    ): Defaultz[Z] = instance {
+      f(tcs.coptraverse[A, NameF, Id](always).headOption.get)
+    }
   }
 
 }

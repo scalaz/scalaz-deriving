@@ -3,67 +3,33 @@
 
 package scalaz
 
-import scala.{ inline, Any }
-import scala.collection.immutable.List
+import scala.inline
 
 import iotaz._
 import iotaz.TList.::
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
-
-import Scalaz._
 import Prods._
 
 /**
- * Generic extension of Divisible implementing DerivingProducts, with a convenient API.
+ * Generic extension of Divisible implementing DerivingProducts.
  */
 trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
 
-  /**
-   * Implementors can implement this or override dividez.
-   *
-   * This method adds some type safety to the raw iotaz API, at a small
-   * performance penalty and incurring extra restrictions.
-   */
-  protected def productz[Z, H[_]: Traverse](f: Z =*> H): F[Z]
-  type =*>[Z, H[_]] = ArityExists[Z, F, H]
-
-  /** Implementors may override this, subject to limitations of the iotaz API. */
-  def dividez[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  def dividez[Z, A <: TList, TC <: TList](
+    tcs: Prod[TC]
   )(
-    g: Z => Prod[L]
+    g: Z => Prod[A]
   )(
-    implicit @unused ev: λ[a => Name[F[a]]] ƒ L ↦ FL
-  ): F[Z] = {
-    import /~\.T2
-    val gz = new (Z =*> List) {
-      override def apply(z: Z): List[F /~\ Id] =
-        g(z).values
-          .zip(tcs.values)
-          .map { tcv =>
-            /~\[F, Id, Any](tcv._2.asInstanceOf[Name[F[Any]]].value, tcv._1)
-          }(scala.collection.breakOut)
-      override def apply(z1: Z, z2: Z): List[F /~\ T2] =
-        g(z1).values
-          .zip(g(z2).values)
-          .zip(tcs.values)
-          .map { tcv =>
-            val ((v1, v2), tc) = tcv
-            /~\[F, T2, Any](tc.asInstanceOf[Name[F[Any]]].value, (v1, v2))
-          }(scala.collection.breakOut)
-    }
-    productz(gz)
-  }
+    implicit ev: NameF ƒ A ↦ TC
+  ): F[Z]
 
   // derived combinators
-  override final def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  override final def xproductz[Z, A <: TList, TC <: TList](
+    tcs: Prod[TC]
   )(
-    @unused f: Prod[L] => Z,
-    g: Z => Prod[L]
+    @unused f: Prod[A] => Z,
+    g: Z => Prod[A]
   )(
-    implicit ev1: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit ev1: NameF ƒ A ↦ TC
   ): F[Z] = dividez(tcs)(g)
 
   override def conquer[Z]: F[Z] =

@@ -45,14 +45,31 @@ object BadPack {
   implicit val string: BadPack[String] = i => Characters(i).widen
 
   implicit val decidablez: Decidablez[BadPack] = new Decidablez[BadPack] {
-    def productz[Z, H[_]: Traverse](f: Z =*> H): BadPack[Z] = { z =>
-      val entries = f(z).map { case fa /~\ a => fa.encode(a) }
-      Product(entries.toIList).widen
+    def dividez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
+    )(
+      g: Z => Prod[A]
+    )(
+      implicit ev: NameF ƒ A ↦ TC
+    ): BadPack[Z] = { z =>
+      val entries = g(z).zip(tcs).map {
+        case a /~\ fa => fa.value.encode(a)
+      }
+      Product(entries.toIList)
     }
 
-    def coproductz[Z](f: Z =+> Maybe): BadPack[Z] = { z =>
-      f(z).into { case fa /~\ a => fa.encode(a) }
+    def choosez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
+    )(
+      g: Z => Cop[A]
+    )(
+      implicit ev: NameF ƒ A ↦ TC
+    ): BadPack[Z] = { z =>
+      g(z).zip(tcs).into {
+        case a /~\ fa => fa.value.encode(a)
+      }
     }
+
   }
 
   // these don't do what you think they do...

@@ -4,17 +4,13 @@
 package scalaz
 
 import java.lang.String
-
-import scala.{ inline, Any, AnyVal, Int }
+import scala.{ inline, Any }
 import scala.annotation.switch
 import scala.collection.immutable.Seq
 
 import iotaz._
 import iotaz.TList.::
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
-
-import ExtendedInvariantAlt._
+import Cops.ops._
 
 /** Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity). */
 final class ExtendedInvariantAlt[F[_]] private (
@@ -24,36 +20,37 @@ final class ExtendedInvariantAlt[F[_]] private (
 
   // I'm so sorry... I'm going to hell.
 
-  override def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    @unused labels: Prod[N]
+  override def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+    tcs: Prod[TC],
+    @unused labels: Prod[L],
+    @unused name: String
   )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
+    f: Cop[A] => Z,
+    g: Z => Cop[A]
   )(
     implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
+    ev1: NameF ƒ A ↦ TC,
+    ev2: Label ƒ A ↦ L
   ): F[Z] = _xcoproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
 
-  private def _xcoproductz[Z, L <: TList](
+  private def _xcoproductz[Z, A <: TList](
     tcs: Seq[Name[F[Any]]]
   )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
+    f: Cop[A] => Z,
+    g: Z => Cop[A]
   ): F[Z] = (tcs.size: @switch) match {
     case 1 =>
-      val fz: Any => Z = a1 => f(Cops.from1(a1).as[L])
+      val fz: Any => Z = a1 => f(Cops.from1(a1).as[A])
       val gz: Z => Any = z => g(z).value
       F.xcoproduct1(tcs(0).value)(fz, gz)
     case 2 =>
       type Two = Any :: Any :: TNil
-      val fz: (Any \/ Any) => Z = e => f(Cops.from2(e).as[L])
+      val fz: (Any \/ Any) => Z = e => f(Cops.from2(e).as[A])
       val gz: Z => (Any \/ Any) = z => Cops.to2(g(z).as[Two])
       F.xcoproduct2(tcs(0).value, tcs(1).value)(fz, gz)
     case 3 =>
       type Three = Any :: Any :: Any :: TNil
-      val fz: (Any \/ (Any \/ Any)) => Z = e => f(Cops.from3(e).as[L])
+      val fz: (Any \/ (Any \/ Any)) => Z = e => f(Cops.from3(e).as[A])
       val gz: Z => (Any \/ (Any \/ Any)) = z => Cops.to3(g(z).as[Three])
       F.xcoproduct3(tcs(0).value, tcs(1).value, tcs(2).value)(fz, gz)
 
@@ -88,7 +85,7 @@ final class ExtendedInvariantAlt[F[_]] private (
               F.xcoproduct2(tc.value, acc)(ff, fg)
           }
 
-      val fz: Cop[TList] => Z = c => f(c.as[L])
+      val fz: Cop[TList] => Z = c => f(c.as[A])
       val gz: Z => Cop[TList] = z => g(z).as[TList]
       F.xmap(front, fz, gz)
   }
@@ -103,18 +100,4 @@ object ExtendedInvariantAlt {
   @inline def apply[F[_]](F: InvariantAlt[F]): ExtendedInvariantAlt[F] =
     new ExtendedInvariantAlt(F)
 
-  private[scalaz] final implicit class UnsafeCops[T <: TList](
-    private val self: Cop[T]
-  ) extends AnyVal {
-    // a completely unsafe operation that is useful when we have some runtime
-    // information like we create a
-    //
-    //   Any :: Any :: Any :: TNil
-    //
-    // and we know it is an instance of the more general type A
-    def as[A <: TList]: Cop[A] = self.asInstanceOf[Cop[A]]
-
-    def shift(i: Int): Cop[T] =
-      Cop.unsafeApply[T, Any](self.index + i, self.value)
-  }
 }

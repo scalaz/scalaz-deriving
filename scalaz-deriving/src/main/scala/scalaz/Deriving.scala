@@ -4,13 +4,9 @@
 package scalaz
 
 import java.lang.String
-
 import scala.{ inline, Any, AnyRef, Boolean }
-import scala.collection.immutable.Seq
 
-import iotaz._
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
+import Scalaz._
 
 /**
  * Interface for generic derivation of typeclasses (and algebras) for products
@@ -23,16 +19,18 @@ import iotaz.TList.Op.{ Map => ƒ }
  * Downstream users call this API via the DerivingMacro.
  */
 trait Deriving[F[_]] extends DerivingProducts[F] {
-  def xcoproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
+
+  def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+    tcs: Prod[TC],
+    labels: Prod[L],
+    name: String
   )(
-    f: Cop[L] => Z,
-    g: Z => Cop[L]
+    f: Cop[A] => Z,
+    g: Z => Cop[A]
   )(
     implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
+    ev1: NameF ƒ A ↦ TC,
+    ev2: Label ƒ A ↦ L
   ): F[Z]
 
 }
@@ -42,17 +40,45 @@ trait Deriving[F[_]] extends DerivingProducts[F] {
  * e.g. Semigroup.
  */
 trait DerivingProducts[F[_]] {
-  def xproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    labels: Prod[N]
+  // convenient aliases for the API to minimise imports
+  type NameF[a]                  = Name[F[a]]
+  type Label[a]                  = iotaz.Prods.Label[a]
+  type TList                     = iotaz.TList
+  type Prod[a <: TList]          = iotaz.Prod[a]
+  type Cop[a <: TList]           = iotaz.Cop[a]
+  type ƒ[f[_], a <: TList]       = iotaz.TList.Op.Map[f, a]
+  type ↦[a <: TList, o <: TList] = iotaz.TList.Compute.Aux[a, o]
+
+  // scalafix:off DisableSyntax.implicitConversion
+  // provides convenient syntax for implementors...
+  import iotaz.{ Cops, Prods }
+  protected implicit def ProdOps[A <: TList](p: Prod[A]): Prods.ops.ProdOps[A] =
+    new Prods.ops.ProdOps[A](p)
+  protected implicit def ProdOps2[A <: TList](
+    p: (Prod[A], Prod[A])
+  ): Prods.ops.ProdOps2[A] =
+    new Prods.ops.ProdOps2[A](p)
+  protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A] =
+    new Cops.ops.CopOps[A](p)
+  protected implicit def CopOps2[A <: TList](
+    p: (Cop[A], Cop[A])
+  ): Cops.ops.CopOps2[A] =
+    new Cops.ops.CopOps2[A](p)
+  // scalafix:on
+
+  def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+    tcs: Prod[TC],
+    labels: Prod[L],
+    name: String
   )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
+    f: Prod[A] => Z,
+    g: Z => Prod[A]
   )(
     implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
+    ev1: NameF ƒ A ↦ TC,
+    ev2: Label ƒ A ↦ L
   ): F[Z]
+
 }
 
 object Deriving {
@@ -77,145 +103,128 @@ object Deriving {
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
 
-  // scalafix:off
+  private class DecidablezEqual extends Decidablez[Equal] {
+    @inline private final def quick(a: Any, b: Any): Boolean =
+      a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
+
+    override def dividez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
+    )(
+      g: Z => Prod[A]
+    )(
+      implicit ev: NameF ƒ A ↦ TC
+    ): Equal[Z] = { (z1, z2) =>
+      (g(z1), g(z2)).zip(tcs).foldRight(true) {
+        case ((a1, a2) /~\ fa, acc) =>
+          (quick(a1, a2) || fa.value.equal(a1, a2)) && acc
+      }
+    }
+
+    override def choosez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
+    )(
+      g: Z => Cop[A]
+    )(
+      implicit ev: NameF ƒ A ↦ TC
+    ): Equal[Z] = { (z1, z2) =>
+      (g(z1), g(z2))
+        .zip(tcs)
+        .into {
+          case -\/(_)               => false
+          case \/-((a1, a2) /~\ fa) => quick(a1, a2) || fa.value.equal(a1, a2)
+        }
+    }
+  }
+
   // hide the detail that this is an Decidablez to avoid exposing Divide
-  implicit val _deriving_equal: Deriving[Equal] = new Decidablez[Equal] {
-    import Scalaz._
-
-    // since dividez is implemented, this is ignored and is just an example
-    def productz[Z, H[_]: Traverse](f: Z =*> H): Equal[Z] = { (z1: Z, z2: Z) =>
-      f(z1, z2).all { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
-    }
-
-    // since choosez is implemented, this is ignored and is just an example
-    def coproductz[Z](f: Z =+> Maybe): Equal[Z] = { (z1: Z, z2: Z) =>
-      f(z1, z2).map { case fa /~\ ((a1, a2)) => fa.equal(a1, a2) }
-        .getOrElse(false)
-    }
-
-    // if you like sausages, don't go to a sausage factory...
-    override def dividez[Z, L <: TList, FL <: TList](
-      tcs: Prod[FL]
-    )(
-      g: Z => Prod[L]
-    )(
-      implicit @unused ev: λ[a => Name[Equal[a]]] ƒ L ↦ FL
-    ): Equal[Z] = new Equal[Z] {
-
-      // SAM types and return keyword do not mix...
-      def equal(z1: Z, z2: Z): Boolean = {
-        val a1s = g(z1).values.toArray
-        val a2s = g(z2).values.toArray
-        val eqs = tcs.values.asInstanceOf[Seq[Name[Equal[Any]]]].toArray
-        var i   = 0
-        while (i < eqs.length) {
-          val a1 = a1s(i).asInstanceOf[AnyRef]
-          val a2 = a2s(i).asInstanceOf[AnyRef]
-          val eq = (a1.eq(a2)) || eqs(i).value.equal(a1, a2)
-          if (!eq)
-            return false
-          i += 1
-        }
-        true
-      }
-    }
-
-    override def choosez[Z, L <: TList, FL <: TList](
-      tcs: Prod[FL]
-    )(
-      g: Z => Cop[L]
-    )(
-      implicit @unused ev: λ[a => Name[Equal[a]]] ƒ L ↦ FL
-    ): Equal[Z] = new Equal[Z] {
-      def equal(z1: Z, z2: Z): Boolean = {
-        val a1 = g(z1)
-        val a2 = g(z2)
-
-        (a1.index == a2.index) && {
-          val a = a1.value.asInstanceOf[AnyRef]
-          val b = a2.value.asInstanceOf[AnyRef]
-
-          (a.eq(b)) || tcs.values
-            .asInstanceOf[Seq[Name[Equal[Any]]]](a1.index)
-            .value
-            .equal(a, b)
-        }
-      }
-    }
-  }
-
+  implicit val _deriving_equal: Deriving[Equal] = new DecidablezEqual
   implicit val _deriving_order: Deriving[Order] = new Decidablez[Order] {
-    def productz[Z, H[_]: Traverse](f: Z =*> H): Order[Z] = null
-    def coproductz[Z](f: Z =+> Maybe): Order[Z]           = null
+    @inline private final def quick(a: Any, b: Any): Boolean =
+      a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
-    override def dividez[Z, L <: TList, FL <: TList](
-      tcs: Prod[FL]
+    override def dividez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
     )(
-      g: Z => Prod[L]
+      g: Z => Prod[A]
     )(
-      implicit @unused ev: λ[a => Name[Order[a]]] ƒ L ↦ FL
+      implicit ev: NameF ƒ A ↦ TC
     ): Order[Z] = {
-      val delegate =
-        _deriving_equal.asInstanceOf[Decidablez[Equal]].dividez(tcs)(g)(null)
+      val delegate = new DecidablezEqual().dividez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering = {
-          val a1s = g(z1).values.toArray
-          val a2s = g(z2).values.toArray
-          val eqs = tcs.values.asInstanceOf[Seq[Name[Order[Any]]]].toArray
-          var i   = 0
-          while (i < eqs.length) {
-            val ord = eqs(i).value.order(a1s(i), a2s(i))
-            if (ord != Ordering.EQ) return ord
-            i += 1
+        def order(z1: Z, z2: Z): Ordering =
+          (g(z1), g(z2)).zip(tcs).foldRight(Ordering.EQ: Ordering) {
+            case ((a1, a2) /~\ fa, acc) =>
+              if (quick(a1, a2)) acc
+              else
+                fa.value.order(a1, a2) match {
+                  case Ordering.EQ => acc
+                  case ord         => ord
+                }
           }
-          Ordering.EQ
-        }
       }
     }
 
-    override def choosez[Z, L <: TList, FL <: TList](
-      tcs: Prod[FL]
+    override def choosez[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
     )(
-      g: Z => Cop[L]
+      g: Z => Cop[A]
     )(
-      implicit @unused ev: λ[a => Name[Order[a]]] ƒ L ↦ FL
+      implicit ev: NameF ƒ A ↦ TC
     ): Order[Z] = {
-      val delegate =
-        _deriving_equal.asInstanceOf[Decidablez[Equal]].choosez(tcs)(g)(null)
+      val delegate = new DecidablezEqual().choosez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering = {
-          val a1 = g(z1)
-          val a2 = g(z2)
-
-          if (a1.index != a2.index)
-            return Ordering.fromInt(a1.index - a2.index)
-          tcs.values
-            .asInstanceOf[Seq[Name[Order[Any]]]](a1.index)
-            .value
-            .order(a1.value, a2.value)
-        }
+        def order(z1: Z, z2: Z): Ordering =
+          (g(z1), g(z2)).zip(tcs).into {
+            case -\/((i1, _, i2, _)) => Ordering.fromInt(i1 - i2)
+            case \/-((a1, a2) /~\ fa) =>
+              if (quick(a1, a2)) Ordering.EQ
+              else fa.value.order(a1, a2)
+          }
       }
     }
   }
-  // scalafix:on
 
   implicit val _deriving_show: Deriving[Show] =
-    new LabelledEncoder[Show] {
-      import Scalaz._
-
-      def productz[Z, G[_]: Traverse](f: Z =*> G): Show[Z] = Show.show { z: Z =>
-        "(" +: f(z).map {
-          case fa /~\ ((label, a)) => label +: "=" +: fa.show(a)
-        }.intercalate(",") :+ ")"
+    new Deriving[Show] {
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        name: String
+      )(
+        @unused f: Prod[A] => Z,
+        g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Show[Z] = Show.show { (z: Z) =>
+        val bits = g(z).zip(tcs, labels).map {
+          case (label, a) /~\ fa => label +: "=" +: fa.value.show(a)
+        }
+        name +: "(" +: bits.intercalate(",") :+ ")"
       }
-      def coproductz[Z](f: Z =+> Maybe): Show[Z] = Show.show { z: Z =>
-        f(z) match {
-          case fa /~\ ((label, a)) => label +: fa.show(a)
+
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        @unused f: Cop[A] => Z,
+        g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Show[Z] = Show.show { z =>
+        g(z).zip(tcs, labels).into {
+          case (_, a) /~\ fa => fa.value.show(a)
         }
       }
+
     }
+
 }
 
 object DerivingProducts {
@@ -223,59 +232,49 @@ object DerivingProducts {
     implicit F: DerivingProducts[F]
   ): DerivingProducts[F] = F
 
-  implicit val _deriving_semigroup: DerivingProducts[Semigroup] =
-    new InvariantApplicativez[Semigroup] {
-      // *silent crying* the iotaz API doesn't give much type safety
-      override def xproductz[Z, L <: TList, FL <: TList](
-        tcs: Prod[FL]
-      )(
-        f: Prod[L] => Z,
-        g: Z => Prod[L]
-      )(
-        implicit @unused ev1: λ[a => Name[Semigroup[a]]] ƒ L ↦ FL
-      ): Semigroup[Z] = new Semigroup[Z] {
-        // can't use SAM types with by-name parameters
-        def append(z1: Z, z2: =>Z): Z = {
-          import scala.collection.immutable.Seq
-
-          val els = g(z1).values
-            .zip(g(z2).values)
-            .zip(tcs.values.asInstanceOf[Seq[Name[Semigroup[scala.Any]]]])
-            .map {
-              case ((a1, a2), tc) => tc.value.append(a1, a2)
-            }
-          f(Prod.unsafeApply[L](els))
-        }
-      }
+  private class InvariantApplicativezSemigroup
+      extends InvariantApplicativez[Semigroup] {
+    type L[a] = ((a, a), NameF[a])
+    private val appender = λ[L ~> Id] {
+      case ((a1, a2), fa) => fa.value.append(a1, a2)
     }
+
+    override def xproductz[Z, A <: TList, TC <: TList](
+      tcs: Prod[TC]
+    )(
+      f: Prod[A] => Z,
+      g: Z => Prod[A]
+    )(
+      implicit ev1: NameF ƒ A ↦ TC
+    ): Semigroup[Z] = new Semigroup[Z] {
+      // can't use SAM types with by-name parameters
+      // z2 is eagerly evaluated :-(
+      def append(z1: Z, z2: =>Z): Z =
+        f(tcs.ziptraverse2(g(z1), g(z2), appender))
+    }
+  }
+
+  implicit val _deriving_semigroup: DerivingProducts[Semigroup] =
+    new InvariantApplicativezSemigroup
 
   implicit val _deriving_monoid: DerivingProducts[Monoid] =
     new InvariantApplicativez[Monoid] {
-      override def xproductz[Z, L <: TList, FL <: TList](
-        tcs: Prod[FL]
+      override def xproductz[Z, A <: TList, TC <: TList](
+        tcs: Prod[TC]
       )(
-        f: Prod[L] => Z,
-        g: Z => Prod[L]
+        f: Prod[A] => Z,
+        g: Z => Prod[A]
       )(
-        implicit @unused ev1: λ[a => Name[Monoid[a]]] ƒ L ↦ FL
-      ): Monoid[Z] = new Monoid[Z] {
-        import scala.collection.immutable.Seq
-        def append(z1: Z, z2: =>Z): Z = {
-          val els = g(z1).values
-            .zip(g(z2).values)
-            .zip(tcs.values.asInstanceOf[Seq[Name[Monoid[scala.Any]]]])
-            .map {
-              case ((a1, a2), tc) => tc.value.append(a1, a2)
-            }
-          f(Prod.unsafeApply[L](els))
-        }
+        implicit ev1: NameF ƒ A ↦ TC
+      ): Monoid[Z] = {
+        val delegate = new InvariantApplicativezSemigroup()
+          .xproductz(tcs)(f, g)(null) // scalafix:ok
 
-        def zero: Z = {
-          val els = tcs.values.asInstanceOf[Seq[Name[Monoid[scala.Any]]]].map {
-            tc =>
-              tc.value.zero
-          }
-          f(Prod.unsafeApply[L](els))
+        val nada = λ[NameF ~> Id](_.value.zero)
+
+        new Monoid[Z] {
+          def append(z1: Z, z2: =>Z): Z = delegate.append(z1, z2)
+          def zero: Z                   = f(tcs.traverse(nada))
         }
       }
     }

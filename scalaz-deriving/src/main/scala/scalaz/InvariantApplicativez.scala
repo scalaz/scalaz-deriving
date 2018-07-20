@@ -4,14 +4,10 @@
 package scalaz
 
 import java.lang.String
-
 import scala.inline
 
 import iotaz._
 import iotaz.TList.::
-import iotaz.TList.Compute.{ Aux => ↦ }
-import iotaz.TList.Op.{ Map => ƒ }
-
 import Prods._
 
 /**
@@ -21,25 +17,26 @@ trait InvariantApplicativez[F[_]]
     extends InvariantApplicative[F]
     with DerivingProducts[F] {
 
-  def xproductz[Z, L <: TList, FL <: TList](
-    tcs: Prod[FL]
+  def xproductz[Z, A <: TList, TC <: TList](
+    tcs: Prod[TC]
   )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
+    f: Prod[A] => Z,
+    g: Z => Prod[A]
   )(
-    implicit ev1: λ[a => Name[F[a]]] ƒ L ↦ FL
+    implicit ev1: NameF ƒ A ↦ TC
   ): F[Z]
 
-  override final def xproductz[Z, L <: TList, FL <: TList, N <: TList](
-    tcs: Prod[FL],
-    @unused labels: Prod[N]
+  override final def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+    tcs: Prod[TC],
+    @unused labels: Prod[L],
+    @unused name: String
   )(
-    f: Prod[L] => Z,
-    g: Z => Prod[L]
+    f: Prod[A] => Z,
+    g: Z => Prod[A]
   )(
     implicit
-    ev1: λ[a => Name[F[a]]] ƒ L ↦ FL,
-    ev2: λ[a => String] ƒ L ↦ N
+    ev1: NameF ƒ A ↦ TC,
+    ev2: Label ƒ A ↦ L
   ): F[Z] = xproductz(tcs)(f, g)(ev1)
 
   override def xmap[A, B](ma: F[A], f: A => B, g: B => A): F[B] =

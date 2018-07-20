@@ -26,9 +26,9 @@ class LabelledEncoderSpec extends FlatSpec with NonImplicitAssertions {
   val faz: Foo = Faz(true, 1)
 
   "products" should "behave as expected" in {
-    Bar("hello").shows should equal("(s=\"hello\")")
-    Baz.shows should equal("()")
-    Faz(true, 1).shows should equal("(b=true,i=1)")
+    Bar("hello").shows should equal("Bar(s=\"hello\")")
+    Baz.shows should equal("Baz()")
+    Faz(true, 1).shows should equal("Faz(b=true,i=1)")
   }
 
   "coproducts" should "behave as expected" in {
@@ -44,10 +44,10 @@ class LabelledEncoderSpec extends FlatSpec with NonImplicitAssertions {
   val tree2: ATree   = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
-    leaf1.shows should equal("(value=\"hello\")")
-    leaf2.shows should equal("(value=\"goodbye\")")
+    leaf1.shows should equal("Leaf(value=\"hello\")")
+    leaf2.shows should equal("Leaf(value=\"goodbye\")")
     branch.shows should equal(
-      "(left=Leaf(value=\"hello\"),right=Leaf(value=\"goodbye\"))"
+      "Branch(left=Leaf(value=\"hello\"),right=Leaf(value=\"goodbye\"))"
     )
   }
 
@@ -64,10 +64,10 @@ class LabelledEncoderSpec extends FlatSpec with NonImplicitAssertions {
   val gtree2: GTree[String]    = GBranch(gleaf2, gbranch)
 
   "recursive GADT products" should "behave as expected" in {
-    gleaf1.shows should equal("(value=\"hello\")")
-    gleaf2.shows should equal("(value=\"goodbye\")")
+    gleaf1.shows should equal("GLeaf(value=\"hello\")")
+    gleaf2.shows should equal("GLeaf(value=\"goodbye\")")
     gbranch.shows should equal(
-      "(left=GLeaf(value=\"hello\"),right=GLeaf(value=\"goodbye\"))"
+      "GBranch(left=GLeaf(value=\"hello\"),right=GLeaf(value=\"goodbye\"))"
     )
   }
 

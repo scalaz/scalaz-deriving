@@ -7,8 +7,7 @@ import java.lang.String
 
 import scala.{ inline, AnyVal, Boolean, Double, Int, Long, Some }
 
-import scalaz._, Scalaz._, Isomorphism.<~>, EphemeralStream.EStream
-
+import scalaz._, Scalaz._, Isomorphism.<~>
 import simulacrum.typeclass
 
 import NamePacker.ops._
@@ -50,25 +49,48 @@ object NamePacker {
   implicit def foldable[F[_]: Foldable, A: NamePacker]: NamePacker[F[A]] =
     as => Collection(as.toIList.map(_.encode))
 
-  implicit val encoder: LabelledEncoder[NamePacker] =
-    new LabelledEncoder[NamePacker] {
+  implicit val encoder: Deriving[NamePacker] =
+    new Deriving[NamePacker] {
 
-      def productz[Z, G[_]: Traverse](f: Z =*> G): NamePacker[Z] = { z: Z =>
-        val els = f(z).map { case fa /~\ ((label, a)) => (label, fa.encode(a)) }
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        @unused f: Prod[A] => Z,
+        g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): NamePacker[Z] = { z =>
+        val els = g(z).zip(tcs, labels).map {
+          case (label, a) /~\ fa => (label, fa.value.encode(a))
+        }
         Product(els.toIList)
       }
 
-      def coproductz[Z](f: Z =+> Maybe): NamePacker[Z] = { z: Z =>
-        f(z) match {
-          case fa /~\ ((label, a)) =>
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        @unused f: Cop[A] => Z,
+        g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): NamePacker[Z] = { z =>
+        g(z).zip(tcs, labels).into {
+          case (label, a) /~\ fa =>
             val hint = ("typehint", string.encode(label))
-            fa.encode(a) match {
+            fa.value.encode(a) match {
               case Product(entries) => Product(hint :: entries)
               case other            => Product(hint :: ("value", other) :: IList.empty)
             }
         }
       }
-
     }
 }
 
@@ -122,48 +144,72 @@ object NameUnpacker {
     case other               => fail("Collection", other)
   }
 
-  implicit val decoder: LabelledDecoder[NameUnpacker] =
-    new LabelledDecoder[NameUnpacker] {
-      type G[a] = Cord \/ a
-      def G: Applicative[G] = Applicative[G]
+  implicit val decoder: Deriving[NameUnpacker] =
+    new Deriving[NameUnpacker] {
 
-      override def productz[Z](
-        f: (LFA ~> G) => G[Z]
+      type O[a]  = Cord \/ a
+      type LF[a] = (String, NameF[a])
+
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Cop[A] => Z,
+        @unused g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): NameUnpacker[Z] = {
+        case p @ Product(entries) =>
+          entries.find(_._1 == "typehint") match {
+            case Some((_, Characters(hint))) =>
+              val each = λ[LF ~> EphemeralStream] {
+                case (label, fa) =>
+                  if (hint == label)
+                    fa.value.decode(p).toEphemeralStream
+                  else EphemeralStream()
+              }
+
+              tcs
+                .coptraverse[A, L, NameF, Id](each, labels)
+                .headOption
+                .map(f) \/> ("a valid " +: hint.show)
+
+            case _ =>
+              ("expected \"typehint\", got " +: entries.map(_._1).show).left
+          }
+
+        case other => fail("Product", other)
+      }
+
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Prod[A] => Z,
+        @unused g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
       ): NameUnpacker[Z] = {
         case Product(entries) =>
-          val each = λ[LFA ~> (Cord \/ ?)] {
+          val each = λ[LF ~> O] {
             case (label, fa) =>
               entries
                 .find(_._1 == label)
                 .cata(
-                  e => fa.decode(e._2),
+                  e => fa.value.decode(e._2),
                   ("expected field " +: label.show :+ ", got " + entries
                     .map(_._1)
                     .show).left
                 )
           }
-          f(each)
 
-        case other => fail("Product", other)
-      }
-
-      override def coproductz[Z](
-        f: (LFA ~> EStream) => EStream[Z]
-      ): NameUnpacker[Z] = {
-        case p @ Product(entries) =>
-          entries.find(_._1 == "typehint") match {
-            case Some((_, Characters(hint))) =>
-              val each = λ[LFA ~> EStream] {
-                case (label, fa) =>
-                  if (hint == label)
-                    fa.decode(p).toEphemeralStream
-                  else EphemeralStream()
-              }
-              f(each).headOption \/> ("a valid " +: hint.show)
-
-            case _ =>
-              ("expected \"typehint\", got " +: entries.map(_._1).show).left
-          }
+          tcs.traverse[A, L, NameF, O](each, labels).map(f)
 
         case other => fail("Product", other)
       }

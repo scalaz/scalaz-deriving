@@ -3,49 +3,60 @@
 
 package examples
 
+import java.lang.String
+
 import org.scalacheck.{ Arbitrary, Gen }
 import scalaz._
+import scalaz.scalacheck.ScalaCheckBinding._
 
 object DerivedArbitrary {
-  // hide to avoid breaking typeclass coherence
-  private val _alt_arbitrary: Alt[Arbitrary] = new Alt[Arbitrary] {
-    override def point[A](a: =>A): Arbitrary[A] = Arbitrary(a)
+  // we can't have an Alt because it breaks derived combinator RT... the first
+  // element of a coproduct is always weighted more heavily. We could, however,
+  // have an Applicativez but that would break typeclass coherence with the
+  // instance in scalaz.scalacheck.ScalaCheckBinding
+  implicit val deriving_arbitrary: Deriving[Arbitrary] =
+    new Deriving[Arbitrary] {
 
-    override def apply2[A1, A2, Z](a1: =>Arbitrary[A1], a2: =>Arbitrary[A2])(
-      f: (A1, A2) => Z
-    ): Arbitrary[Z] = Arbitrary {
-      for {
-        a <- a1.arbitrary
-        b <- a2.arbitrary
-      } yield f(a, b)
-    }
+      private val pick = λ[NameF ~> Gen](a => a.value.arbitrary)
 
-    override def altly2[Z, A1, A2](a1: =>Arbitrary[A1], a2: =>Arbitrary[A2])(
-      f: A1 \/ A2 => Z
-    ): Arbitrary[Z] = Arbitrary {
-      // strong bias to pick the left when nested...
-      Gen
-        .oneOf(
-          Gen.lzy(a1.arbitrary.map(-\/(_))),
-          Gen.lzy(a2.arbitrary.map(\/-(_)))
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Prod[A] => Z,
+        g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Arbitrary[Z] =
+        Arbitrary(tcs.traverse(pick).map(f))
+
+      type SGen[a] = EphemeralStream[Gen[a]]
+      private val always = λ[NameF ~> SGen](
+        a => EphemeralStream(Gen.lzy(a.value.arbitrary))
+      )
+
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Cop[A] => Z,
+        g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Arbitrary[Z] = Arbitrary {
+        Gen.frequency(
+          tcs
+            .coptraverse(always)
+            .toList
+            .map(g => (1, g.map(f))): _*
         )
-        .map(f)
-    }
-
-    // swaparoo the derived combinators
-    override def ap[A, B](
-      fa: =>Arbitrary[A]
-    )(f: =>Arbitrary[A => B]): Arbitrary[B] =
-      apply2(fa, f)((a, abc) => abc(a))
-    override def alt[A](a1: =>Arbitrary[A], a2: =>Arbitrary[A]): Arbitrary[A] =
-      altly2(a1, a2) {
-        case -\/(a) => a
-        case \/-(a) => a
       }
-  }
-
-  implicit val _arbitrary_deriving: Deriving[Arbitrary] = ExtendedInvariantAlt(
-    _alt_arbitrary
-  )
+    }
 
 }
