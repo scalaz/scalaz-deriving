@@ -194,17 +194,19 @@ object Prods {
           .map(bs => Prod.unsafeApply[C](bs))
       }
 
-      type E[g[_], a] = EphemeralStream[g[a]]
+      type E[g[_], a] = IStream[g[a]]
 
       def coptraverse[B <: TList, F[_], G[_]: Applicative](f: F ~> E[G, ?])(
         implicit ev1: F ƒ B ↦ A
-      ): EphemeralStream[G[Cop[B]]] = {
+      ): IStream[G[Cop[B]]] = {
         val _ = ev1
-        a.values
-          .asInstanceOf[Seq[F[Any]]]
-          .toList
-          .indexed
-          .toEphemeralStream
+        IStream
+          .fromFoldable(
+            a.values
+              .asInstanceOf[Seq[F[Any]]]
+              .toList
+              .indexed
+          )
           .flatMap {
             case (i, fa) => f(fa).map(g => (i, g))
           }
@@ -217,14 +219,16 @@ object Prods {
       )(
         implicit ev1: F ƒ B ↦ A,
         ev2: Label ƒ B ↦ C
-      ): EphemeralStream[G[Cop[B]]] = {
+      ): IStream[G[Cop[B]]] = {
         val _ = (ev1, ev2)
-        c.values
-          .asInstanceOf[Seq[String]]
-          .zip(a.values.asInstanceOf[Seq[F[Any]]])
-          .toList
-          .indexed
-          .toEphemeralStream
+        IStream
+          .fromFoldable(
+            c.values
+              .asInstanceOf[Seq[String]]
+              .zip(a.values.asInstanceOf[Seq[F[Any]]])
+              .toList
+              .indexed
+          )
           .flatMap {
             case (i, sfa) => f(sfa).map(y => (i, y))
           }

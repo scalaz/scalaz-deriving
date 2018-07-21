@@ -6,7 +6,7 @@ package examples
 import java.lang.String
 
 import org.scalacheck.{ Arbitrary, Gen }
-import scalaz._
+import scalaz._, Scalaz._
 import scalaz.scalacheck.ScalaCheckBinding._
 
 object DerivedArbitrary {
@@ -33,9 +33,9 @@ object DerivedArbitrary {
       ): Arbitrary[Z] =
         Arbitrary(tcs.traverse(pick).map(f))
 
-      type SGen[a] = EphemeralStream[Gen[a]]
+      type SGen[a] = IStream[Gen[a]]
       private val always = λ[NameF ~> SGen](
-        a => EphemeralStream(Gen.lzy(a.value.arbitrary))
+        a => IStream.Lazy(Gen.lzy(a.value.arbitrary))
       )
 
       def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](

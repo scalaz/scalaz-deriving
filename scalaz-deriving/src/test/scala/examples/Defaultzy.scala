@@ -33,13 +33,13 @@ object Defaultzy {
     }
 
     private val always =
-      λ[NameF ~> EphemeralStream](a => a.value.default.toEphemeralStream)
+      λ[NameF ~> IStream](a => IStream.fromFoldable(a.value.default))
     def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
       f: Cop[A] => Z
     )(
       implicit ev1: NameF ƒ A ↦ TC
     ): Defaultzy[Z] = instance {
-      tcs.coptraverse[A, NameF, Id](always).map(f).headOption.toMaybe
+      tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
     }
   }
 

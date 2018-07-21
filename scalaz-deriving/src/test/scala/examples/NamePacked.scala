@@ -165,16 +165,16 @@ object NameUnpacker {
         case p @ Product(entries) =>
           entries.find(_._1 == "typehint") match {
             case Some((_, Characters(hint))) =>
-              val each = λ[LF ~> EphemeralStream] {
+              val each = λ[LF ~> IStream] {
                 case (label, fa) =>
                   if (hint == label)
-                    fa.value.decode(p).toEphemeralStream
-                  else EphemeralStream()
+                    IStream.fromFoldable(fa.value.decode(p))
+                  else IStream.empty
               }
 
               tcs
                 .coptraverse[A, L, NameF, Id](each, labels)
-                .headOption
+                .headMaybe
                 .map(f) \/> ("a valid " +: hint.show)
 
             case _ =>

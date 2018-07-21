@@ -33,13 +33,17 @@ object Defaultz {
     }
 
     private val always =
-      λ[NameF ~> EphemeralStream](a => EphemeralStream(a.value.default))
+      λ[NameF ~> IStream](a => IStream.ByName(a.value.default))
     def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
       f: Cop[A] => Z
     )(
       implicit ev1: NameF ƒ A ↦ TC
     ): Defaultz[Z] = instance {
-      f(tcs.coptraverse[A, NameF, Id](always).headOption.get)
+      val head = tcs.coptraverse[A, NameF, Id](always).headMaybe match {
+        case Maybe.Empty() => scala.sys.error("I am sorry, I am not Total.")
+        case Maybe.Just(a) => a
+      }
+      f(head)
     }
   }
 

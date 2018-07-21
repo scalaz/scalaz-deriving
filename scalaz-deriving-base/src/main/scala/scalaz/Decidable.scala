@@ -3,8 +3,12 @@
 
 package scalaz
 
-import scala.Predef.identity
 import scala.{ inline, Unit }
+import scala.Predef.identity
+
+////
+// Copyright: 2017 Sam Halliday
+// License: https://opensource.org/licenses/BSD-3-Clause
 
 /**
  * Coproduct analogue of Divide
@@ -58,27 +62,6 @@ trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
     choose4(fa1, fa2, fa3, fa4)(f)
   // ... choosingX
 
-  override def xproduct0[Z](z: =>Z): F[Z] = conquer
-  override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
-    xmap(a1, f, g)
-  override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
-    f: (A1, A2) => Z,
-    g: Z => (A1, A2)
-  ): F[Z] = divide2(a1, a2)(g)
-  override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
-    f: (A1, A2, A3) => Z,
-    g: Z => (A1, A2, A3)
-  ): F[Z] = divide3(a1, a2, a3)(g)
-  override def xproduct4[Z, A1, A2, A3, A4](
-    a1: =>F[A1],
-    a2: =>F[A2],
-    a3: =>F[A3],
-    a4: =>F[A4]
-  )(
-    f: (A1, A2, A3, A4) => Z,
-    g: Z => (A1, A2, A3, A4)
-  ): F[Z] = divide4(a1, a2, a3, a4)(g)
-
   override def xcoproduct1[Z, A1](a1: =>F[A1])(
     f: A1 => Z,
     g: Z => A1
@@ -104,6 +87,35 @@ trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
     f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
     g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))
   ): F[Z] = choose4(a1, a2, a3, a4)(g)
+
+  // from 7.3's Divide
+  override def xproduct0[Z](z: =>Z): F[Z] = conquer
+  override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
+    xmap(a1, f, g)
+  override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
+    f: (A1, A2) => Z,
+    g: Z => (A1, A2)
+  ): F[Z] = divide2(a1, a2)(g)
+  override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
+    f: (A1, A2, A3) => Z,
+    g: Z => (A1, A2, A3)
+  ): F[Z] = divide3(a1, a2, a3)(g)
+  override def xproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
+    f: (A1, A2, A3, A4) => Z,
+    g: Z => (A1, A2, A3, A4)
+  ): F[Z] = divide4(a1, a2, a3, a4)(g)
+
+  trait DecidableLaw extends DivisibleLaw {
+    // distribution law blocked on https://github.com/ekmett/contravariant/issues/53
+    // choose f (choose g m n) o = divide f' m (divide id n o) where
+    //   f' bcd = either (either id (Right . Left) . g) (Right . Right) . f
+  }
+  def decidableLaw: DecidableLaw = new DecidableLaw {}
 
   ////
 }

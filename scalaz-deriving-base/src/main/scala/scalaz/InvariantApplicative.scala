@@ -7,7 +7,7 @@ import scala.inline
 
 ////
 /**
- * Invariant parent of Divisible and Applicative.
+ * Should be an invariant parent of Divisible and Applicative (changed in 7.3).
  *
  * Used for typeclass derivation of products and value types.
  */
@@ -92,46 +92,7 @@ object InvariantApplicative {
     implicit F: InvariantApplicative[F]
   ): InvariantApplicative[F] = F
 
-  import Isomorphism._
-
-  def fromIso[F[_], G[_]](
-    D: F <~> G
-  )(implicit E: InvariantApplicative[G]): InvariantApplicative[F] =
-    new IsomorphismInvariantApplicative[F, G] {
-      override def G: InvariantApplicative[G] = E
-      override def iso: F <~> G               = D
-    }
-
   ////
 
-  ////
-}
-
-trait IsomorphismInvariantApplicative[F[_], G[_]]
-    extends InvariantApplicative[F]
-    with IsomorphismInvariantFunctor[F, G] {
-  implicit def G: InvariantApplicative[G]
-  ////
-  def xproduct0[Z](f: =>Z): F[Z] =
-    iso.from(G.xproduct0(f))
-  override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
-    iso.from(G.xproduct1(iso.to(a1))(f, g))
-  def xproduct2[Z, A1, A2](
-    a1: =>F[A1],
-    a2: =>F[A2]
-  )(f: (A1, A2) => Z, g: Z => (A1, A2)): F[Z] =
-    iso.from(G.xproduct2(iso.to(a1), iso.to(a2))(f, g))
-  override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
-    f: (A1, A2, A3) => Z,
-    g: Z => (A1, A2, A3)
-  ): F[Z] =
-    iso.from(G.xproduct3(iso.to(a1), iso.to(a2), iso.to(a3))(f, g))
-  override def xproduct4[Z, A1, A2, A3, A4](
-    a1: =>F[A1],
-    a2: =>F[A2],
-    a3: =>F[A3],
-    a4: =>F[A4]
-  )(f: (A1, A2, A3, A4) => Z, g: Z => (A1, A2, A3, A4)): F[Z] =
-    iso.from(G.xproduct4(iso.to(a1), iso.to(a2), iso.to(a3), iso.to(a4))(f, g))
   ////
 }

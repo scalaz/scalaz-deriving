@@ -3,8 +3,12 @@
 
 package scalaz
 
-import scala.Predef.identity
 import scala.inline
+import scala.Predef.identity
+
+////
+// Copyright: 2018 Sam Halliday
+// License: https://opensource.org/licenses/BSD-3-Clause
 
 /**
  * https://hackage.haskell.org/package/semigroupoids-5.2.2/docs/Data-Functor-Alt.html
@@ -59,6 +63,32 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
     altly4(a1, a2, a3, a4)(f)
   // ... altlyingX
 
+  override def xcoproduct1[Z, A1](a1: =>F[A1])(
+    f: A1 => Z,
+    g: Z => A1
+  ): F[Z] = altly1(a1)(f)
+  override def xcoproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
+    f: (A1 \/ A2) => Z,
+    g: Z => (A1 \/ A2)
+  ): F[Z] = altly2(a1, a2)(f)
+  override def xcoproduct3[Z, A1, A2, A3](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3]
+  )(
+    f: (A1 \/ (A2 \/ A3)) => Z,
+    g: Z => (A1 \/ (A2 \/ A3))
+  ): F[Z] = altly3(a1, a2, a3)(f)
+  override def xcoproduct4[Z, A1, A2, A3, A4](
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
+  )(
+    f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
+    g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))
+  ): F[Z] = altly4(a1, a2, a3, a4)(f)
+
   // from Apply in scalaz 7.3
   final def applying1[Z, A1](f: A1 => Z)(
     implicit a1: F[A1]
@@ -98,35 +128,19 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
     g: Z => (A1, A2, A3, A4)
   ): F[Z] = apply4(a1, a2, a3, a4)(f)
 
-  override def xcoproduct1[Z, A1](a1: =>F[A1])(
-    f: A1 => Z,
-    g: Z => A1
-  ): F[Z] = altly1(a1)(f)
-  override def xcoproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
-    f: (A1 \/ A2) => Z,
-    g: Z => (A1 \/ A2)
-  ): F[Z] = altly2(a1, a2)(f)
-  override def xcoproduct3[Z, A1, A2, A3](
-    a1: =>F[A1],
-    a2: =>F[A2],
-    a3: =>F[A3]
-  )(
-    f: (A1 \/ (A2 \/ A3)) => Z,
-    g: Z => (A1 \/ (A2 \/ A3))
-  ): F[Z] = altly3(a1, a2, a3)(f)
-  override def xcoproduct4[Z, A1, A2, A3, A4](
-    a1: =>F[A1],
-    a2: =>F[A2],
-    a3: =>F[A3],
-    a4: =>F[A4]
-  )(
-    f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,
-    g: Z => (A1 \/ (A2 \/ (A3 \/ A4)))
-  ): F[Z] = altly4(a1, a2, a3, a4)(f)
+  trait AltLaw extends ApplicativeLaw {
+    // <!> is associative:             (a <!> b) <!> c = a <!> (b <!> c)
+    // <$> left-distributes over <!>:  f <$> (a <!> b) = (f <$> a) <!> (f <$> b)
+  }
+  def altLaw: AltLaw = new AltLaw {}
 
   ////
 }
 
 object Alt {
   @inline def apply[F[_]](implicit F: Alt[F]): Alt[F] = F
+
+  ////
+
+  ////
 }
