@@ -8,7 +8,6 @@ import scala.{ AnyVal, Boolean, Int }
 
 import scalaz._, Scalaz._
 import org.scalacheck.Arbitrary
-import DerivedArbitrary._
 
 package anyvals {
   @xderiving(

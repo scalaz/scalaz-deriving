@@ -7,6 +7,7 @@ import java.lang.String
 import scala.{ inline, Any, AnyRef, Boolean }
 
 import Scalaz._
+import org.scalacheck.{ Arbitrary, Gen }
 
 /**
  * Interface for generic derivation of typeclasses (and algebras) for products
@@ -225,6 +226,53 @@ object Deriving {
 
     }
 
+  // we can't have an Alt because it breaks derived combinator RT... the first
+  // element of a coproduct is always weighted more heavily. We could, however,
+  // have an Applicativez but that would break typeclass coherence with the
+  // instance in scalaz.scalacheck.ScalaCheckBinding
+  implicit val _deriving_arbitrary: Deriving[Arbitrary] =
+    new Deriving[Arbitrary] {
+      import scalaz.scalacheck.ScalaCheckBinding._
+
+      private val pick = λ[NameF ~> Gen](a => a.value.arbitrary)
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Prod[A] => Z,
+        g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Arbitrary[Z] =
+        Arbitrary(tcs.traverse(pick).map(f))
+
+      private val always = λ[NameF ~> λ[α => IStream[Gen[α]]]](
+        a => IStream.Lazy(Gen.lzy(a.value.arbitrary))
+      )
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        @unused name: String
+      )(
+        f: Cop[A] => Z,
+        g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): Arbitrary[Z] = Arbitrary {
+        Gen.frequency(
+          tcs
+            .coptraverse(always)
+            .toList
+            .map(g => (1, g.map(f))): _*
+        )
+      }
+    }
+
 }
 
 object DerivingProducts {
@@ -287,5 +335,7 @@ object DerivingProducts {
     Deriving._deriving_equal
   implicit val _deriving_order: DerivingProducts[Order] =
     Deriving._deriving_order
+  implicit val _deriving_arbitrary: DerivingProducts[Arbitrary] =
+    Deriving._deriving_arbitrary
 
 }

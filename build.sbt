@@ -89,6 +89,9 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
+      // intentionally depending on the lowest common denominator but test that
+      // it still works in the latest.
+      "org.scalaz"           %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
       "org.scalaz"           %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test",
       "io.estatico"          %% "newtype"                   % "0.4.2" % "test",
       "com.github.mpilquist" %% "simulacrum"                % simulacrumVersion % "test",

@@ -120,6 +120,7 @@ The following derivations are provided out-of-the-box for scalaz-core typeclasse
 1. `Equal` / `Order`
 2. `Show`
 3. `Semigroup` / `Monoid`
+4. `Arbitrary`
 
 with more learn-by-example in `scalaz-deriving/src/test/scala/examples`.
 
