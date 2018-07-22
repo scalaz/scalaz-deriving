@@ -89,6 +89,9 @@ private[jsonformat] trait JsDecoderScalaz1 {
     case other       => fail("JsArray", other)
   }
 
+  implicit def nel[A: JsDecoder]: JsDecoder[NonEmptyList[A]] =
+    ilist[A].emap(_.toNel \/> "empty list")
+
   implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]] = {
     case JsNull => Maybe.empty.right
     case a      => a.as[A].map(_.just)
@@ -142,10 +145,6 @@ private[jsonformat] trait JsDecoderStdlib2 {
   import scala.collection.generic.CanBuildFrom
   implicit def cbf[T[_], A: JsDecoder](
     implicit CBF: CanBuildFrom[Nothing, A, T[A]]
-  ): JsDecoder[T[A]] = {
-    case JsArray(values) =>
-      values.traverse(_.as[A]).map(_.toList.to[T])
-    case other => fail("JsArray", other)
-  }
+  ): JsDecoder[T[A]] = ilist[A].map(_.toList.to[T])
 
 }

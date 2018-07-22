@@ -68,7 +68,7 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
     disjunction[A, B].contramap(_.disjunction)
 
-  implicit def dict[V: JsEncoder]: JsEncoder[Map[String, V]] = { m =>
+  implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]] = { m =>
     val fields = m.toList.map {
       case (k, v) => k -> v.toJson
     }
@@ -84,5 +84,5 @@ private[jsonformat] trait JsEncoderStdlib2 {
 
   implicit def traversable[T[a] <: Traversable[a], A: JsEncoder]
     : JsEncoder[T[A]] =
-    ss => JsArray(ss.toList.map(_.toJson).toIList)
+    foldable[List, A].contramap(_.toList)
 }
