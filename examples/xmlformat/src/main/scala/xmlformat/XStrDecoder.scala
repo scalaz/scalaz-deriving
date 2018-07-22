@@ -15,6 +15,10 @@ import simulacrum._
 @typeclass(generateAllOps = false)
 trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
+
+  // does not have a MonadError, but can provide this
+  final def emap[B](f: A => String \/ B): XStrDecoder[B] =
+    x => self.fromXml(x).emap(f)
 }
 object XStrDecoder
     extends XStrDecoderScalaz
@@ -28,12 +32,10 @@ object XStrDecoder
     }
   }
 
-  import Isomorphism.<~>
-  val iso: XStrDecoder <~> Kleisli[String \/ ?, XString, ?] = Kleisli.iso(
-    λ[λ[a => (XString => String \/ a)] ~> XStrDecoder](instance(_)),
-    λ[XStrDecoder ~> λ[a => (XString => String \/ a)]](_.fromXml)
-  )
-  implicit val monad: MonadError[XStrDecoder, String] = MonadError.fromIso(iso)
+  implicit val functor: Functor[XStrDecoder] = new Functor[XStrDecoder] {
+    def map[A, B](fa: XStrDecoder[A])(f: A => B): XStrDecoder[B] =
+      x => fa.fromXml(x).map(f)
+  }
 
   // WORKAROUND https://github.com/scalaz/scalaz/issues/1590
   private def str[A](f: String => A)(implicit A: Typeable[A]): XStrDecoder[A] =

@@ -17,13 +17,6 @@ trait Decoder[A] { self =>
 object Decoder {
   @inline def instance[A](f: xml.NodeSeq => String \/ A): Decoder[A] = f(_)
 
-  import Isomorphism.<~>
-  val iso: Decoder <~> Kleisli[String \/ ?, xml.NodeSeq, ?] = Kleisli.iso(
-    λ[λ[a => (xml.NodeSeq => String \/ a)] ~> Decoder](instance(_)),
-    λ[Decoder ~> λ[a => (xml.NodeSeq => String \/ a)]](_.fromScalaXml)
-  )
-  implicit val monad: MonadError[Decoder, String] = MonadError.fromIso(iso)
-
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
   private[this] def secureParser(): SAXParser = {
     val f = SAXParserFactory.newInstance()

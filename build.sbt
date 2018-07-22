@@ -101,7 +101,7 @@ val deriving = (project in file("scalaz-deriving"))
   )
 
 val xmlformat = (project in file("examples/xmlformat"))
-  .dependsOn(macros)
+  .dependsOn(macros % "provided", deriving)
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
@@ -123,6 +123,28 @@ val xmlformat = (project in file("examples/xmlformat"))
     )
   )
   .enablePlugins(NeoJmhPlugin)
+
+val jsonformat = (project in file("examples/jsonformat"))
+  .dependsOn(macros % "provided", deriving)
+  .settings(ScalazDeriving)
+  .settings(
+    KindProjector,
+    MacroParadise,
+    MonadicFor,
+    startYear := Some(2010),
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 12)) => "-opt-inline-from:jsonformat.**" :: Nil
+        case _             => Nil
+      }
+    },
+    libraryDependencies ++= Seq(
+      "eu.timepit"           %% "refined"     % "0.9.2",
+      "org.scalaz"           %% "scalaz-core" % scalazVersion,
+      "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
+      "org.spire-math"       %% "jawn-parser" % "0.12.1"
+    )
+  )
 
 // root project
 skip in publish := true

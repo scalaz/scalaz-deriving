@@ -9,6 +9,10 @@ import simulacrum._
 @typeclass(generateAllOps = false)
 trait XDecoder[A] { self =>
   def fromXml(x: XChildren): String \/ A
+
+  // does not have a MonadError, but can provide this
+  final def emap[B](f: A => String \/ B): XDecoder[B] =
+    x => self.fromXml(x).emap(f)
 }
 object XDecoder
     extends XDecoderScalaz1
@@ -27,6 +31,11 @@ object XDecoder
     }
   }
 
+  implicit val functor: Functor[XDecoder] = new Functor[XDecoder] {
+    def map[A, B](fa: XDecoder[A])(f: A => B): XDecoder[B] =
+      x => fa.fromXml(x).map(f)
+  }
+
   // suppress long messages from the failure messages as they are never useful
   // and better to look at the source XML.
   def fail[A](expected: String, got: XNode): -\/[String] =
@@ -42,12 +51,6 @@ object XDecoder
       XDecoder.fail(name, other)
   }
 
-  import Isomorphism.<~>
-  val iso: XDecoder <~> Kleisli[String \/ ?, XChildren, ?] = Kleisli.iso(
-    λ[λ[a => (XChildren => String \/ a)] ~> XDecoder](instance(_)),
-    λ[XDecoder ~> λ[a => (XChildren => String \/ a)]](_.fromXml)
-  )
-  implicit val monad: MonadError[XDecoder, String] = MonadError.fromIso(iso)
 }
 
 private[xmlformat] trait XDecoderScalaz1 {
