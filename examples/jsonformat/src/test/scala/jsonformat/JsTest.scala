@@ -4,12 +4,18 @@
 package jsonformat
 
 import org.scalatest._
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import JsDecoder.ops._
 import JsEncoder.ops._
 
 import scalaz._, Scalaz._
 
-abstract class JsTest extends FlatSpec with NonImplicitAssertions {
+abstract class JsTest
+    extends FlatSpec
+    with NonImplicitAssertions
+    with GeneratorDrivenPropertyChecks {
+  type Position  = org.scalactic.source.Position
+  type Assertion = org.scalatest.Assertion
 
   implicit class EncoderHelper[T: JsEncoder](t: T) {
     def jsonString: String = CompactPrinter(t.toJson)

@@ -234,7 +234,7 @@ object Deriving {
     new Deriving[Arbitrary] {
       import scalaz.scalacheck.ScalaCheckBinding._
 
-      private val pick = λ[NameF ~> Gen](a => a.value.arbitrary)
+      private val pick = λ[NameF ~> Gen](a => Gen.lzy(a.value.arbitrary))
       def xproductz[Z, A <: TList, TC <: TList, L <: TList](
         tcs: Prod[TC],
         labels: Prod[L],

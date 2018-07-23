@@ -16,6 +16,12 @@ trait Decoder[A] { self =>
 
 object Decoder {
   @inline def instance[A](f: xml.NodeSeq => String \/ A): Decoder[A] = f(_)
+  private type Sig[a] = xml.NodeSeq => String \/ a
+  private val iso = Kleisli.iso(
+    λ[Sig ~> Decoder](instance(_)),
+    λ[Decoder ~> Sig](_.fromScalaXml)
+  )
+  implicit val monad: MonadError[Decoder, String] = MonadError.fromIso(iso)
 
   /** Avoid security exploits, see https://github.com/scala/scala-xml/issues/17 */
   private[this] def secureParser(): SAXParser = {

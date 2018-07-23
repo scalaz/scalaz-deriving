@@ -8,11 +8,8 @@ import scalaz._, Scalaz._
 
 import JsDecoder.ops._
 
-@typeclass(generateAllOps = false) trait JsDecoder[A] { self =>
+@typeclass(generateAllOps = false) trait JsDecoder[A] {
   def fromJson(json: JsValue): String \/ A
-
-  def emap[B](f: A => String \/ B): JsDecoder[B] =
-    j => self.fromJson(j).flatMap(f)
 }
 object JsDecoder
     extends JsDecoderScalaz1
@@ -37,11 +34,13 @@ object JsDecoder
     }
   }
 
-  // anything more specific would fail the Apply laws
-  implicit val functor: Functor[JsDecoder] = new Functor[JsDecoder] {
-    def map[A, B](fa: JsDecoder[A])(f: A => B): JsDecoder[B] =
-      j => fa.fromJson(j).map(f)
-  }
+  @inline final def instance[A](f: JsValue => String \/ A): JsDecoder[A] = f(_)
+  private type Sig[a] = JsValue => String \/ a
+  private val iso = Kleisli.iso(
+    λ[Sig ~> JsDecoder](instance(_)),
+    λ[JsDecoder ~> Sig](_.fromJson)
+  )
+  implicit val monad: MonadError[JsDecoder, String] = MonadError.fromIso(iso)
 
   def fail[A](expected: String, got: JsValue): -\/[String] =
     -\/(s"expected $expected, got $got")

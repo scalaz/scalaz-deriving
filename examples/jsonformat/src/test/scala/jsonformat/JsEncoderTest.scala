@@ -100,11 +100,9 @@ class JsEncoderTest extends JsTest {
       def conquer[A]: JsEncoder[A] = _ => JsNull
     }
 
-    // may need something more complex than String
+    val S: JsEncoder[String] = JsEncoder[String]
     val E: Equal[JsEncoder[String]] =
       (p1, p2) => p1.toJson("hello") === p2.toJson("hello")
-
-    val S: JsEncoder[String] = JsEncoder[String]
     assert(!D.divideLaw.composition(S, S, S)(E))
   }
 

@@ -4,7 +4,6 @@
 package jsonformat
 
 import JsDecoder.ops._
-
 import scalaz._, Scalaz._
 
 class JsDecoderTest extends JsTest {
@@ -115,4 +114,31 @@ class JsDecoderTest extends JsTest {
       .assert_===(\/-(Recursive("hello", Some(Recursive("goodbye")))))
   }
 
+  it should "obey the Apply composition law" in {
+    composeTest(JsObject(IList("a" -> JsString("hello"), "b" -> JsInteger(1))))
+  }
+
+  it should "obey the Apply composition law for bad input" in {
+    composeTest(JsNull)
+    composeTest(JsObject(IList("a" -> JsString("hello"))))
+    composeTest(JsObject(IList("b" -> JsInteger(1))))
+  }
+
+  it should "obey the Apply composition law for arbitrary data" in {
+    forAll(SizeRange(5))((j: JsValue) => composeTest(j))
+  }
+
+  def composeTest(j: JsValue)(implicit P: Position): Assertion = {
+    val A                                                = Applicative[JsDecoder]
+    val fa: JsDecoder[Comp]                              = JsDecoder[Comp]
+    val fab: JsDecoder[Comp => (String, Int)]            = A.point(c => (c.a, c.b))
+    val fbc: JsDecoder[((String, Int)) => (Int, String)] = A.point(_.swap)
+    val E: Equal[JsDecoder[(Int, String)]] =
+      (p1, p2) => p1.fromJson(j) === p2.fromJson(j)
+    assert(A.applyLaw.composition(fbc, fab, fa)(E))
+  }
+
 }
+
+@deriving(Equal, Show, JsDecoder)
+final case class Comp(a: String, b: Int)
