@@ -9,28 +9,16 @@ import JsEncoder.ops._
 
 import scalaz._, Scalaz._
 
-trait JsonTestSupport extends Matchers {
+abstract class JsTest extends FlatSpec with NonImplicitAssertions {
 
-  def roundtrip[T: JsDecoder: JsEncoder](
-    value: T,
-    via: Option[String] = None
-  ): Unit = {
-    val json = value.toJson
-
-    via match {
-      case None =>
-        println(
-          s"check and add the following assertion: $value = ${PrettyPrinter(json)}"
-        )
-      case Some(expected) =>
-        json.shouldBe(JsParser(expected))
-    }
-
-    val _ = json.as[T].shouldBe(value)
+  implicit class EncoderHelper[T: JsEncoder](t: T) {
+    def jsonString: String = CompactPrinter(t.toJson)
   }
 
-  def roundtrip[T: JsDecoder: JsEncoder](value: T, via: String): Unit =
-    roundtrip(value, Some(via))
+  implicit class DecoderHelper(s: String) {
+    def parseAs[A: JsDecoder]: String \/ A =
+      JsParser(s).toRight("").flatMap(_.as[A])
+  }
 
   // inefficient constructors that are convenient in tests
   implicit class JsArrayCompanionOps(self: JsArray.type) {

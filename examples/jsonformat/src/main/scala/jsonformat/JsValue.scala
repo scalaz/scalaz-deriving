@@ -12,7 +12,7 @@ sealed abstract class JsValue {
   def widen: JsValue = this
 }
 
-case object JsNull                                          extends JsValue
+final case object JsNull                                    extends JsValue
 final case class JsObject(fields: IList[(String, JsValue)]) extends JsValue
 final case class JsArray(elements: IList[JsValue])          extends JsValue
 final case class JsBoolean(value: Boolean)                  extends JsValue

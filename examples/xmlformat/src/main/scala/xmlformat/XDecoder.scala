@@ -12,7 +12,7 @@ trait XDecoder[A] { self =>
 
   // does not have a MonadError, but can provide this
   final def emap[B](f: A => String \/ B): XDecoder[B] =
-    x => self.fromXml(x).emap(f)
+    x => self.fromXml(x).flatMap(f)
 }
 object XDecoder
     extends XDecoderScalaz1

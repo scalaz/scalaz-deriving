@@ -19,10 +19,21 @@ object JsDecoder
     with JsDecoderRefined
     with JsDecoderStdlib1
     with JsDecoderScalaz2
-    with JsDecoderStdlib2 {
+    with JsDecoderStdlib2
+    with JsDecoderDeriving {
   object ops {
-    implicit class JsonReaderOps(private val j: JsValue) extends AnyVal {
+    implicit class JsValueExtras(private val j: JsValue) extends AnyVal {
       def as[A: JsDecoder]: String \/ A = JsDecoder[A].fromJson(j)
+      def asJsObject: String \/ JsObject = j match {
+        case obj @ JsObject(_) => obj.right
+        case other             => fail("JsObject", other)
+      }
+    }
+    implicit class JsObjectExtras(private val j: JsObject) extends AnyVal {
+      def get(key: String): String \/ JsValue =
+        j.fields.find(_._1 == key).map(_._2) \/> s"missing field '$key'"
+      def getAs[A: JsDecoder](key: String): String \/ A =
+        get(key).flatMap(_.as[A])
     }
   }
 
@@ -79,6 +90,7 @@ object JsDecoder
     case other                  => fail("single character", JsString(other))
   }
   implicit val symbol: JsDecoder[Symbol] = string.map(Symbol(_))
+
 }
 
 private[jsonformat] trait JsDecoderScalaz1 {
@@ -146,5 +158,76 @@ private[jsonformat] trait JsDecoderStdlib2 {
   implicit def cbf[T[_], A: JsDecoder](
     implicit CBF: CanBuildFrom[Nothing, A, T[A]]
   ): JsDecoder[T[A]] = ilist[A].map(_.toList.to[T])
+
+}
+
+private[jsonformat] trait JsDecoderDeriving {
+  this: JsDecoder.type =>
+
+  implicit val deriving: Deriving[JsDecoder] = // scalafix:ok
+    new Deriving[JsDecoder] {
+      type O[a]  = String \/ a
+      type LF[a] = (String, NameF[a])
+
+      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        name: String
+      )(
+        f: Prod[A] => Z,
+        g: Z => Prod[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): JsDecoder[Z] = {
+        case obj @ JsObject(_) =>
+          val each = λ[LF ~> O] {
+            case (label, fa) =>
+              val value = obj.get(label).getOrElse(JsNull)
+              fa.value.fromJson(value)
+          }
+          tcs.traverse(each, labels).map(f)
+
+        case other => fail("JsObject", other)
+      }
+
+      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
+        tcs: Prod[TC],
+        labels: Prod[L],
+        name: String
+      )(
+        f: Cop[A] => Z,
+        g: Z => Cop[A]
+      )(
+        implicit
+        ev1: NameF ƒ A ↦ TC,
+        ev2: Label ƒ A ↦ L
+      ): JsDecoder[Z] = {
+        case obj @ JsObject(_) =>
+          obj.get("typehint") match {
+            case \/-(JsString(hint)) =>
+              val xvalue = obj.get("xvalue")
+              val each = λ[LF ~> IStream] {
+                case (label, fa) =>
+                  if (hint == label) {
+                    val attempt = fa.value.fromJson(xvalue.getOrElse(obj))
+                    IStream.fromFoldable(attempt)
+                  } else IStream.empty
+              }
+
+              tcs
+                .coptraverse[A, L, NameF, Id](each, labels)
+                .headMaybe
+                .map(f) \/> s"a valid $hint"
+
+            case _ =>
+              fail("JsObject with typehint", obj)
+          }
+
+        case other => fail("JsObject", other)
+      }
+
+    }
 
 }

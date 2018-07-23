@@ -145,6 +145,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "org.spire-math"       %% "jawn-parser" % "0.12.1"
     )
   )
+  .enablePlugins(NeoJmhPlugin)
 
 // root project
 skip in publish := true

@@ -18,7 +18,7 @@ trait XStrDecoder[A] { self =>
 
   // does not have a MonadError, but can provide this
   final def emap[B](f: A => String \/ B): XStrDecoder[B] =
-    x => self.fromXml(x).emap(f)
+    x => self.fromXml(x).flatMap(f)
 }
 object XStrDecoder
     extends XStrDecoderScalaz
