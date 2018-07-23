@@ -5,6 +5,7 @@ package jsonformat
 
 import scala.annotation.switch
 import scalaz._, Scalaz._
+import internal.TCord
 
 object PrettyPrinter {
   def apply(j: JsValue): String = print(j, 0).shows

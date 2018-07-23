@@ -1,7 +1,7 @@
 // Copyright: 2010 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package jsonformat
+package jsonformat.internal
 
 import scala.annotation.tailrec
 
@@ -28,10 +28,10 @@ private[jsonformat] object TCord {
   def apply(s: String): TCord               = Leaf.apply(s)
   def apply(): TCord                        = Leaf.Empty
 
-  private[jsonformat] final class Leaf private (
+  private[internal] final class Leaf private (
     val s: String
   ) extends TCord
-  private[jsonformat] object Leaf {
+  private[internal] object Leaf {
     val Empty: Leaf = new Leaf("")
     def apply(s: String): Leaf =
       if (s.isEmpty) Empty
@@ -39,12 +39,12 @@ private[jsonformat] object TCord {
     def unapply(l: Leaf): Some[String] = Some(l.s)
   }
 
-  private[jsonformat] final class Branch private (
+  private[internal] final class Branch private (
     val leftDepth: Int,
     val left: TCord,
     val right: TCord
   ) extends TCord
-  private[jsonformat] object Branch {
+  private[internal] object Branch {
     val max: Int = 100
     def apply(a: TCord, b: TCord): TCord =
       if (a.eq(Leaf.Empty)) b
