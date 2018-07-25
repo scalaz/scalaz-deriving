@@ -114,6 +114,12 @@ class JsDecoderTest extends JsTest {
       .assert_===(\/-(Recursive("hello", Some(Recursive("goodbye")))))
   }
 
+  it should "treat missing fields as empty" in {
+    """{}"""
+      .parseAs[Nested]
+      .assert_===(\/-(Nested(None)))
+  }
+
   it should "obey the Apply composition law" in {
     composeTest(JsObject(IList("a" -> JsString("hello"), "b" -> JsInteger(1))))
   }
@@ -142,3 +148,6 @@ class JsDecoderTest extends JsTest {
 
 @deriving(Equal, Show, JsDecoder)
 final case class Comp(a: String, b: Int)
+
+@deriving(Equal, Show, JsDecoder)
+final case class Nested(n: Option[Nested])

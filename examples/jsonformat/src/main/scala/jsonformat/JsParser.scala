@@ -12,8 +12,8 @@ object JsParser extends SupportParser[JsValue] {
   // jawn uses exceptions for control flow (the error case), which is a huge DOS
   // security vulnerability, but we can't do anything about it.
 
-  def apply(s: String): Maybe[JsValue] =
-    Maybe.attempt(parseUnsafe(s))
+  def apply(s: String): String \/ JsValue =
+    Maybe.attempt(parseUnsafe(s)) \/> "invalid json"
 
   implicit val facade: RawFacade[JsValue] =
     new SimpleFacade[JsValue] {

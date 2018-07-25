@@ -58,7 +58,7 @@ class PrinterTest extends JsTest {
   }
 
   "The PrettyPrinter" should "align a complicated input" in {
-    val Maybe.Just(JsObject(fields)) = JsParser {
+    val \/-(JsObject(fields)) = JsParser {
       """{
         |  "Boolean no": false,
         |  "Boolean yes":true,

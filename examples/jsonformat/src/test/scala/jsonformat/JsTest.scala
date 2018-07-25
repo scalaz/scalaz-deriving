@@ -23,7 +23,7 @@ abstract class JsTest
 
   implicit class DecoderHelper(s: String) {
     def parseAs[A: JsDecoder]: String \/ A =
-      JsParser(s).toRight("").flatMap(_.as[A])
+      JsParser(s) >>= (_.as[A])
   }
 
   // inefficient constructors that are convenient in tests
