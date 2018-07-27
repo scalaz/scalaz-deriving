@@ -1,4 +1,9 @@
-package jsonformat
+// Copyright: 2010 - 2018 Sam Halliday
+// License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+
+// Copyright 2018 Andriy Plokhotnyuk
+
+package jsonformat.benchmarks
 
 import java.util.concurrent.TimeUnit
 
@@ -7,6 +12,7 @@ import io.circe.{ Error, Printer }
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
+import jsonformat._
 import jsonformat.JsDecoder.ops._
 import jsonformat.JsEncoder.ops._
 import scalaz._
@@ -166,15 +172,10 @@ case class Tweet(
 @jmh.annotations.Fork(
   value = 1,
   jvmArgs = Array(
-    "-server",
+    "-Xss2m",
     "-Xms2g",
     "-Xmx2g",
-    "-XX:NewSize=1g",
-    "-XX:MaxNewSize=1g",
-    "-XX:InitialCodeCacheSize=512m",
-    "-XX:ReservedCodeCacheSize=512m",
-    "-XX:+UseParallelGC",
-    "-XX:-UseBiasedLocking",
+    "-XX:+UseG1GC",
     "-XX:+AlwaysPreTouch"
   )
 )

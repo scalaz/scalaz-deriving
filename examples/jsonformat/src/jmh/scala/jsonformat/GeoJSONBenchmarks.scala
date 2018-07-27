@@ -1,4 +1,9 @@
-package jsonformat
+// Copyright: 2010 - 2018 Sam Halliday
+// License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+
+// Copyright 2018 Andriy Plokhotnyuk
+
+package jsonformat.benchmarks
 
 import java.util.concurrent.TimeUnit
 
@@ -9,6 +14,7 @@ import io.circe.syntax._
 import io.circe._
 import io.circe.generic.extras._
 import io.circe.generic.extras.semiauto._
+import jsonformat._
 import jsonformat.JsDecoder.ops._
 import jsonformat.JsEncoder.ops._
 import scalaz._
@@ -99,15 +105,10 @@ case class FeatureCollection(features: IndexedSeq[GeoJSON]) extends GeoJSON
 @jmh.annotations.Fork(
   value = 1,
   jvmArgs = Array(
-    "-server",
+    "-Xss2m",
     "-Xms2g",
     "-Xmx2g",
-    "-XX:NewSize=1g",
-    "-XX:MaxNewSize=1g",
-    "-XX:InitialCodeCacheSize=512m",
-    "-XX:ReservedCodeCacheSize=512m",
-    "-XX:+UseParallelGC",
-    "-XX:-UseBiasedLocking",
+    "-XX:+UseG1GC",
     "-XX:+AlwaysPreTouch"
   )
 )

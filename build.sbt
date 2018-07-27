@@ -155,7 +155,9 @@ val jsonformat = (project in file("examples/jsonformat"))
   .enablePlugins(NeoJmhPlugin)
   .settings(headerSettings(Jmh))
   .settings(
-    inConfig(Jmh)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
+    inConfig(Jmh)(
+      org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
+    )
   )
 
 // root project
