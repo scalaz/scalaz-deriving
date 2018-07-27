@@ -37,11 +37,16 @@ class JsEncoderTest extends JsTest {
     b.toJson.assert_===(JsString("Hello"))
   }
 
-  it should "encode Foldables" in {
-    val list = List(1, 2, 3)
-    val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
-    list.toJson.assert_===(json)
-  }
+  // it should "encode Foldables" in {
+  //   val ord = OrdSeq(1, 2, 3).self
+  //   val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
+  //   ord.toJson.assert_===(json)
+  //
+  //   // is this really what you wanted?
+  //   Map(1 -> "foo", 2 -> "bar").toJson.assert_===(
+  //     JsArray(JsString("foo"), JsString("bar"))
+  //   )
+  // }
 
   it should "encode stringy maps" in {
     val map = Map("a" -> 1, "b" -> 2, "c" -> 3)

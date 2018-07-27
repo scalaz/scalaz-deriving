@@ -43,8 +43,11 @@ object JsEncoder
 private[jsonformat] trait JsEncoderScalaz1 {
   this: JsEncoder.type =>
 
-  implicit def foldable[F[_]: Foldable, A: JsEncoder]: JsEncoder[F[A]] =
-    as => JsArray(as.toIList.map(_.toJson))
+  implicit def ilist[A: JsEncoder]: JsEncoder[IList[A]] =
+    as => JsArray(as.map(_.toJson))
+
+  implicit def nel[A: JsEncoder]: JsEncoder[NonEmptyList[A]] =
+    ilist[A].contramap(_.list)
 
   implicit def maybe[A: JsEncoder]: JsEncoder[Maybe[A]] = {
     case Maybe.Just(a) => a.toJson
@@ -70,6 +73,8 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
     disjunction[A, B].contramap(_.disjunction)
 
+  implicit def list[A: JsEncoder]: JsEncoder[List[A]] =
+    ilist[A].contramap(_.toIList)
   implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]] = { m =>
     val fields = m.toList.map {
       case (k, v) => k -> v.toJson
@@ -80,13 +85,19 @@ private[jsonformat] trait JsEncoderStdlib1 {
 private[jsonformat] trait JsEncoderScalaz2 {
   this: JsEncoder.type =>
 
+  // WARNING: encoder instances over Foldable support things that are not
+  // isomorphic to IList, e.g. Map[BadThing, String], which has a Foldable over
+  // the values. Think hard before adding such instances.
+  //
+  //implicit def foldable[F[_]: Foldable, A: JsEncoder]: JsEncoder[F[A]] =
+  //  ilist[A].contramap(_.toIList)
+
 }
 private[jsonformat] trait JsEncoderStdlib2 {
   this: JsEncoder.type =>
 
   implicit def traversable[T[a] <: Traversable[a], A: JsEncoder]
-    : JsEncoder[T[A]] =
-    foldable[List, A].contramap(_.toList)
+    : JsEncoder[T[A]] = list[A].contramap(_.toList)
 }
 
 private[jsonformat] trait JsEncoderDeriving {
