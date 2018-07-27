@@ -142,7 +142,7 @@ private[jsonformat] trait JsEncoderDeriving {
       ): JsEncoder[Z] = { z =>
         g(z).zip(tcs, labels).into {
           case (label, a) /~\ fa =>
-            val hint = "typehint" -> JsString(label)
+            val hint = "type" -> JsString(label)
             fa.value.toJson(a) match {
               case JsObject(fields) => JsObject(hint :: fields)
               case other            => JsObject(IList(hint, "xvalue" -> other))

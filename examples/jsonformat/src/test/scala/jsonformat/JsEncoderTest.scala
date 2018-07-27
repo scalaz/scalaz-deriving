@@ -72,17 +72,17 @@ class JsEncoderTest extends JsTest {
 
   it should "encode generic coproducts" in {
     (Foo("hello"): SimpleTrait).jsonString
-      .assert_===("""{"typehint":"Foo","s":"hello"}""")
-    (Baz: SimpleTrait).jsonString.assert_===("""{"typehint":"Baz"}""")
+      .assert_===("""{"type":"Foo","s":"hello"}""")
+    (Baz: SimpleTrait).jsonString.assert_===("""{"type":"Baz"}""")
 
-    (Wibble: AbstractThing).jsonString.assert_===("""{"typehint":"Wibble"}""")
+    (Wibble: AbstractThing).jsonString.assert_===("""{"type":"Wibble"}""")
     (Wobble("hello"): AbstractThing).jsonString
-      .assert_===("""{"typehint":"Wobble","id":"hello"}""")
+      .assert_===("""{"type":"Wobble","id":"hello"}""")
 
     (Time("goodbye"): NotAnObject).jsonString
-      .assert_===("""{"typehint":"Time","xvalue":"goodbye"}""")
+      .assert_===("""{"type":"Time","xvalue":"goodbye"}""")
     (Money(13): NotAnObject).jsonString
-      .assert_===("""{"typehint":"Money","i":13}""")
+      .assert_===("""{"type":"Money","i":13}""")
   }
 
   it should "encode generic recursive ADTs" in {

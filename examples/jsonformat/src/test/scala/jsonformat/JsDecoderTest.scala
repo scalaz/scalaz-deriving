@@ -74,7 +74,7 @@ class JsDecoderTest extends JsTest {
   }
 
   it should "decode generic coproducts" in {
-    """{"typehint":"Foo","s":"hello"}"""
+    """{"type":"Foo","s":"hello"}"""
       .parseAs[SimpleTrait]
       .assert_===(
         \/-(
@@ -83,10 +83,10 @@ class JsDecoderTest extends JsTest {
           )
         )
       )
-    """{"typehint":"Baz"}""".parseAs[SimpleTrait].assert_===(\/-(Baz))
+    """{"type":"Baz"}""".parseAs[SimpleTrait].assert_===(\/-(Baz))
 
-    """{"typehint":"Wibble"}""".parseAs[AbstractThing].assert_===(\/-(Wibble))
-    """{"typehint":"Wobble","id":"hello"}"""
+    """{"type":"Wibble"}""".parseAs[AbstractThing].assert_===(\/-(Wibble))
+    """{"type":"Wobble","id":"hello"}"""
       .parseAs[AbstractThing]
       .assert_===(
         \/-(
@@ -96,10 +96,10 @@ class JsDecoderTest extends JsTest {
         )
       )
 
-    """{"typehint":"Time","xvalue":"goodbye"}"""
+    """{"type":"Time","xvalue":"goodbye"}"""
       .parseAs[NotAnObject]
       .assert_===(\/-(Time("goodbye")))
-    """{"typehint":"Money","i":13}"""
+    """{"type":"Money","i":13}"""
       .parseAs[NotAnObject]
       .assert_===(
         \/-(

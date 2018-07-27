@@ -204,7 +204,7 @@ private[jsonformat] trait JsDecoderDeriving {
         ev2: Label ƒ A ↦ L
       ): JsDecoder[Z] = {
         case obj @ JsObject(_) =>
-          obj.get("typehint") match {
+          obj.get("type") match {
             case \/-(JsString(hint)) =>
               val xvalue = obj.get("xvalue")
               val each = λ[LF ~> IStream] {
@@ -221,7 +221,7 @@ private[jsonformat] trait JsDecoderDeriving {
                 .map(f) \/> s"a valid $hint"
 
             case _ =>
-              fail("JsObject with typehint", obj)
+              fail("JsObject with type", obj)
           }
 
         case other => fail("JsObject", other)
