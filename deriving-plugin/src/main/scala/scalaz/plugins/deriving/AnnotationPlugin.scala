@@ -150,12 +150,16 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
       val isCase = clazz.mods.hasFlag(Flag.CASE)
 
+      lazy val accessors = clazz.impl.collect {
+        case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
+          tpt.duplicate
+      }
+
       def sup =
-        if (isCase && clazz.tparams.isEmpty && addSuperFunction(clazz)) {
-          val accessors = clazz.impl.collect {
-            case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
-              tpt.duplicate
-          }
+        if (isCase &&
+            clazz.tparams.isEmpty &&
+            addSuperFunction(clazz) &&
+            accessors.size <= 22) {
           AppliedTypeTree(
             Select(
               Select(Ident(nme.ROOTPKG), nme.scala_),

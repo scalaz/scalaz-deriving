@@ -2,11 +2,11 @@ val scalazVersion     = "7.2.25"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.12.0"
 
-addCommandAlias("cpl", "all compile test:compile")
-addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+addCommandAlias("cpl", "all compile test:compile jmh:compile")
+addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
 addCommandAlias(
   "check",
-  "all headerCheck test:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck"
+  "all headerCheck test:headerCheck jmh:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck jmh:scalafmtCheck"
 )
 addCommandAlias("lint", "all compile:scalafixTest test:scalafixTest")
 addCommandAlias("fix", "all compile:scalafixCli test:scalafixCli")
@@ -123,6 +123,10 @@ val xmlformat = (project in file("examples/xmlformat"))
     )
   )
   .enablePlugins(NeoJmhPlugin)
+  .settings(headerSettings(Jmh))
+  .settings(
+    inConfig(Jmh)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
+  )
 
 val jsonformat = (project in file("examples/jsonformat"))
   .dependsOn(macros % "provided", deriving)
@@ -146,6 +150,10 @@ val jsonformat = (project in file("examples/jsonformat"))
     )
   )
   .enablePlugins(NeoJmhPlugin)
+  .settings(headerSettings(Jmh))
+  .settings(
+    inConfig(Jmh)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
+  )
 
 // root project
 skip in publish := true

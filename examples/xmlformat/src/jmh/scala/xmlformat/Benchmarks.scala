@@ -1,6 +1,9 @@
+// Copyright: 2017 - 2018 Sam Halliday
+// License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+
 package xmlformat
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration.Duration
 
@@ -20,7 +23,7 @@ class Benchmarks {
   // the parser is more likely to run on multiple threads in the real scenario,
   // so running perf tests in this wrapper should help us stress the GC
   // behaviour more like reality.
-  @inline final def parallel[A](f: => A): Boolean = {
+  @inline final def parallel[A](f: =>A): Boolean = {
     Await.result(Future.sequence(List.fill(16)(Future(f))), Duration.Inf)
   }.nonEmpty
 
@@ -67,22 +70,22 @@ class Data {
   def parseScala = strings.map { s =>
     Decoder.parse(s) match {
       case \/-(XChildren(ICons(t, INil()))) => t
-      case other => throw new IllegalArgumentException(other.toString)
+      case other                            => throw new IllegalArgumentException(other.toString)
     }
   }
   def parseStax = strings.map { s =>
     StaxDecoder.parse(s) match {
       case \/-(t) => t
-      case other => throw new IllegalArgumentException(other.toString)
+      case other  => throw new IllegalArgumentException(other.toString)
     }
   }
 
   val parsed: List[XTag] = parseScala
 
   def printScala = parsed.map(t => Encoder.xnode.toScalaXml(t.asChild).toString)
-  def printCord = parsed.map(t => CordEncoder.encode(t))
-  def printTree = parsed.map(t => TreeEncoder.encode(t))
-  def printStax = parsed.map(t => StaxEncoder.encode(t))
+  def printCord  = parsed.map(t => CordEncoder.encode(t))
+  def printTree  = parsed.map(t => TreeEncoder.encode(t))
+  def printStax  = parsed.map(t => StaxEncoder.encode(t))
 
   def getResourceAsString(res: String): String = {
     val is = getClass().getClassLoader().getResourceAsStream(res)
