@@ -165,7 +165,6 @@ private[jsonformat] trait JsDecoderDeriving {
 
   implicit val deriving: Deriving[JsDecoder] = // scalafix:ok
     new Deriving[JsDecoder] {
-      type O[a]  = String \/ a
       type LF[a] = (String, NameF[a])
 
       def xproductz[Z, A <: TList, TC <: TList, L <: TList](
@@ -181,7 +180,7 @@ private[jsonformat] trait JsDecoderDeriving {
         ev2: Label ƒ A ↦ L
       ): JsDecoder[Z] = {
         case obj @ JsObject(_) =>
-          val each = λ[LF ~> O] {
+          val each = λ[LF ~> (String \/ ?)] {
             case (label, fa) =>
               val value = obj.get(label).getOrElse(JsNull)
               fa.value.fromJson(value)
@@ -207,12 +206,11 @@ private[jsonformat] trait JsDecoderDeriving {
           obj.get("type") match {
             case \/-(JsString(hint)) =>
               val xvalue = obj.get("xvalue")
-              val each = λ[LF ~> IStream] {
+              val each = λ[LF ~> Maybe] {
                 case (label, fa) =>
                   if (hint == label) {
-                    val attempt = fa.value.fromJson(xvalue.getOrElse(obj))
-                    IStream.fromFoldable(attempt)
-                  } else IStream.empty
+                    fa.value.fromJson(xvalue.getOrElse(obj)).toMaybe
+                  } else Maybe.empty
               }
 
               tcs

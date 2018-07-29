@@ -33,7 +33,7 @@ object Defaultz {
     }
 
     private val always =
-      λ[NameF ~> IStream](a => IStream.ByName(a.value.default))
+      λ[NameF ~> Maybe](a => Maybe.just(a.value.default))
     def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
       f: Cop[A] => Z
     )(

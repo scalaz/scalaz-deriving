@@ -194,9 +194,9 @@ object Prods {
           .map(bs => Prod.unsafeApply[C](bs))
       }
 
-      type E[g[_], a] = IStream[g[a]]
-
-      def coptraverse[B <: TList, F[_], G[_]: Applicative](f: F ~> E[G, ?])(
+      def coptraverse[B <: TList, F[_], G[_]: Applicative](
+        f: F ~> λ[α => Maybe[G[α]]]
+      )(
         implicit ev1: F ƒ B ↦ A
       ): IStream[G[Cop[B]]] = {
         val _ = ev1
@@ -208,13 +208,13 @@ object Prods {
               .indexed
           )
           .flatMap {
-            case (i, fa) => f(fa).map(g => (i, g))
+            case (i, fa) => IStream.fromMaybe(f(fa).map(g => (i, g)))
           }
           .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
       }
 
       def coptraverse[B <: TList, C <: TList, F[_], G[_]: Applicative](
-        f: λ[α => (String, F[α])] ~> E[G, ?],
+        f: λ[α => (String, F[α])] ~> λ[α => Maybe[G[α]]],
         c: Prod[C]
       )(
         implicit ev1: F ƒ B ↦ A,
@@ -230,7 +230,7 @@ object Prods {
               .indexed
           )
           .flatMap {
-            case (i, sfa) => f(sfa).map(y => (i, y))
+            case (i, sfa) => IStream.fromMaybe(f(sfa).map(y => (i, y)))
           }
           .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
       }

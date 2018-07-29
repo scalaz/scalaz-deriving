@@ -249,8 +249,8 @@ object Deriving {
       ): Arbitrary[Z] =
         Arbitrary(tcs.traverse(pick).map(f))
 
-      private val always = λ[NameF ~> λ[α => IStream[Gen[α]]]](
-        a => IStream.Lazy(Gen.lzy(a.value.arbitrary))
+      private val always = λ[NameF ~> λ[α => Maybe[Gen[α]]]](
+        a => Maybe.just(Gen.lzy(a.value.arbitrary))
       )
       def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
         tcs: Prod[TC],

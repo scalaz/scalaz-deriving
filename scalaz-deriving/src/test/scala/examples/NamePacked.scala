@@ -165,11 +165,10 @@ object NameUnpacker {
         case p @ Product(entries) =>
           entries.find(_._1 == "typehint") match {
             case Some((_, Characters(hint))) =>
-              val each = λ[LF ~> IStream] {
+              val each = λ[LF ~> Maybe] {
                 case (label, fa) =>
-                  if (hint == label)
-                    IStream.fromFoldable(fa.value.decode(p))
-                  else IStream.empty
+                  if (hint == label) fa.value.decode(p).toMaybe
+                  else Maybe.empty
               }
 
               tcs
