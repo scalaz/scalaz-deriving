@@ -1,9 +1,7 @@
 `scalaz-deriving` makes it easy to derive typeclass instances for your data types. The benefits are:
 
 - [much faster compiles](https://github.com/propensive/magnolia/pull/45)
-- [faster runtime](https://github.com/fosskers/scalaz-and-cats/pull/4)
 - simpler implicit rules (less time fighting the compiler)
-- cleaner compiler errors (know where an implicit is missing)
 - easy to write derivation logic for your own typeclasses
 
 There are two independent and complementary parts to this library:
@@ -122,7 +120,7 @@ The following derivations are provided out-of-the-box for scalaz-core typeclasse
 3. `Semigroup` / `Monoid`
 4. `Arbitrary`
 
-with more learn-by-example in `scalaz-deriving/src/test/scala/examples`.
+with more learn-by-example in `scalaz-deriving/src/test/scala/examples` and a detailed tutorial in the chapter "Typeclass Derivation" of [Functional Programming for Mortals with Scalaz](https://leanpub.com/fpmortals/read#leanpub-auto-typeclass-derivation).
 
 # Installation
 
@@ -186,7 +184,8 @@ We provide some automated rules to migrate when we introduce breaking changes. Y
 
 ### `scalaz-deriving`
 
-The changelog will not be documented until 1.0.
+- 1.0.0
+  - stabilised
 
 ## Caveats
 
@@ -194,7 +193,7 @@ The changelog will not be documented until 1.0.
 
 When adding the `@deriving` annotation to a `sealed trait`: 1) the derivation will be repeated if there are multiple `sealed` layers (which might slow down compiles), 2) the implicit scope of the subtype's companion is not searched.
 
-The macro that generates the [iotaz](https://github.com/frees-io/iota) representation does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature. Indeed, much of the internals of `scalaz-deriving` [will be ported to iota](https://gitlab.com/fommil/scalaz-deriving/issues/47).
+The macro that generates the [iotaz](https://github.com/frees-io/iota) representation does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature.
 
 Sometimes the scaladoc compiler can get confused and publishing will fail. We recommend that you simply disable scaladocs: nobody reads them and the source is always a better reference anyway:
 
