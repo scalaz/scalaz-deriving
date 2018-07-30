@@ -8,10 +8,6 @@ package jsonformat.benchmarks
 import java.util.concurrent.TimeUnit
 
 import org.openjdk.jmh
-import io.circe.{ Error, Printer }
-import io.circe.generic.auto._
-import io.circe.parser._
-import io.circe.syntax._
 import jsonformat._
 import jsonformat.JsDecoder.ops._
 import jsonformat.JsEncoder.ops._
@@ -23,25 +19,39 @@ import scalaz._, Scalaz._
 //
 // see org.openjdk.jmh.runner.options.CommandLineOptions
 
-@deriving(Equal, Show, JsEncoder, JsDecoder)
-final case class Nested(n: Option[Nested])
+// scalaz-deriving
+package z {
+  @deriving(Equal, Show, JsEncoder, JsDecoder)
+  final case class Nested(n: Option[Nested])
+}
 
-@deriving(Equal, Show)
-final case class Nested2(n: Option[Nested2])
-
-object Nested2 {
-  implicit val customEncoder: JsEncoder[Nested2] = { o =>
-    JsObject(
-      o.n.fold(IList.empty[(String, JsValue)])(
-        n => IList.single("n" -> n.toJson)
+// hand-rolled
+package h {
+  @deriving(Equal, Show)
+  final case class Nested(n: Option[Nested])
+  object Nested {
+    implicit val encoder: JsEncoder[Nested] = { o =>
+      JsObject(
+        o.n.fold(IList.empty[(String, JsValue)])(
+          n => IList.single("n" -> n.toJson)
+        )
       )
-    )
-  }
-  implicit val customDecoder: JsDecoder[Nested2] = { j =>
-    j.asJsObject.flatMap { obj =>
-      if (obj.fields.isEmpty) \/-(Nested2(None))
-      else obj.getAs[Option[Nested2]]("n").map(Nested2(_))
     }
+    implicit val decoder: JsDecoder[Nested] = { j =>
+      j.asJsObject.flatMap { obj =>
+        if (obj.fields.isEmpty) \/-(Nested(None))
+        else obj.getAs[Option[Nested]]("n").map(Nested(_))
+      }
+    }
+  }
+}
+
+// magnolia
+package m {
+  final case class Nested(n: Option[Nested])
+  object Nested {
+    implicit val encoder: JsEncoder[Nested] = MagnoliaEncoder.gen
+    implicit val decoder: JsDecoder[Nested] = MagnoliaDecoder.gen
   }
 }
 
@@ -65,79 +75,71 @@ object Nested2 {
 @jmh.annotations.BenchmarkMode(Array(jmh.annotations.Mode.Throughput))
 @jmh.annotations.OutputTimeUnit(TimeUnit.SECONDS)
 class SyntheticBenchmarks {
-  val circePrinter: Printer =
-    Printer.noSpaces.copy(dropNullValues = true, reuseWriters = true)
-
-  @jmh.annotations.Param(Array("1", "3", "10", "30", "100", "300"))
+  @jmh.annotations.Param(Array("10", "100"))
   var size: Int                       = 7
-  var obj: Nested                     = _
-  var obj2: Nested2                   = _
+  var obj1: z.Nested                  = _
+  var obj2: h.Nested                  = _
+  var obj3: m.Nested                  = _
   var jsonString: String              = _
   var parsingErrorJsonString: String  = _
   var decodingErrorJsonString: String = _
+  var ast1, ast2: JsValue             = _
 
   @jmh.annotations.Setup
   def setup(): Unit = {
-    obj = 1.to(size).foldLeft(Nested(None))((n, _) => Nested(Some(n)))
-    obj2 = 1.to(size).foldLeft(Nested2(None))((n, _) => Nested2(Some(n)))
-    jsonString = writeCirce()
+    obj1 = 1.to(size).foldLeft(z.Nested(None))((n, _) => z.Nested(Some(n)))
+    obj2 = 1.to(size).foldLeft(h.Nested(None))((n, _) => h.Nested(Some(n)))
+    obj3 = 1.to(size).foldLeft(m.Nested(None))((n, _) => m.Nested(Some(n)))
+    jsonString = CompactPrinter(encodeScalazDeriving())
     parsingErrorJsonString = jsonString.replace("{}", "xxx")
     decodingErrorJsonString = jsonString.replace("{}", "1")
-    require(decodingErrorCirce().isLeft)
-    require(decodingErrorScalazCustom().isLeft)
+    ast1 = JsParser(jsonString).getOrElse(null)
+    ast2 = JsParser(decodingErrorJsonString).getOrElse(null)
+
+    require(decodingErrorManual().isLeft)
+    require(decodingErrorMagnolia().isLeft)
     require(decodingErrorScalazDeriving().isLeft)
-    require(parsingErrorCirce().isLeft)
-    require(parsingErrorScalazCustom().isLeft)
-    require(parsingErrorScalazDeriving().isLeft)
-    require(readCirce().right.get == obj)
-    require(readScalazCustom().getOrElse(null) == obj2)
-    require(readScalazDeriving().getOrElse(null) == obj)
-    require(writeCirce() == jsonString)
-    require(writeScalazCustom() == jsonString)
-    require(writeScalazDeriving() == jsonString)
+    // require(parsingErrorManual().isLeft)
+    // require(parsingErrorMagnolia().isLeft)
+    // require(parsingErrorScalazDeriving().isLeft)
+    require(decodeManual().getOrElse(null) == obj2)
+    require(decodeMagnolia().getOrElse(null) == obj3)
+    require(decodeScalazDeriving().getOrElse(null) == obj1)
+    require(CompactPrinter(encodeManual()) == jsonString)
+    require(CompactPrinter(encodeMagnolia()) == jsonString)
+    require(CompactPrinter(encodeScalazDeriving()) == jsonString)
   }
 
   @jmh.annotations.Benchmark
-  def decodingErrorCirce(): Either[Error, Nested] =
-    decode[Nested](decodingErrorJsonString)
+  def decodingErrorManual(): \/[String, h.Nested] =
+    ast2.as[h.Nested]
 
   @jmh.annotations.Benchmark
-  def decodingErrorScalazCustom(): \/[String, Nested2] =
-    JsParser(decodingErrorJsonString).flatMap(_.as[Nested2])
+  def decodingErrorMagnolia(): String \/ m.Nested =
+    ast2.as[m.Nested]
 
   @jmh.annotations.Benchmark
-  def decodingErrorScalazDeriving(): \/[String, Nested] =
-    JsParser(decodingErrorJsonString).flatMap(_.as[Nested])
+  def decodingErrorScalazDeriving(): \/[String, z.Nested] =
+    ast2.as[z.Nested]
 
   @jmh.annotations.Benchmark
-  def parsingErrorCirce(): Either[Error, Nested] =
-    decode[Nested](parsingErrorJsonString)
+  def decodeManual(): \/[String, h.Nested] =
+    ast1.as[h.Nested]
 
   @jmh.annotations.Benchmark
-  def parsingErrorScalazCustom(): \/[String, Nested2] =
-    JsParser(parsingErrorJsonString).flatMap(_.as[Nested2])
+  def decodeMagnolia(): String \/ m.Nested =
+    ast1.as[m.Nested]
 
   @jmh.annotations.Benchmark
-  def parsingErrorScalazDeriving(): \/[String, Nested] =
-    JsParser(parsingErrorJsonString).flatMap(_.as[Nested])
+  def decodeScalazDeriving(): \/[String, z.Nested] =
+    ast1.as[z.Nested]
 
   @jmh.annotations.Benchmark
-  def readCirce(): Either[Error, Nested] = decode[Nested](jsonString)
+  def encodeManual(): JsValue = obj2.toJson
 
   @jmh.annotations.Benchmark
-  def readScalazCustom(): \/[String, Nested2] =
-    JsParser(jsonString).flatMap(_.as[Nested2])
+  def encodeMagnolia(): JsValue = obj3.toJson
 
   @jmh.annotations.Benchmark
-  def readScalazDeriving(): \/[String, Nested] =
-    JsParser(jsonString).flatMap(_.as[Nested])
-
-  @jmh.annotations.Benchmark
-  def writeCirce(): String = circePrinter.pretty(obj.asJson)
-
-  @jmh.annotations.Benchmark
-  def writeScalazCustom(): String = CompactPrinter(obj2.toJson)
-
-  @jmh.annotations.Benchmark
-  def writeScalazDeriving(): String = CompactPrinter(obj.toJson)
+  def encodeScalazDeriving(): JsValue = obj1.toJson
 }

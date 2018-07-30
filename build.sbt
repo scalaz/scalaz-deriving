@@ -143,13 +143,11 @@ val jsonformat = (project in file("examples/jsonformat"))
       }
     },
     libraryDependencies ++= Seq(
-      "io.circe"             %% "circe-generic-extras" % "0.10.0-M1" % "test,jmh",
-      "io.circe"             %% "circe-generic"        % "0.10.0-M1" % "test,jmh",
-      "io.circe"             %% "circe-parser"         % "0.10.0-M1" % "test,jmh",
-      "eu.timepit"           %% "refined"              % "0.9.2",
-      "org.scalaz"           %% "scalaz-core"          % scalazVersion,
-      "com.github.mpilquist" %% "simulacrum"           % simulacrumVersion,
-      "org.spire-math"       %% "jawn-parser"          % "0.12.1"
+      "com.propensive"       %% "magnolia"    % "0.8.0" % "test",
+      "eu.timepit"           %% "refined"     % "0.9.2",
+      "org.scalaz"           %% "scalaz-core" % scalazVersion,
+      "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
+      "org.spire-math"       %% "jawn-parser" % "0.12.1"
     )
   )
   .enablePlugins(NeoJmhPlugin)

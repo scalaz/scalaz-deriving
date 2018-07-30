@@ -205,12 +205,11 @@ private[jsonformat] trait JsDecoderDeriving {
         case obj @ JsObject(_) =>
           obj.get("type") match {
             case \/-(JsString(hint)) =>
-              val xvalue = obj.get("xvalue")
+              val value = obj.get("xvalue").getOrElse(obj)
               val each = λ[LF ~> Maybe] {
                 case (label, fa) =>
-                  if (hint == label) {
-                    fa.value.fromJson(xvalue.getOrElse(obj)).toMaybe
-                  } else Maybe.empty
+                  if (hint == label) fa.value.fromJson(value).toMaybe
+                  else Maybe.empty
               }
 
               tcs
