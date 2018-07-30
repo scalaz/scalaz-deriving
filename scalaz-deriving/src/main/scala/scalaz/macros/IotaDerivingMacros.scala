@@ -83,7 +83,7 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
             // and use whatever message we find in the exception, but exceptions...
             q"_root_.scala.Predef.implicitly[$tc]: $tc"
         }
-      q"_root_.scalaz.Need($imp): Name[$tc]"
+      q"_root_.scalaz.Need($imp): _root_.scalaz.Name[$tc]"
     }
 
     if (aSym.isSealed) {
