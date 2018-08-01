@@ -1,6 +1,6 @@
 val scalazVersion     = "7.2.25"
 val shapelessVersion  = "2.3.3"
-val simulacrumVersion = "0.12.0"
+val simulacrumVersion = "0.13.0"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -75,10 +75,39 @@ val base = (project in file("scalaz-deriving-base")).settings(
   )
 )
 
+val magnolia = project
+  .dependsOn(
+    macros % "test"
+  )
+  .settings(ScalazDeriving)
+  .settings(
+    name := "scalaz-deriving-magnolia",
+    libraryDependencies ++= Seq(
+      "org.scalaz"     %% "scalaz-core" % scalazVersion,
+      "com.propensive" %% "magnolia"    % "0.8.0"
+    )
+  )
+
+val scalacheck = project
+  .dependsOn(
+    macros % "test"
+  )
+  .settings(ScalazDeriving)
+  .settings(
+    name := "scalaz-deriving-scalacheck",
+    libraryDependencies ++= Seq(
+      "com.propensive" %% "magnolia"                  % "0.8.0",
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
+    )
+  )
+
 val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
     base,
-    macros
+    macros     % "provided",
+    magnolia   % "test",
+    scalacheck % "test"
   )
   .settings(inConfig(Test)(ScalazDeriving))
   .settings(
@@ -89,14 +118,10 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      // intentionally depending on the lowest common denominator but test that
-      // it still works in the latest.
-      "org.scalaz"           %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
-      "org.scalaz"           %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test",
-      "io.estatico"          %% "newtype"                   % "0.4.2" % "test",
-      "com.github.mpilquist" %% "simulacrum"                % simulacrumVersion % "test",
-      "org.scala-lang"       % "scala-compiler"             % scalaVersion.value % "provided",
-      "io.frees"             %% "iotaz-core"                % "0.3.8"
+      "io.estatico"          %% "newtype"       % "0.4.2" % "test",
+      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion % "test",
+      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
+      "io.frees"             %% "iotaz-core"    % "0.3.8"
     )
   )
 
@@ -129,7 +154,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   )
 
 val jsonformat = (project in file("examples/jsonformat"))
-  .dependsOn(macros % "provided", deriving)
+  .dependsOn(macros % "provided,test", deriving, magnolia, scalacheck)
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
@@ -143,7 +168,6 @@ val jsonformat = (project in file("examples/jsonformat"))
       }
     },
     libraryDependencies ++= Seq(
-      "com.propensive"       %% "magnolia"    % "0.8.0" % "test",
       "eu.timepit"           %% "refined"     % "0.9.2",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,

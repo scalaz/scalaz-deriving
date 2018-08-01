@@ -6,35 +6,9 @@ package jsonformat
 import scala.util.control.NoStackTrace
 
 import magnolia._
-import scalaz._, Scalaz._
+import scalaz._
 
-object MagnoliaEncoder {
-  type Typeclass[A] = JsEncoder[A]
-
-  def combine[A](ctx: CaseClass[JsEncoder, A]): JsEncoder[A] = { a =>
-    val fields = ctx.parameters.flatMap { p =>
-      p.typeclass.toJson(p.dereference(a)) match {
-        case JsNull => Nil
-        case value  => (p.label -> value) :: Nil
-      }
-    }
-    JsObject(fields.toList.toIList)
-  }
-
-  def dispatch[A](ctx: SealedTrait[JsEncoder, A]): JsEncoder[A] =
-    a =>
-      ctx.dispatch(a) { sub =>
-        val hint = "type" -> JsString(sub.typeName.short)
-        sub.typeclass.toJson(sub.cast(a)) match {
-          case JsObject(fields) => JsObject(hint :: fields)
-          case other            => JsObject(IList(hint, "xvalue" -> other))
-        }
-      }
-
-  def gen[A]: JsEncoder[A] = macro Magnolia.gen[A]
-}
-
-object MagnoliaDecoder {
+object MagnoliaJsDecoder {
   type Typeclass[A] = JsDecoder[A]
 
   import JsDecoder.ops._

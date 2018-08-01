@@ -16,8 +16,7 @@ object JsDecoder
     with JsDecoderRefined
     with JsDecoderStdlib1
     with JsDecoderScalaz2
-    with JsDecoderStdlib2
-    with JsDecoderDeriving {
+    with JsDecoderStdlib2 {
   object ops {
     implicit class JsValueExtras(private val j: JsValue) extends AnyVal {
       def as[A: JsDecoder]: String \/ A = JsDecoder[A].fromJson(j)
@@ -157,73 +156,5 @@ private[jsonformat] trait JsDecoderStdlib2 {
   implicit def cbf[T[_], A: JsDecoder](
     implicit CBF: CanBuildFrom[Nothing, A, T[A]]
   ): JsDecoder[T[A]] = ilist[A].map(_.toList.to[T])
-
-}
-
-private[jsonformat] trait JsDecoderDeriving {
-  this: JsDecoder.type =>
-
-  implicit val deriving: Deriving[JsDecoder] = // scalafix:ok
-    new Deriving[JsDecoder] {
-      type LF[a] = (String, NameF[a])
-
-      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        name: String
-      )(
-        f: Prod[A] => Z,
-        g: Z => Prod[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): JsDecoder[Z] = {
-        case obj @ JsObject(_) =>
-          val each = λ[LF ~> (String \/ ?)] {
-            case (label, fa) =>
-              val value = obj.get(label).getOrElse(JsNull)
-              fa.value.fromJson(value)
-          }
-          tcs.traverse(each, labels).map(f)
-
-        case other => fail("JsObject", other)
-      }
-
-      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        name: String
-      )(
-        f: Cop[A] => Z,
-        g: Z => Cop[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): JsDecoder[Z] = {
-        case obj @ JsObject(_) =>
-          obj.get("type") match {
-            case \/-(JsString(hint)) =>
-              val value = obj.get("xvalue").getOrElse(obj)
-              val each = λ[LF ~> Maybe] {
-                case (label, fa) =>
-                  if (hint == label) fa.value.fromJson(value).toMaybe
-                  else Maybe.empty
-              }
-
-              tcs
-                .coptraverse[A, L, NameF, Id](each, labels)
-                .headMaybe
-                .map(f) \/> s"a valid $hint"
-
-            case _ =>
-              fail("JsObject with type", obj)
-          }
-
-        case other => fail("JsObject", other)
-      }
-
-    }
 
 }

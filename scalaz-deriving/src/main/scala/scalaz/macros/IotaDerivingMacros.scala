@@ -18,10 +18,9 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
     val A    = evA.tpe
     val aSym = A.typeSymbol.asClass
 
-    val TNil   = weakTypeOf[iotaz.TNil]
-    val TCons  = weakTypeOf[iotaz.TCons[_, _]].typeConstructor
-    val Name   = weakTypeOf[scalaz.Name[_]].typeConstructor
-    val String = weakTypeOf[java.lang.String]
+    val TNil  = weakTypeOf[iotaz.TNil]
+    val TCons = weakTypeOf[iotaz.TCons[_, _]].typeConstructor
+    val Name  = weakTypeOf[scalaz.Name[_]].typeConstructor
 
     def tlist(parts: List[Type]) =
       parts
@@ -62,9 +61,8 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
       }.toList
     }
 
-    val data   = tlist(parts)
-    val tcs    = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
-    val labels = tlist(parts.map(_ => String))
+    val data = tlist(parts)
+    val tcs  = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
 
     val tcs_rhs = parts.map { s: Type =>
       val tc = appliedType(F, s)
@@ -88,15 +86,15 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
 
     if (aSym.isSealed) {
       q"""
-       val gen = _root_.iotaz.CopGen.gen[$A, $data, $labels]
+       val gen = _root_.iotaz.CopGen.gen[$A, $data]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.Deriving[$F].xcoproductz(tcs, gen.labels, gen.name)(gen.to, gen.from)
+       _root_.scalaz.Deriving[$F].xcoproductz(tcs)(gen.from, gen.to)
        """
     } else {
       q"""
-       val gen = _root_.iotaz.ProdGen.gen[$A, $data, $labels]
+       val gen = _root_.iotaz.ProdGen.gen[$A, $data]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
-       _root_.scalaz.DerivingProducts[$F].xproductz(tcs, gen.labels, gen.name)(gen.to, gen.from)
+       _root_.scalaz.DerivingProducts[$F].xproductz(tcs)(gen.from, gen.to)
        """
     }
   }

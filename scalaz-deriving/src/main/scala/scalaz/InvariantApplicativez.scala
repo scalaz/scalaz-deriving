@@ -3,7 +3,6 @@
 
 package scalaz
 
-import java.lang.String
 import scala.inline
 
 import iotaz._
@@ -11,33 +10,11 @@ import iotaz.TList.::
 import Prods._
 
 /**
- * Generic extension of InvariantApplicative implementing DerivingProducts, with a convenient API.
+ * Generic extension of InvariantApplicative implementing DerivingProducts.
  */
 trait InvariantApplicativez[F[_]]
     extends InvariantApplicative[F]
     with DerivingProducts[F] {
-
-  def xproductz[Z, A <: TList, TC <: TList](
-    tcs: Prod[TC]
-  )(
-    f: Prod[A] => Z,
-    g: Z => Prod[A]
-  )(
-    implicit ev1: NameF ƒ A ↦ TC
-  ): F[Z]
-
-  override final def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-    tcs: Prod[TC],
-    @unused labels: Prod[L],
-    @unused name: String
-  )(
-    f: Prod[A] => Z,
-    g: Z => Prod[A]
-  )(
-    implicit
-    ev1: NameF ƒ A ↦ TC,
-    ev2: Label ƒ A ↦ L
-  ): F[Z] = xproductz(tcs)(f, g)(ev1)
 
   override def xmap[A, B](ma: F[A], f: A => B, g: B => A): F[B] =
     xproduct1(ma)(f, g)

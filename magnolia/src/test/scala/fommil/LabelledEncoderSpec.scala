@@ -1,7 +1,7 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package scalaz
+package fommil
 
 import java.lang.String
 
@@ -13,9 +13,9 @@ import examples.adt._
 import examples.recadt._
 import examples.recgadt._
 
-import Scalaz._
+import scalaz._, Scalaz._
 
-class LabelledEncoderSpec extends FlatSpec with NonImplicitAssertions {
+class ShowSpec extends FlatSpec with NonImplicitAssertions {
 
   "anyvals" should "behave as expected" in {
     Thing("greetings").shows should equal("\"greetings\"")

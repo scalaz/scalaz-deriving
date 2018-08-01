@@ -14,20 +14,20 @@ import Cops._
  */
 trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
 
-  def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+  def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
     f: Cop[A] => Z
   )(
-    implicit ev: NameF ƒ A ↦ TC
+    implicit ev: A PairedWith FA
   ): F[Z]
 
   // derived combinators
-  override final def xcoproductz[Z, A <: TList, TC <: TList](
-    tcs: Prod[TC]
+  override final def xcoproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Cop[A] => Z,
     @unused g: Z => Cop[A]
   )(
-    implicit ev1: NameF ƒ A ↦ TC
+    implicit ev1: A PairedWith FA
   ): F[Z] = altlyz(tcs)(f)
 
   override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] = altly2(a1, a2) {

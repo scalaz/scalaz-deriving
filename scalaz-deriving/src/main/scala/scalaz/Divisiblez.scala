@@ -14,22 +14,22 @@ import Prods._
  */
 trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
 
-  def dividez[Z, A <: TList, TC <: TList](
-    tcs: Prod[TC]
+  def dividez[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     g: Z => Prod[A]
   )(
-    implicit ev: NameF ƒ A ↦ TC
+    implicit ev: A PairedWith FA
   ): F[Z]
 
   // derived combinators
-  override final def xproductz[Z, A <: TList, TC <: TList](
-    tcs: Prod[TC]
+  override final def xproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     @unused f: Prod[A] => Z,
     g: Z => Prod[A]
   )(
-    implicit ev1: NameF ƒ A ↦ TC
+    implicit ev1: A PairedWith FA
   ): F[Z] = dividez(tcs)(g)
 
   override def conquer[Z]: F[Z] =

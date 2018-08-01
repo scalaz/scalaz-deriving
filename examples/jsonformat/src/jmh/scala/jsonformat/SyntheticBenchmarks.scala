@@ -19,8 +19,8 @@ import scalaz._, Scalaz._
 //
 // see org.openjdk.jmh.runner.options.CommandLineOptions
 
-// scalaz-deriving
-package z {
+// magnolia
+package m {
   @deriving(Equal, Show, JsEncoder, JsDecoder)
   final case class Nested(n: Option[Nested])
 }
@@ -46,15 +46,6 @@ package h {
   }
 }
 
-// magnolia
-package m {
-  final case class Nested(n: Option[Nested])
-  object Nested {
-    implicit val encoder: JsEncoder[Nested] = MagnoliaEncoder.gen
-    implicit val decoder: JsDecoder[Nested] = MagnoliaDecoder.gen
-  }
-}
-
 @jmh.annotations.State(jmh.annotations.Scope.Thread)
 @jmh.annotations.Warmup(iterations = 7, time = 1, timeUnit = TimeUnit.SECONDS)
 @jmh.annotations.Measurement(
@@ -77,7 +68,6 @@ package m {
 class SyntheticBenchmarks {
   @jmh.annotations.Param(Array("10", "100"))
   var size: Int                       = 7
-  var obj1: z.Nested                  = _
   var obj2: h.Nested                  = _
   var obj3: m.Nested                  = _
   var jsonString: String              = _
@@ -87,10 +77,9 @@ class SyntheticBenchmarks {
 
   @jmh.annotations.Setup
   def setup(): Unit = {
-    obj1 = 1.to(size).foldLeft(z.Nested(None))((n, _) => z.Nested(Some(n)))
     obj2 = 1.to(size).foldLeft(h.Nested(None))((n, _) => h.Nested(Some(n)))
     obj3 = 1.to(size).foldLeft(m.Nested(None))((n, _) => m.Nested(Some(n)))
-    jsonString = CompactPrinter(encodeScalazDeriving())
+    jsonString = CompactPrinter(encodeMagnolia())
     parsingErrorJsonString = jsonString.replace("{}", "xxx")
     decodingErrorJsonString = jsonString.replace("{}", "1")
     ast1 = JsParser(jsonString).getOrElse(null)
@@ -98,16 +87,12 @@ class SyntheticBenchmarks {
 
     require(decodingErrorManual().isLeft)
     require(decodingErrorMagnolia().isLeft)
-    require(decodingErrorScalazDeriving().isLeft)
     // require(parsingErrorManual().isLeft)
     // require(parsingErrorMagnolia().isLeft)
-    // require(parsingErrorScalazDeriving().isLeft)
     require(decodeManual().getOrElse(null) == obj2)
     require(decodeMagnolia().getOrElse(null) == obj3)
-    require(decodeScalazDeriving().getOrElse(null) == obj1)
     require(CompactPrinter(encodeManual()) == jsonString)
     require(CompactPrinter(encodeMagnolia()) == jsonString)
-    require(CompactPrinter(encodeScalazDeriving()) == jsonString)
   }
 
   @jmh.annotations.Benchmark
@@ -119,10 +104,6 @@ class SyntheticBenchmarks {
     ast2.as[m.Nested]
 
   @jmh.annotations.Benchmark
-  def decodingErrorScalazDeriving(): \/[String, z.Nested] =
-    ast2.as[z.Nested]
-
-  @jmh.annotations.Benchmark
   def decodeManual(): \/[String, h.Nested] =
     ast1.as[h.Nested]
 
@@ -131,15 +112,9 @@ class SyntheticBenchmarks {
     ast1.as[m.Nested]
 
   @jmh.annotations.Benchmark
-  def decodeScalazDeriving(): \/[String, z.Nested] =
-    ast1.as[z.Nested]
-
-  @jmh.annotations.Benchmark
   def encodeManual(): JsValue = obj2.toJson
 
   @jmh.annotations.Benchmark
   def encodeMagnolia(): JsValue = obj3.toJson
 
-  @jmh.annotations.Benchmark
-  def encodeScalazDeriving(): JsValue = obj1.toJson
 }

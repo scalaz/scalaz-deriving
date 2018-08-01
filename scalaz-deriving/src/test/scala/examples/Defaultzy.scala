@@ -24,20 +24,20 @@ object Defaultzy {
 
   implicit val defaultz_altz: Altz[Defaultzy] = new Altz[Defaultzy] {
     private val extract = λ[NameF ~> Maybe](a => a.value.default)
-    def applyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+    def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       f: Prod[A] => Z
     )(
-      implicit ev1: NameF ƒ A ↦ TC
+      implicit ev1: A PairedWith FA
     ): Defaultzy[Z] = instance {
       tcs.traverse[A, NameF, Maybe](extract).map(f)
     }
 
     private val always =
       λ[NameF ~> Maybe](a => a.value.default)
-    def altlyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+    def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       f: Cop[A] => Z
     )(
-      implicit ev1: NameF ƒ A ↦ TC
+      implicit ev1: A PairedWith FA
     ): Defaultzy[Z] = instance {
       tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
     }

@@ -45,12 +45,12 @@ object BadPack {
   implicit val string: BadPack[String] = i => Characters(i).widen
 
   implicit val decidablez: Decidablez[BadPack] = new Decidablez[BadPack] {
-    def dividez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    def dividez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Prod[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): BadPack[Z] = { z =>
       val entries = g(z).zip(tcs).map {
         case a /~\ fa => fa.value.encode(a)
@@ -58,12 +58,12 @@ object BadPack {
       Product(entries.toIList)
     }
 
-    def choosez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    def choosez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Cop[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): BadPack[Z] = { z =>
       g(z).zip(tcs).into {
         case a /~\ fa => fa.value.encode(a)

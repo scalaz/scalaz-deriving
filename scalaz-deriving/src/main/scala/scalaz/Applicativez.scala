@@ -14,20 +14,20 @@ import Prods._
  */
 trait Applicativez[F[_]] extends Applicative[F] with InvariantApplicativez[F] {
 
-  def applyz[Z, A <: TList, TC <: TList](tcs: Prod[TC])(
+  def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
     f: Prod[A] => Z
   )(
-    implicit ev: NameF ƒ A ↦ TC
+    implicit ev: A PairedWith FA
   ): F[Z]
 
   // derived combinators
-  override final def xproductz[Z, A <: TList, TC <: TList](
-    tcs: Prod[TC]
+  override final def xproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Prod[A] => Z,
     @unused g: Z => Prod[A]
   )(
-    implicit ev1: NameF ƒ A ↦ TC
+    implicit ev1: A PairedWith FA
   ): F[Z] = applyz(tcs)(f)
 
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =

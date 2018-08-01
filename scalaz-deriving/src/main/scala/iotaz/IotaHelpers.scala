@@ -3,8 +3,6 @@
 
 package iotaz
 
-import java.lang.String
-
 import scala.{ Any, AnyVal, Int }
 import scala.annotation.switch
 import scala.collection.immutable.{ List, Seq }
@@ -15,48 +13,14 @@ import TList.Compute.{ Aux => ↦ }
 import TList.Op.{ Map => ƒ }
 
 import scalaz._, Scalaz._
-import Isomorphism.IsoSet
+import Isomorphism._
 
-import Prods.Label
-
-final class ProdGen[A, Repr <: TList, Labels <: TList] private (
-  val from: A => Prod[Repr],
-  val to: Prod[Repr] => A,
-  val labels: Prod[Labels],
-  val name: String
-) extends IsoSet[Prod[Repr], A]
 object ProdGen {
-  def apply[A, R <: TList, L <: TList](
-    f: A => Prod[R],
-    t: Prod[R] => A,
-    n: Prod[L],
-    s: String
-  )(
-    implicit @unused ev: Label ƒ R ↦ L
-  ): ProdGen[A, R, L] = new ProdGen(f, t, n, s)
-
-  def gen[A, R <: TList, L <: TList]: ProdGen[A, R, L] =
-    macro IotaMacros.prodGen[A, R, L]
+  def gen[A, R <: TList]: A <=> Prod[R] = macro IotaMacros.prodGen[A, R]
 }
 
-final class CopGen[A, Repr <: TList, Labels <: TList] private (
-  val from: A => Cop[Repr],
-  val to: Cop[Repr] => A,
-  val labels: Prod[Labels],
-  val name: String
-) extends IsoSet[Cop[Repr], A]
 object CopGen {
-  def apply[A, R <: TList, L <: TList](
-    f: A => Cop[R],
-    t: Cop[R] => A,
-    n: Prod[L],
-    s: String
-  )(
-    implicit @unused ev: Label ƒ R ↦ L
-  ): CopGen[A, R, L] = new CopGen(f, t, n, s)
-
-  def gen[A, R <: TList, L <: TList]: CopGen[A, R, L] =
-    macro IotaMacros.copGen[A, R, L]
+  def gen[A, R <: TList]: A <=> Cop[R] = macro IotaMacros.copGen[A, R]
 }
 
 // unintentional joke about the state of northern irish politics...
@@ -80,8 +44,6 @@ object LazyProd {
 }
 
 object Prods {
-  type Label[a] = String
-
   val empty: Prod[TNil] = Prod()
   def from1T[A1](e: A1): Prod[A1 :: TNil] =
     Prod.unsafeApply(List(e))
@@ -135,22 +97,6 @@ object Prods {
           }(breakOut)
       }
 
-      def zip[B <: TList, C <: TList, H[_]](b: Prod[B], c: Prod[C])(
-        implicit
-        ev1: H ƒ A ↦ B,
-        ev2: Label ƒ A ↦ C
-      ): List[(String, ?) /~\ H] = {
-        val _ = (ev1, ev2)
-
-        c.values
-          .asInstanceOf[Seq[String]]
-          .zip(a.values)
-          .zip(b.values.asInstanceOf[Seq[H[Any]]])
-          .map {
-            case (a, h) => /~\[(String, ?), H, Any](a, h)
-          }(breakOut)
-      }
-
       def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(
         implicit ev1: F ƒ B ↦ A
       ): G[Prod[B]] = {
@@ -159,22 +105,6 @@ object Prods {
           .asInstanceOf[Seq[F[Any]]]
           .toList
           .traverse(f)
-          .map(bs => Prod.unsafeApply[B](bs))
-      }
-
-      def traverse[B <: TList, C <: TList, F[_], G[_]: Applicative](
-        f: λ[α => (String, F[α])] ~> G,
-        c: Prod[C]
-      )(
-        implicit ev1: F ƒ B ↦ A,
-        ev2: Label ƒ B ↦ C
-      ): G[Prod[B]] = {
-        val _ = (ev1, ev2)
-        c.values
-          .asInstanceOf[Seq[String]]
-          .zip(a.values.asInstanceOf[Seq[F[Any]]])
-          .toList
-          .traverse(f(_))
           .map(bs => Prod.unsafeApply[B](bs))
       }
 
@@ -213,27 +143,6 @@ object Prods {
           .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
       }
 
-      def coptraverse[B <: TList, C <: TList, F[_], G[_]: Applicative](
-        f: λ[α => (String, F[α])] ~> λ[α => Maybe[G[α]]],
-        c: Prod[C]
-      )(
-        implicit ev1: F ƒ B ↦ A,
-        ev2: Label ƒ B ↦ C
-      ): IStream[G[Cop[B]]] = {
-        val _ = (ev1, ev2)
-        IStream
-          .fromFoldable(
-            c.values
-              .asInstanceOf[Seq[String]]
-              .zip(a.values.asInstanceOf[Seq[F[Any]]])
-              .toList
-              .indexed
-          )
-          .flatMap {
-            case (i, sfa) => IStream.fromMaybe(f(sfa).map(y => (i, y)))
-          }
-          .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
-      }
     }
 
     type Pair[a] = (a, a)
@@ -325,18 +234,6 @@ object Cops {
         val _ = ev
         /~\[Id, H, Any](
           a.value,
-          b.values(a.index).asInstanceOf[H[Any]]
-        )
-      }
-
-      def zip[B <: TList, C <: TList, H[_]](b: Prod[B], c: Prod[C])(
-        implicit ev1: H ƒ A ↦ B,
-        ev2: Label ƒ A ↦ C
-      ): (String, ?) /~\ H = {
-        val _ = (ev1, ev2)
-
-        /~\[(String, ?), H, Any](
-          (c.values(a.index).asInstanceOf[String], a.value),
           b.values(a.index).asInstanceOf[H[Any]]
         )
       }

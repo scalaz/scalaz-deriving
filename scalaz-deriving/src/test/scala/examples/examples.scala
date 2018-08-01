@@ -16,8 +16,6 @@ package anyvals {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show,
     Semigroup
@@ -30,8 +28,6 @@ package anyvals {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show,
     Semigroup
@@ -48,8 +44,6 @@ object newtypes {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -63,8 +57,6 @@ package adt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -75,8 +67,6 @@ package adt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show,
     Monoid
@@ -88,8 +78,6 @@ package adt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -100,8 +88,6 @@ package adt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show,
     Semigroup
@@ -122,8 +108,6 @@ package recadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -135,8 +119,6 @@ package recadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -148,8 +130,6 @@ package recadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -165,8 +145,6 @@ package recgadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -178,8 +156,6 @@ package recgadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )
@@ -191,8 +167,6 @@ package recgadt {
     Defaultz,
     Defaultzy,
     BadPack,
-    NamePacker,
-    NameUnpacker,
     Same,
     Show
   )

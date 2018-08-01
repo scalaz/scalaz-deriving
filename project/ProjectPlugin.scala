@@ -22,7 +22,10 @@ object ProjectKeys {
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
 
   def SemanticDB =
-    addCompilerPlugin(scalafixSemanticdb)
+    addCompilerPlugin(
+      ("org.scalameta" % "semanticdb-scalac" % "4.0.0-M7")
+        .cross(CrossVersion.full)
+    )
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {

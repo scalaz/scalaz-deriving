@@ -9,15 +9,13 @@ import scala.reflect.macros.blackbox
 final class IotaMacros(val c: blackbox.Context) {
   import c.universe._
 
-  def prodGen[A, R <: iotaz.TList, L <: iotaz.TList](
+  def prodGen[A, R <: iotaz.TList](
     implicit
     evA: c.WeakTypeTag[A],
-    evR: c.WeakTypeTag[R],
-    evL: c.WeakTypeTag[L]
+    evR: c.WeakTypeTag[R]
   ): Tree = {
     val A = evA.tpe
     val R = evR.tpe
-    val L = evL.tpe
 
     val aSym = A.typeSymbol
 
@@ -25,11 +23,9 @@ final class IotaMacros(val c: blackbox.Context) {
 
     if (aSym.isModuleClass) {
       q"""
-       _root_.iotaz.ProdGen[$A, $R, $L](
+       _root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]](
          (a: $A) => ${Prod.companion}[$R](),
-         (p: $Prod[$R]) => ${A.termSymbol},
-         ${Prod.companion}[$L](),
-         ${aSym.name.toString}
+         (p: $Prod[$R]) => ${A.termSymbol}
        )
        """
     } else if (aSym.isClass) {
@@ -44,34 +40,28 @@ final class IotaMacros(val c: blackbox.Context) {
         case (method, i) =>
           q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }
-      val labelParts = accessors.map(method => method.name.toString)
 
       q"""
-       _root_.iotaz.ProdGen[$A, $R, $L](
-         a => ${Prod.companion}[$R](..$fromParts),
-         p => ${aSym.companion}(..$toParts): $A,
-         ${Prod.companion}[$L](..$labelParts),
-         ${aSym.name.toString}
+       _root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]](
+         (a: $A) => ${Prod.companion}[$R](..$fromParts),
+         (p: $Prod[$R]) => ${aSym.companion}(..$toParts): $A
        )
        """
     } else
       c.abort(c.enclosingPosition, "macro only works for classes")
   }
 
-  def copGen[A, R <: iotaz.TList, L <: iotaz.TList](
+  def copGen[A, R <: iotaz.TList](
     implicit
     evA: c.WeakTypeTag[A],
-    evR: c.WeakTypeTag[R],
-    evL: c.WeakTypeTag[L]
+    evR: c.WeakTypeTag[R]
   ): Tree = {
     val A = evA.tpe
     val R = evR.tpe
-    val L = evL.tpe
 
     val aSym = A.typeSymbol.asClass
 
-    val Prod = weakTypeOf[iotaz.Prod[_]].typeSymbol
-    val Cop  = weakTypeOf[iotaz.Cop[_]].typeSymbol
+    val Cop = weakTypeOf[iotaz.Cop[_]].typeSymbol
 
     if (!aSym.isSealed)
       c.abort(c.enclosingPosition, "only supports sealed traits / classes")
@@ -110,14 +100,11 @@ final class IotaMacros(val c: blackbox.Context) {
           val t = sub.toType
           cq"c: $t => ${Cop.companion}.unsafeApply[$R, $t]($i, c)"
       }
-      val labelParts = subs.map(sub => sub.name.toString)
 
       q"""
-        _root_.iotaz.CopGen[$A, $R, $L](
-          a => a match { case ..$fromParts },
-          c => c.value.asInstanceOf[$A],
-          ${Prod.companion}[$L](..$labelParts),
-          ${aSym.name.toString}
+        _root_.scalaz.Isomorphism.IsoSet[$A, $Cop[$R]](
+          (a: $A) => a match { case ..$fromParts },
+          (c: $Cop[$R]) => c.value.asInstanceOf[$A]
         )
       """
     }

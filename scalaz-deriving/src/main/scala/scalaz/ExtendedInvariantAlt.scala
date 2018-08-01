@@ -3,7 +3,6 @@
 
 package scalaz
 
-import java.lang.String
 import scala.{ inline, Any }
 import scala.annotation.switch
 import scala.collection.immutable.Seq
@@ -20,17 +19,14 @@ final class ExtendedInvariantAlt[F[_]] private (
 
   // I'm so sorry... I'm going to hell.
 
-  override def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-    tcs: Prod[TC],
-    @unused labels: Prod[L],
-    @unused name: String
+  override def xcoproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Cop[A] => Z,
     g: Z => Cop[A]
   )(
     implicit
-    ev1: NameF ƒ A ↦ TC,
-    ev2: Label ƒ A ↦ L
+    ev1: A PairedWith FA
   ): F[Z] = _xcoproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
 
   private def _xcoproductz[Z, A <: TList](

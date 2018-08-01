@@ -3,11 +3,9 @@
 
 package scalaz
 
-import java.lang.String
 import scala.{ inline, Any, AnyRef, Boolean }
 
 import Scalaz._
-import org.scalacheck.{ Arbitrary, Gen }
 
 /**
  * Interface for generic derivation of typeclasses (and algebras) for products
@@ -21,17 +19,13 @@ import org.scalacheck.{ Arbitrary, Gen }
  */
 trait Deriving[F[_]] extends DerivingProducts[F] {
 
-  def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-    tcs: Prod[TC],
-    labels: Prod[L],
-    name: String
+  def xcoproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Cop[A] => Z,
     g: Z => Cop[A]
   )(
-    implicit
-    ev1: NameF ƒ A ↦ TC,
-    ev2: Label ƒ A ↦ L
+    implicit ev: A PairedWith FA
   ): F[Z]
 
 }
@@ -42,13 +36,13 @@ trait Deriving[F[_]] extends DerivingProducts[F] {
  */
 trait DerivingProducts[F[_]] {
   // convenient aliases for the API to minimise imports
-  type NameF[a]                  = Name[F[a]]
-  type Label[a]                  = iotaz.Prods.Label[a]
-  type TList                     = iotaz.TList
-  type Prod[a <: TList]          = iotaz.Prod[a]
-  type Cop[a <: TList]           = iotaz.Cop[a]
-  type ƒ[f[_], a <: TList]       = iotaz.TList.Op.Map[f, a]
-  type ↦[a <: TList, o <: TList] = iotaz.TList.Compute.Aux[a, o]
+  type NameF[a]         = Name[F[a]]
+  type TList            = iotaz.TList
+  type Prod[a <: TList] = iotaz.Prod[a]
+  type Cop[a <: TList]  = iotaz.Cop[a]
+
+  type PairedWith[A <: TList, FA <: TList] =
+    iotaz.TList.Compute.Aux[iotaz.TList.Op.Map[NameF, A], FA]
 
   // scalafix:off DisableSyntax.implicitConversion
   // provides convenient syntax for implementors...
@@ -67,17 +61,13 @@ trait DerivingProducts[F[_]] {
     new Cops.ops.CopOps2[A](p)
   // scalafix:on
 
-  def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-    tcs: Prod[TC],
-    labels: Prod[L],
-    name: String
+  def xproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Prod[A] => Z,
     g: Z => Prod[A]
   )(
-    implicit
-    ev1: NameF ƒ A ↦ TC,
-    ev2: Label ƒ A ↦ L
+    implicit ev: A PairedWith FA
   ): F[Z]
 
 }
@@ -94,9 +84,9 @@ object Deriving {
    * generated:
    *
    * {{{
-   * val gen = ProdGen.gen[Foo]
-   * val tcs = Prod(Need(implicitly[Equal[String]]), Need(implicitly[Equal[Int]]))
-   * implicitly[Deriving[Equal]].xproductz(tcs, gen.labels)(gen.to, gen.from)
+   * val iso = ProdGen.gen[Foo, String :: Int :: TNil]
+   * val tcs = Prod(Need(Equal[String]), Need(Equal[Int]))
+   * implicitly[Deriving[Equal]].xproductz(tcs)(iso.to, iso.from)
    * }}}
    *
    * And similarly for a sealed trait (but instead calling `CopGen.gen` and
@@ -108,12 +98,12 @@ object Deriving {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
-    override def dividez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    override def dividez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Prod[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
       (g(z1), g(z2)).zip(tcs).foldRight(true) {
         case ((a1, a2) /~\ fa, acc) =>
@@ -121,12 +111,12 @@ object Deriving {
       }
     }
 
-    override def choosez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    override def choosez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Cop[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
       (g(z1), g(z2))
         .zip(tcs)
@@ -143,12 +133,12 @@ object Deriving {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
-    override def dividez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    override def dividez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Prod[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): Order[Z] = {
       val delegate = new DecidablezEqual().dividez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
@@ -166,12 +156,12 @@ object Deriving {
       }
     }
 
-    override def choosez[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    override def choosez[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       g: Z => Cop[A]
     )(
-      implicit ev: NameF ƒ A ↦ TC
+      implicit ev: A PairedWith FA
     ): Order[Z] = {
       val delegate = new DecidablezEqual().choosez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
@@ -187,92 +177,6 @@ object Deriving {
     }
   }
 
-  implicit val _deriving_show: Deriving[Show] =
-    new Deriving[Show] {
-      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        name: String
-      )(
-        @unused f: Prod[A] => Z,
-        g: Z => Prod[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): Show[Z] = Show.show { (z: Z) =>
-        val bits = g(z).zip(tcs, labels).map {
-          case (label, a) /~\ fa => label +: "=" +: fa.value.show(a)
-        }
-        name +: "(" +: bits.intercalate(",") :+ ")"
-      }
-
-      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        @unused name: String
-      )(
-        @unused f: Cop[A] => Z,
-        g: Z => Cop[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): Show[Z] = Show.show { z =>
-        g(z).zip(tcs, labels).into {
-          case (_, a) /~\ fa => fa.value.show(a)
-        }
-      }
-
-    }
-
-  // we can't have an Alt because it breaks derived combinator RT... the first
-  // element of a coproduct is always weighted more heavily. We could, however,
-  // have an Applicativez but that would break typeclass coherence with the
-  // instance in scalaz.scalacheck.ScalaCheckBinding
-  implicit val _deriving_arbitrary: Deriving[Arbitrary] =
-    new Deriving[Arbitrary] {
-      import scalaz.scalacheck.ScalaCheckBinding._
-
-      private val pick = λ[NameF ~> Gen](a => Gen.lzy(a.value.arbitrary))
-      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        @unused name: String
-      )(
-        f: Prod[A] => Z,
-        g: Z => Prod[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): Arbitrary[Z] =
-        Arbitrary(tcs.traverse(pick).map(f))
-
-      private val always = λ[NameF ~> λ[α => Maybe[Gen[α]]]](
-        a => Maybe.just(Gen.lzy(a.value.arbitrary))
-      )
-      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        @unused name: String
-      )(
-        f: Cop[A] => Z,
-        g: Z => Cop[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): Arbitrary[Z] = Arbitrary {
-        Gen.frequency(
-          tcs
-            .coptraverse(always)
-            .toList
-            .map(g => (1, g.map(f))): _*
-        )
-      }
-    }
-
 }
 
 object DerivingProducts {
@@ -287,13 +191,13 @@ object DerivingProducts {
       case ((a1, a2), fa) => fa.value.append(a1, a2)
     }
 
-    override def xproductz[Z, A <: TList, TC <: TList](
-      tcs: Prod[TC]
+    override def xproductz[Z, A <: TList, FA <: TList](
+      tcs: Prod[FA]
     )(
       f: Prod[A] => Z,
       g: Z => Prod[A]
     )(
-      implicit ev1: NameF ƒ A ↦ TC
+      implicit ev1: A PairedWith FA
     ): Semigroup[Z] = new Semigroup[Z] {
       // can't use SAM types with by-name parameters
       // z2 is eagerly evaluated :-(
@@ -307,13 +211,13 @@ object DerivingProducts {
 
   implicit val _deriving_monoid: DerivingProducts[Monoid] =
     new InvariantApplicativez[Monoid] {
-      override def xproductz[Z, A <: TList, TC <: TList](
-        tcs: Prod[TC]
+      override def xproductz[Z, A <: TList, FA <: TList](
+        tcs: Prod[FA]
       )(
         f: Prod[A] => Z,
         g: Z => Prod[A]
       )(
-        implicit ev1: NameF ƒ A ↦ TC
+        implicit ev1: A PairedWith FA
       ): Monoid[Z] = {
         val delegate = new InvariantApplicativezSemigroup()
           .xproductz(tcs)(f, g)(null) // scalafix:ok
@@ -330,12 +234,9 @@ object DerivingProducts {
   // these must be duplicated here so they are in the implicit scope. This is not
   // a problem when they are defined on the companion of the typeclass, but since
   // we are retrofitting scalaz-core, we must endure a few hacks...
-  implicit val _deriving_show: DerivingProducts[Show] = Deriving._deriving_show
   implicit val _deriving_equal: DerivingProducts[Equal] =
     Deriving._deriving_equal
   implicit val _deriving_order: DerivingProducts[Order] =
     Deriving._deriving_order
-  implicit val _deriving_arbitrary: DerivingProducts[Arbitrary] =
-    Deriving._deriving_arbitrary
 
 }

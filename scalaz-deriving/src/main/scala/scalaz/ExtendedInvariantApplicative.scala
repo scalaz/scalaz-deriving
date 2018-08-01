@@ -3,7 +3,6 @@
 
 package scalaz
 
-import java.lang.String
 import scala.Predef.identity
 import scala.{ inline, Any }
 import scala.annotation.switch
@@ -20,17 +19,14 @@ class ExtendedInvariantApplicative[F[_]] private[scalaz] (
 
   // I'm so sorry... I'm going to hell.
 
-  override def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-    tcs: Prod[TC],
-    @unused labels: Prod[L],
-    @unused name: String
+  override def xproductz[Z, A <: TList, FA <: TList](
+    tcs: Prod[FA]
   )(
     f: Prod[A] => Z,
     g: Z => Prod[A]
   )(
     implicit
-    ev1: NameF ƒ A ↦ TC,
-    ev2: Label ƒ A ↦ L
+    ev1: A PairedWith FA
   ): F[Z] = _xproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
 
   private def _xproductz[Z, A <: TList](

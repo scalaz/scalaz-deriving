@@ -15,8 +15,7 @@ object JsEncoder
     with JsEncoderRefined
     with JsEncoderStdlib1
     with JsEncoderScalaz2
-    with JsEncoderStdlib2
-    with JsEncoderDeriving {
+    with JsEncoderStdlib2 {
 
   implicit val contravariant: Contravariant[JsEncoder] =
     new Contravariant[JsEncoder] {
@@ -98,58 +97,4 @@ private[jsonformat] trait JsEncoderStdlib2 {
 
   implicit def traversable[T[a] <: Traversable[a], A: JsEncoder]
     : JsEncoder[T[A]] = list[A].contramap(_.toList)
-}
-
-private[jsonformat] trait JsEncoderDeriving {
-  this: JsEncoder.type =>
-
-  implicit val deriving: Deriving[JsEncoder] = // scalafix:ok
-    new Deriving[JsEncoder] {
-
-      def xproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        name: String
-      )(
-        f: Prod[A] => Z,
-        g: Z => Prod[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): JsEncoder[Z] = { z =>
-        val fields = g(z).zip(tcs, labels).flatMap {
-          case (label, a) /~\ fa =>
-            fa.value.toJson(a) match {
-              case JsNull => Nil
-              case value  => (label -> value) :: Nil
-            }
-        }
-        JsObject(fields.toIList)
-      }
-
-      def xcoproductz[Z, A <: TList, TC <: TList, L <: TList](
-        tcs: Prod[TC],
-        labels: Prod[L],
-        name: String
-      )(
-        f: Cop[A] => Z,
-        g: Z => Cop[A]
-      )(
-        implicit
-        ev1: NameF ƒ A ↦ TC,
-        ev2: Label ƒ A ↦ L
-      ): JsEncoder[Z] = { z =>
-        g(z).zip(tcs, labels).into {
-          case (label, a) /~\ fa =>
-            val hint = "type" -> JsString(label)
-            fa.value.toJson(a) match {
-              case JsObject(fields) => JsObject(hint :: fields)
-              case other            => JsObject(IList(hint, "xvalue" -> other))
-            }
-        }
-      }
-
-    }
-
 }

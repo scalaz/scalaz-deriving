@@ -130,18 +130,20 @@ with more learn-by-example in `scalaz-deriving/src/test/scala/examples` and a de
 
 ## Maven Central
 
-The `@deriving` macro is a compiletime only dependency and can be installed separately:
-
 ```scala
 val derivingVersion = "<version>"
-addCompilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion)
-libraryDependencies += "com.fommil" %% "deriving-macro" % derivingVersion % "provided"
-```
+libraryDependencies ++= Seq(
+  // the @deriving and @xderiving compiletime plugin and macro
+  "com.fommil" %% "deriving-macro" % derivingVersion % "provided",
+  compilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion),
 
-The `scalaz-deriving` framework is a normal library dependency
+  // the scalaz-deriving Altz / Decidablez / Deriving API and macros
+  "com.fommil" %% "scalaz-deriving" % derivingVersion,
 
-```scala
-libraryDependencies += "com.fommil" %% "scalaz-deriving" % derivingVersion
+  // instances for Show and Arbitrary
+  "com.fommil" %% "scalaz-deriving-magnolia" % derivingVersion,
+  "com.fommil" %% "scalaz-deriving-scalacheck" % derivingVersion
+)
 ```
 
 where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil%20a:scalaz-deriving_2.12).
