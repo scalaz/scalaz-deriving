@@ -98,9 +98,9 @@ object Prods {
       }
 
       def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(
-        implicit ev1: F ƒ B ↦ A
+        implicit ev: F ƒ B ↦ A
       ): G[Prod[B]] = {
-        val _ = ev1
+        val _ = ev
         a.values
           .asInstanceOf[Seq[F[Any]]]
           .toList
@@ -113,9 +113,9 @@ object Prods {
         b2: Prod[B],
         f: λ[α => (Pair[α], F[α])] ~> G
       )(
-        implicit ev1: F ƒ B ↦ A
+        implicit ev: F ƒ B ↦ A
       ): G[Prod[C]] = {
-        val _ = ev1
+        val _ = ev
         b1.values
           .zip(b2.values)
           .zip(a.values.asInstanceOf[Seq[F[Any]]])
@@ -127,9 +127,9 @@ object Prods {
       def coptraverse[B <: TList, F[_], G[_]: Applicative](
         f: F ~> λ[α => Maybe[G[α]]]
       )(
-        implicit ev1: F ƒ B ↦ A
+        implicit ev: F ƒ B ↦ A
       ): IStream[G[Cop[B]]] = {
-        val _ = ev1
+        val _ = ev
         IStream
           .fromFoldable(
             a.values

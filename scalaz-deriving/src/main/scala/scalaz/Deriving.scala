@@ -98,9 +98,7 @@ object Deriving {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
-    override def dividez[Z, A <: TList, FA <: TList](
-      tcs: Prod[FA]
-    )(
+    override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]
     )(
       implicit ev: A PairedWith FA
@@ -111,9 +109,7 @@ object Deriving {
       }
     }
 
-    override def choosez[Z, A <: TList, FA <: TList](
-      tcs: Prod[FA]
-    )(
+    override def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Cop[A]
     )(
       implicit ev: A PairedWith FA
@@ -133,9 +129,7 @@ object Deriving {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
-    override def dividez[Z, A <: TList, FA <: TList](
-      tcs: Prod[FA]
-    )(
+    override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]
     )(
       implicit ev: A PairedWith FA
@@ -156,9 +150,7 @@ object Deriving {
       }
     }
 
-    override def choosez[Z, A <: TList, FA <: TList](
-      tcs: Prod[FA]
-    )(
+    override def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Cop[A]
     )(
       implicit ev: A PairedWith FA
@@ -197,7 +189,7 @@ object DerivingProducts {
       f: Prod[A] => Z,
       g: Z => Prod[A]
     )(
-      implicit ev1: A PairedWith FA
+      implicit ev: A PairedWith FA
     ): Semigroup[Z] = new Semigroup[Z] {
       // can't use SAM types with by-name parameters
       // z2 is eagerly evaluated :-(
@@ -217,7 +209,7 @@ object DerivingProducts {
         f: Prod[A] => Z,
         g: Z => Prod[A]
       )(
-        implicit ev1: A PairedWith FA
+        implicit ev: A PairedWith FA
       ): Monoid[Z] = {
         val delegate = new InvariantApplicativezSemigroup()
           .xproductz(tcs)(f, g)(null) // scalafix:ok

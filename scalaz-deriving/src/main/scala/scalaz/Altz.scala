@@ -14,9 +14,7 @@ import Cops._
  */
 trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
 
-  def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
-    f: Cop[A] => Z
-  )(
+  def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
     implicit ev: A PairedWith FA
   ): F[Z]
 
@@ -27,7 +25,7 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
     f: Cop[A] => Z,
     @unused g: Z => Cop[A]
   )(
-    implicit ev1: A PairedWith FA
+    implicit ev: A PairedWith FA
   ): F[Z] = altlyz(tcs)(f)
 
   override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] = altly2(a1, a2) {

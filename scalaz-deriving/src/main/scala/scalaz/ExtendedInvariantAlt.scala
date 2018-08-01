@@ -25,8 +25,7 @@ final class ExtendedInvariantAlt[F[_]] private (
     f: Cop[A] => Z,
     g: Z => Cop[A]
   )(
-    implicit
-    ev1: A PairedWith FA
+    implicit ev: A PairedWith FA
   ): F[Z] = _xcoproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
 
   private def _xcoproductz[Z, A <: TList](

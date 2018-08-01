@@ -14,11 +14,7 @@ import Prods._
  */
 trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
 
-  def dividez[Z, A <: TList, FA <: TList](
-    tcs: Prod[FA]
-  )(
-    g: Z => Prod[A]
-  )(
+  def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(g: Z => Prod[A])(
     implicit ev: A PairedWith FA
   ): F[Z]
 
@@ -29,7 +25,7 @@ trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
     @unused f: Prod[A] => Z,
     g: Z => Prod[A]
   )(
-    implicit ev1: A PairedWith FA
+    implicit ev: A PairedWith FA
   ): F[Z] = dividez(tcs)(g)
 
   override def conquer[Z]: F[Z] =

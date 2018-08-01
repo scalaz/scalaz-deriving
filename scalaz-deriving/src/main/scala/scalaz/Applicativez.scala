@@ -14,9 +14,7 @@ import Prods._
  */
 trait Applicativez[F[_]] extends Applicative[F] with InvariantApplicativez[F] {
 
-  def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
-    f: Prod[A] => Z
-  )(
+  def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Prod[A] => Z)(
     implicit ev: A PairedWith FA
   ): F[Z]
 
@@ -27,7 +25,7 @@ trait Applicativez[F[_]] extends Applicative[F] with InvariantApplicativez[F] {
     f: Prod[A] => Z,
     @unused g: Z => Prod[A]
   )(
-    implicit ev1: A PairedWith FA
+    implicit ev: A PairedWith FA
   ): F[Z] = applyz(tcs)(f)
 
   override def ap[A, B](fa: =>F[A])(f: =>F[A => B]): F[B] =

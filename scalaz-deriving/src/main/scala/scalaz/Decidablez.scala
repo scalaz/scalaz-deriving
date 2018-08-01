@@ -16,11 +16,7 @@ trait Decidablez[F[_]]
     with InvariantAltz[F]
     with Decidable[F] {
 
-  def choosez[Z, A <: TList, FA <: TList](
-    tcs: Prod[FA]
-  )(
-    g: Z => Cop[A]
-  )(
+  def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(g: Z => Cop[A])(
     implicit ev: A PairedWith FA
   ): F[Z]
 
@@ -31,7 +27,7 @@ trait Decidablez[F[_]]
     @unused f: Cop[A] => Z,
     g: Z => Cop[A]
   )(
-    implicit ev1: A PairedWith FA
+    implicit ev: A PairedWith FA
   ): F[Z] = choosez(tcs)(g)
 
   override def choose1[Z, A1](a1: =>F[A1])(f: Z => A1): F[Z] =

@@ -26,7 +26,7 @@ class ExtendedInvariantApplicative[F[_]] private[scalaz] (
     g: Z => Prod[A]
   )(
     implicit
-    ev1: A PairedWith FA
+    ev: A PairedWith FA
   ): F[Z] = _xproductz(tcs.values.asInstanceOf[Seq[Name[F[Any]]]])(f, g)
 
   private def _xproductz[Z, A <: TList](
