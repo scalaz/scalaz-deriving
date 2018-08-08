@@ -150,7 +150,7 @@ object JsMagnoliaDecoder {
 
   def dispatch[A](ctx: SealedTrait[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
-      private val hints = StringyMap.static(
+      private val hints = StringyMap(
         ctx.subtypes.map { s =>
           s.typeName.full -> s.annotations.collectFirst {
             case json.hint(name) => name
@@ -187,11 +187,10 @@ object JsMagnoliaDecoder {
 }
 
 // scalafix:off
-// given the world's obsession with Stringy maps... I expected something to
-// exist already.
+//
+// Optimised String lookup, works even faster if keys are interned.
 private[jsonformat] final class StringyMap[A](
-  entries: Array[(String, A)],
-  static: Boolean
+  private[this] val entries: Array[(String, A)]
 ) {
   private[this] val hashmap = {
     val m = new java.util.HashMap[String, A]
@@ -200,23 +199,23 @@ private[jsonformat] final class StringyMap[A](
     }
     m
   }
+  private[this] val keys = entries.map(_._1).toArray
 
   // only if you're certain this is total...
   def apply(s: String): A = {
-    if (static) {
-      var i = 0
-      while (i < entries.length) {
-        val h = entries(i)
-        if (h._1.eq(s)) return h._2
-        i += 1
-      }
+    var i = 0
+    while (i < keys.length) {
+      if (keys(i).eq(s)) return entries(i)._2
+      i += 1
     }
     hashmap.get(s)
   }
 
 }
 private[jsonformat] object StringyMap {
-  def static[A](a: Seq[(String, A)]): StringyMap[A] =
-    new StringyMap(a.toArray, true)
+  def apply[F[_]: Foldable, A](a: F[(String, A)]): StringyMap[A] =
+    apply[A](a.toList)
+  def apply[A](a: Seq[(String, A)]): StringyMap[A] =
+    new StringyMap(a.toArray)
 }
 // scalafix:on
