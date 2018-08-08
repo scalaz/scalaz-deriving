@@ -116,6 +116,9 @@ private[jsonformat] trait JsDecoderScalaz1 {
       }
   }
 
+  implicit def tagged[A: JsDecoder, Z]: JsDecoder[A @@ Z] =
+    JsDecoder[A].map(Tag(_))
+
 }
 private[jsonformat] trait JsDecoderRefined {
   this: JsDecoder.type =>

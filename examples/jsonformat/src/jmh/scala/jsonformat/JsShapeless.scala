@@ -12,8 +12,8 @@ import JsDecoder.ops._
 sealed trait DerivedJsEncoder[A, R, J <: HList] {
   def toJsFields(r: R, anns: J): IList[(String, JsValue)]
 }
-object DerivedJsEncoder extends DerivedJsEncoder1 {
-  @inline def gen[A, R, J <: HList](
+object DerivedJsEncoder extends DerivedJsEncoder1 with DerivedJsEncoder2 {
+  def gen[A, R, J <: HList](
     implicit
     G: LabelledGeneric.Aux[A, R],
     J: Annotations.Aux[json, A, J],
@@ -22,17 +22,17 @@ object DerivedJsEncoder extends DerivedJsEncoder1 {
     def toJson(a: A) = JsObject(R.value.value.toJsFields(G.to(a), J()))
   }
 
-  @inline implicit def hnil[A]: DerivedJsEncoder[A, HNil, HNil] =
+  implicit def hnil[A]: DerivedJsEncoder[A, HNil, HNil] =
     new DerivedJsEncoder[A, HNil, HNil] {
       def toJsFields(h: HNil, a: HNil) = IList.empty
     }
 
-  @inline implicit def cnil[A]: DerivedJsEncoder[A, CNil, HNil] =
+  implicit def cnil[A]: DerivedJsEncoder[A, CNil, HNil] =
     new DerivedJsEncoder[A, CNil, HNil] {
       def toJsFields(c: CNil, a: HNil) = sys.error("impossible")
     }
 
-  @inline implicit def cconsAnnotated[
+  implicit def cconsAnnotated[
     A,
     K <: Symbol,
     H,
@@ -58,7 +58,7 @@ object DerivedJsEncoder extends DerivedJsEncoder1 {
         }
     }
 
-  @inline implicit def cconsAnnotatedCustom[
+  implicit def cconsAnnotatedCustom[
     A,
     K <: Symbol,
     H,
@@ -92,7 +92,7 @@ object DerivedJsEncoder extends DerivedJsEncoder1 {
     }
 }
 private[jsonformat] trait DerivedJsEncoder1 {
-  @inline implicit def hcons[A, K <: Symbol, H, T <: HList, J <: HList](
+  implicit def hcons[A, K <: Symbol, H, T <: HList, J <: HList](
     implicit
     K: Witness.Aux[K],
     H: Lazy[JsEncoder[H]],
@@ -111,7 +111,7 @@ private[jsonformat] trait DerivedJsEncoder1 {
         }
     }
 
-  @inline implicit def hconsCustom[A, K <: Symbol, H, T <: HList, J <: HList](
+  implicit def hconsCustom[A, K <: Symbol, H, T <: HList, J <: HList](
     implicit
     K: Witness.Aux[K],
     H: Lazy[JsEncoder[H]],
@@ -132,7 +132,7 @@ private[jsonformat] trait DerivedJsEncoder1 {
         }
     }
 
-  @inline implicit def ccons[A, K <: Symbol, H, T <: Coproduct, J <: HList](
+  implicit def ccons[A, K <: Symbol, H, T <: Coproduct, J <: HList](
     implicit
     K: Witness.Aux[K],
     H: Lazy[JsEncoder[H]],
@@ -151,7 +151,7 @@ private[jsonformat] trait DerivedJsEncoder1 {
         }
     }
 
-  @inline implicit def cconsCustom[
+  implicit def cconsCustom[
     A,
     K <: Symbol,
     H,
@@ -182,12 +182,47 @@ private[jsonformat] trait DerivedJsEncoder1 {
         }
     }
 }
+private[jsonformat] trait DerivedJsEncoder2 {
+  this: DerivedJsEncoder.type =>
+
+  // WORKAROUND https://github.com/milessabin/shapeless/issues/309
+  implicit def hconsTagged[
+    A,
+    K <: Symbol,
+    H,
+    Z,
+    T <: HList,
+    J <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[JsEncoder[H @@ Z]],
+    T: DerivedJsEncoder[A, T, J]
+  ): DerivedJsEncoder[A, FieldType[K, H @@ Z] :: T, None.type :: J] =
+    hcons(K, H, T)
+
+  implicit def hconsCustomTagged[
+    A,
+    K <: Symbol,
+    H,
+    Z,
+    T <: HList,
+    J <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[JsEncoder[H @@ Z]],
+    T: DerivedJsEncoder[A, T, J]
+  ): DerivedJsEncoder[A, FieldType[K, H @@ Z] :: T, Some[json] :: J] =
+    hconsCustom(K, H, T)
+
+}
 
 sealed trait DerivedCoproductJsDecoder[A, R, J <: HList] {
   def fromJsObject(j: JsObject, anns: J): String \/ R
 }
 object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
-  @inline def gen[A, R, J <: HList](
+  def gen[A, R, J <: HList](
     implicit G: LabelledGeneric.Aux[A, R],
     J: Annotations.Aux[json, A, J],
     R: Cached[Strict[DerivedCoproductJsDecoder[A, R, J]]]
@@ -198,13 +233,13 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
     }
   }
 
-  @inline implicit def cnil[A]: DerivedCoproductJsDecoder[A, CNil, HNil] =
+  implicit def cnil[A]: DerivedCoproductJsDecoder[A, CNil, HNil] =
     new DerivedCoproductJsDecoder[A, CNil, HNil] {
       def fromJsObject(j: JsObject, a: HNil) =
         fail(s"JsObject with 'type' field", j)
     }
 
-  @inline implicit def cconsAnnotated[
+  implicit def cconsAnnotated[
     A,
     K <: Symbol,
     H,
@@ -233,7 +268,7 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
       }
     }
 
-  @inline implicit def cconsAnnotatedCustom[
+  implicit def cconsAnnotatedCustom[
     A,
     K <: Symbol,
     H,
@@ -266,7 +301,7 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
 
 }
 private[jsonformat] trait DerivedCoproductJsDecoder1 {
-  @inline implicit def ccons[A, K <: Symbol, H, T <: Coproduct, J <: HList](
+  implicit def ccons[A, K <: Symbol, H, T <: Coproduct, J <: HList](
     implicit
     K: Witness.Aux[K],
     H: Lazy[JsDecoder[H]],
@@ -286,7 +321,7 @@ private[jsonformat] trait DerivedCoproductJsDecoder1 {
           T.fromJsObject(j, anns.tail).map(Inr(_))
     }
 
-  @inline implicit def cconsCustom[
+  implicit def cconsCustom[
     A,
     K <: Symbol,
     H,
@@ -319,8 +354,10 @@ private[jsonformat] trait DerivedCoproductJsDecoder1 {
 sealed trait DerivedProductJsDecoder[A, R, J <: HList, D <: HList] {
   def fromJsObject(j: JsObject, anns: J, defaults: D): String \/ R
 }
-object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
-  @inline def gen[A, R, J <: HList, D <: HList](
+object DerivedProductJsDecoder
+    extends DerivedProductJsDecoder1
+    with DerivedProductJsDecoder2 {
+  def gen[A, R, J <: HList, D <: HList](
     implicit G: LabelledGeneric.Aux[A, R],
     J: Annotations.Aux[json, A, J],
     D: Default.AsOptions.Aux[A, D],
@@ -333,14 +370,14 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
     }
   }
 
-  @inline implicit def hnil[A]: DerivedProductJsDecoder[A, HNil, HNil, HNil] =
+  implicit def hnil[A]: DerivedProductJsDecoder[A, HNil, HNil, HNil] =
     new DerivedProductJsDecoder[A, HNil, HNil, HNil] {
       private val nil                                        = HNil.right[String]
       def fromJsObject(j: JsObject, a: HNil, defaults: HNil) = nil
     }
 }
 private[jsonformat] trait DerivedProductJsDecoder1 {
-  @inline implicit def hcons[
+  implicit def hcons[
     A,
     K <: Symbol,
     H,
@@ -378,7 +415,7 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
         } yield field[K](head) :: tail
     }
 
-  @inline implicit def hconsCustom[
+  implicit def hconsCustom[
     A,
     K <: Symbol,
     H,
@@ -423,4 +460,44 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
         } yield field[K](head) :: tail
       }
     }
+}
+private[jsonformat] trait DerivedProductJsDecoder2 {
+  this: DerivedProductJsDecoder.type =>
+
+  implicit def hconsTagged[
+    A,
+    K <: Symbol,
+    H,
+    Z,
+    T <: HList,
+    J <: HList,
+    D <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[JsDecoder[H @@ Z]],
+    T: DerivedProductJsDecoder[A, T, J, D]
+  ): DerivedProductJsDecoder[A, FieldType[K, H @@ Z] :: T, None.type :: J, Option[
+    H @@ Z
+  ] :: D] = hcons(K, H, T)
+
+  implicit def hconsCustomTagged[
+    A,
+    K <: Symbol,
+    H,
+    Z,
+    T <: HList,
+    J <: HList,
+    D <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[JsDecoder[H @@ Z]],
+    T: DerivedProductJsDecoder[A, T, J, D]
+  ): DerivedProductJsDecoder[
+    A,
+    FieldType[K, H @@ Z] :: T,
+    Some[json] :: J,
+    Option[H @@ Z] :: D
+  ] = hconsCustomTagged(K, H, T)
 }

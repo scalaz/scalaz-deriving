@@ -56,6 +56,9 @@ private[jsonformat] trait JsEncoderScalaz1 {
     case -\/(a) => a.toJson
     case \/-(b) => b.toJson
   }
+
+  implicit def tagged[A: JsEncoder, Z]: JsEncoder[A @@ Z] =
+    JsEncoder[A].contramap(Tag.unwrap)
 }
 private[jsonformat] trait JsEncoderRefined {
   this: JsEncoder.type =>
