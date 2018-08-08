@@ -33,10 +33,15 @@ class EncoderTests extends FreeSpec {
 
       val raw = "<Foo><![CDATA[%s]]></Foo>"
 
-      // a reminder that the PCData constructor escapes nested CDATA...
-      xml.PCData(raw).data.shouldBe("<Foo><![CDATA[%s]]]]><![CDATA[></Foo>")
-
       XString("<Foo><![CDATA[%s]]></Foo>").encode.shouldBe(xml.PCData(raw))
+    }
+
+    // fixed in https://github.com/scala/scala-xml/commit/bcde63
+    "should support nested CDATA" ignore {
+      xml
+        .PCData("<Foo><![CDATA[%s]]></Foo>")
+        .data
+        .shouldBe("<Foo><![CDATA[%s]]]]><![CDATA[></Foo>")
     }
 
     "should support text that does not needed encoding" in {
