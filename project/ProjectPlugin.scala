@@ -35,7 +35,13 @@ object ProjectKeys {
           "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
           "-opt:l:method,inline",
           "-opt-inline-from:scala.**",
-          "-opt-inline-from:scalaz.**"
+          "-opt-inline-from:scalaz.**",
+          "-opt-inline-from:fommil.**",
+          "-opt-inline-from:iotaz.**",
+          "-opt-inline-from:magnolia.**",
+          "-opt-inline-from:shapeless.**",
+          "-opt-inline-from:jsonformat.**",
+          "-opt-inline-from:xmlformat.**"
         )
       case _ =>
         Seq(

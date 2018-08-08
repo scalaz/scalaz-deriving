@@ -71,18 +71,23 @@ class JsEncoderTest extends JsTest {
   }
 
   it should "encode generic coproducts" in {
-    (Foo("hello"): SimpleTrait).jsonString
+    Foo("hello").widen.jsonString
       .assert_===("""{"type":"Foo","s":"hello"}""")
-    (Baz: SimpleTrait).jsonString.assert_===("""{"type":"Baz"}""")
+    Baz.widen.jsonString.assert_===("""{"type":"Baz"}""")
 
-    (Wibble: AbstractThing).jsonString.assert_===("""{"type":"Wibble"}""")
-    (Wobble("hello"): AbstractThing).jsonString
+    Wibble.widen.jsonString.assert_===("""{"type":"Wibble"}""")
+    Wobble("hello").widen.jsonString
       .assert_===("""{"type":"Wobble","id":"hello"}""")
 
-    (Time("goodbye"): NotAnObject).jsonString
-      .assert_===("""{"type":"Time","xvalue":"goodbye"}""")
-    (Money(13): NotAnObject).jsonString
-      .assert_===("""{"type":"Money","i":13}""")
+    Time("goodbye").widen.jsonString
+      .assert_===("""{"TYPE":"Time","xvalue":"goodbye"}""")
+    Money(13).widen.jsonString
+      .assert_===("""{"TYPE":"Money","integer":13}""")
+
+    Dead("zed's dead").widen.jsonString
+      .assert_===("""{"type":"ded","z":"zed's dead"}""")
+
+    Faz(None).widen.jsonString.assert_===("""{"type":"fazzy","o":null}""")
   }
 
   it should "encode generic recursive ADTs" in {

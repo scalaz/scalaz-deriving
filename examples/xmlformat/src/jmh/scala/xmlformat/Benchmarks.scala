@@ -15,7 +15,7 @@ import xmlformat.scalaxml._
 import xmlformat.cord._
 import xmlformat.stax._
 
-// xmlformat/jmh:run -i 5 -wi 5 -f1 -t2 -w2 -r2 .*Benchmarks
+// xmlformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 .*Benchmarks
 //
 // see org.openjdk.jmh.runner.options.CommandLineOptions
 class Benchmarks {

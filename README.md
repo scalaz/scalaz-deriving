@@ -67,8 +67,6 @@ object {
 
 The annotation also supports type parameters, using `implicit def` rather than `implicit val`, and can be used on `sealed` classes, or `object`.
 
-Indeed, if it is used on a `sealed` class it is not necessary to add the annotation to the known subtypes.
-
 You can provide your own project-specific wirings in a `deriving.conf` file, which will also be available for users of your library if it is published.
 
 The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
@@ -113,14 +111,19 @@ If your typeclass can implement `Decidable` or `Alt` and satisfy their laws, you
 
 If your typeclass cannot satisfy the `Decidable` or `Alt` laws, write a fresh `LabelledEncoder` or `LabelledDecoder`, which will also give you access to field names.
 
+As an extra convenience, if `@deriving` is used on a `sealed` class it is not necessary to add the annotation to the known subtypes!
+
 The following derivations are provided out-of-the-box for scalaz-core typeclasses:
 
 1. `Equal` / `Order`
-2. `Show`
-3. `Semigroup` / `Monoid`
-4. `Arbitrary`
+2. `Semigroup` / `Monoid`
 
-with more learn-by-example in `scalaz-deriving/src/test/scala/examples` and a detailed tutorial in the chapter "Typeclass Derivation" of [Functional Programming for Mortals with Scalaz](https://leanpub.com/fpmortals/read#leanpub-auto-typeclass-derivation).
+and opt-in extras for
+
+1. `scalaz.Show`
+2. `org.scalacheck.Arbitrary`
+
+Learn by example in `scalaz-deriving/src/test/scala/examples` and a detailed tutorial in the chapter "Typeclass Derivation" of [Functional Programming for Mortals with Scalaz](https://leanpub.com/fpmortals/read#leanpub-auto-typeclass-derivation).
 
 # Installation
 
@@ -133,8 +136,8 @@ with more learn-by-example in `scalaz-deriving/src/test/scala/examples` and a de
 ```scala
 val derivingVersion = "<version>"
 libraryDependencies ++= Seq(
-  // the @deriving and @xderiving compiletime plugin and macro
-  "com.fommil" %% "deriving-macro" % derivingVersion % "provided",
+  // the @deriving and @xderiving plugin and macro
+  "com.fommil" %% "deriving-macro" % derivingVersion,
   compilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion),
 
   // the scalaz-deriving Altz / Decidablez / Deriving API and macros
@@ -193,7 +196,7 @@ We provide some automated rules to migrate when we introduce breaking changes. Y
 
 `scalaz-deriving` does not and will not support typeclasses with contravariant or covariant type parameters (e.g. `[-A]` and `[+A]`). Fundamentally, Scala's [variance is broken](https://leanpub.com/fpmortals/read#leanpub-auto-type-variance) and should be avoided. Enforce this in your builds with the [`DisableSyntax`](https://scalacenter.github.io/scalafix/docs/rules/DisableSyntax) lint.
 
-When adding the `@deriving` annotation to a `sealed trait`: 1) the derivation will be repeated if there are multiple `sealed` layers (which might slow down compiles), 2) the implicit scope of the subtype's companion is not searched.
+When adding the `@deriving` annotation to a `sealed` class: 1) the derivation will be repeated if there are multiple `sealed` layers (which might slow down compiles), 2) the implicit scope of the subtype's companion is not searched, 3) only works for =scalaz-deriving= and magnolia, it doesn't work for shapeless derivers.
 
 The macro that generates the [iotaz](https://github.com/frees-io/iota) representation does not support exotic language features or renaming type parameters in GADTs. This will be addressed as iota becomes more mature.
 

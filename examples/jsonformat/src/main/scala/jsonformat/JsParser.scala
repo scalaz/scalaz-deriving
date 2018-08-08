@@ -25,6 +25,8 @@ object JsParser extends SupportParser[JsValue] {
         val n =
           if (decIndex == -1)
             s.parseLong.map(JsInteger(_))
+          else if (s.endsWith(".0"))
+            s.substring(0, s.length - 2).parseLong.map(JsInteger(_))
           else
             s.parseDouble.map(JsDouble(_))
         n.getOrElse(

@@ -96,16 +96,31 @@ class JsDecoderTest extends JsTest {
         )
       )
 
-    """{"type":"Time","xvalue":"goodbye"}"""
+    """{"TYPE":"Time","xvalue":"goodbye"}"""
       .parseAs[NotAnObject]
       .assert_===(\/-(Time("goodbye")))
-    """{"type":"Money","i":13}"""
+    """{"TYPE":"Money","integer":13}"""
       .parseAs[NotAnObject]
       .assert_===(
         \/-(
           Money(13)
         )
       )
+
+    """{"type":"fazzy","o":null}"""
+      .parseAs[SimpleTrait]
+      .assert_===(\/-(Faz(None)))
+    """{"type":"fazzy"}"""
+      .parseAs[SimpleTrait]
+      .assert_===(-\/("missing field 'o'"))
+
+    """{"type":"ded","z":"zed's dead"}"""
+      .parseAs[Zed]
+      .assert_===(\/-(Dead("zed's dead")))
+  }
+
+  it should "substitute defaults for missing fields" in {
+    """{}""".parseAs[CanHasDefaults].assert_===(\/-(CanHasDefaults("cheez")))
   }
 
   it should "decode generic recursive ADTs" in {

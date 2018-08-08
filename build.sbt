@@ -1,6 +1,7 @@
 val scalazVersion     = "7.2.25"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.13.0"
+val magnoliaVersion   = "0.9.1"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -75,30 +76,36 @@ val base = (project in file("scalaz-deriving-base")).settings(
   )
 )
 
+// val magnolia_upstream = ProjectRef(
+//   uri("https://github.com/propensive/magnolia.git#6599b37b2da9b0adb69c4402adaa6e92d64e1f88"),
+//   "coreJVM"
+// )
+
 val magnolia = project
   .dependsOn(
+    //magnolia_upstream,
     macros % "test"
   )
   .settings(ScalazDeriving)
   .settings(
     name := "scalaz-deriving-magnolia",
     libraryDependencies ++= Seq(
-      "org.scalaz"     %% "scalaz-core" % scalazVersion,
-      "com.propensive" %% "magnolia"    % "0.8.0"
+      "com.propensive" %% "magnolia"    % magnoliaVersion,
+      "org.scalaz"     %% "scalaz-core" % scalazVersion
     )
   )
 
 val scalacheck = project
   .dependsOn(
+    magnolia,
     macros % "test"
   )
   .settings(ScalazDeriving)
   .settings(
     name := "scalaz-deriving-scalacheck",
     libraryDependencies ++= Seq(
-      "com.propensive" %% "magnolia"                  % "0.8.0",
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
+      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
+      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
     )
   )
 
@@ -132,12 +139,6 @@ val xmlformat = (project in file("examples/xmlformat"))
     KindProjector,
     MacroParadise,
     MonadicFor,
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 12)) => "-opt-inline-from:xmlformat.**" :: Nil
-        case _             => Nil
-      }
-    },
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "5.1.0",
       "eu.timepit"             %% "refined"      % "0.9.2",
@@ -154,19 +155,13 @@ val xmlformat = (project in file("examples/xmlformat"))
   )
 
 val jsonformat = (project in file("examples/jsonformat"))
-  .dependsOn(macros % "provided,test", deriving, magnolia, scalacheck)
+  .dependsOn(macros % "provided,test", deriving, scalacheck)
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
     MacroParadise,
     MonadicFor,
     startYear := Some(2010),
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 12)) => "-opt-inline-from:jsonformat.**" :: Nil
-        case _             => Nil
-      }
-    },
     libraryDependencies ++= Seq(
       "eu.timepit"           %% "refined"     % "0.9.2",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,

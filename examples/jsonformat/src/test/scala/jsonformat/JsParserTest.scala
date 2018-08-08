@@ -19,6 +19,13 @@ class JsParserTest extends JsTest {
   it should "parse '0' to JsInteger" in {
     JsParser("0").assert_===(JsInteger(0).widen.right)
   }
+  it should "parse whole numbers to JsInteger" in {
+    JsParser("0.0").assert_===(JsInteger(0).widen.right)
+    JsParser("1.0").assert_===(JsInteger(1).widen.right)
+    JsParser("9223372036854775807.0").assert_===(
+      JsInteger(Long.MaxValue).widen.right
+    )
+  }
   it should "parse '1.23' to JsDouble" in {
     JsParser("1.23").assert_===(JsDouble(1.23).widen.right)
   }
