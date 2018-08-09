@@ -4,7 +4,7 @@
 package xmlformat
 package scalaxml
 
-import org.scalatest.{ Tag => _, _ }
+import org.scalatest._
 import org.scalactic.source.Position
 import org.scalatest.Matchers._
 import eu.timepit.refined
@@ -272,7 +272,7 @@ class DecoderTests extends FreeSpec {
       "<meh/>"
         .failsAs[SimpleTrait]
         .shouldBe(
-          "SimpleTrait -> no valid typehint in 'XTag(meh,[],[],Empty())'"
+          "SimpleTrait -> expected a valid typehint, got XChildren([XTag(meh,[],[],Empty())])"
         )
 
       """<SimpleTrait typehint="Foo"><s>hello</s></SimpleTrait>"""
@@ -306,7 +306,7 @@ class DecoderTests extends FreeSpec {
 
       """<MultiFieldParent typehint="MultiField" b="goodbye"><a>hello</a></MultiFieldParent>"""
         .as[MultiFieldParent]
-        .shouldBe(MultiField("hello", Tag("goodbye")))
+        .shouldBe(MultiField("hello", "goodbye"))
     }
 
   }

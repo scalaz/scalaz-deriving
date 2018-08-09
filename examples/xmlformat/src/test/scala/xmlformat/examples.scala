@@ -54,41 +54,42 @@ object orphans {
 final case class CoproductInField(abs: AbstractThing)
 
 @deriving(XEncoder, XDecoder)
-final case class AmbiguousCoproduct(foo: SimpleTrait @@ XInlined)
+final case class AmbiguousCoproduct(@x.body foo: SimpleTrait)
 
 @deriving(XEncoder, XDecoder) sealed abstract class MultiFieldParent
 @deriving(XEncoder, XDecoder) final case class MultiField(
   a: String,
-  b: String @@ XAttribute
+  @x.attr b: String
 ) extends MultiFieldParent
 
 @deriving(XEncoder, XDecoder) final case class MultiOptyField(
   a: String,
-  b: Option[String] @@ XAttribute
+  @x.attr b: Option[String]
 ) extends MultiFieldParent
 
 @deriving(XEncoder, XDecoder)
-final case class Inliner(wibble: Foo @@ XInlined, nose: String)
+final case class Inliner(@x.body wibble: Foo, nose: String)
 @deriving(XEncoder, XDecoder)
-final case class InlinerSingle(wibble: Foo @@ XInlined)
+final case class InlinerSingle(@x.body wibble: Foo)
 @deriving(XEncoder, XDecoder)
-final case class Inliners(foos: List[Foo] @@ XInlined)
+final case class Inliners(@x.body foos: List[Foo])
 @deriving(XEncoder, XDecoder)
 final case class Outliners(
-  id: Option[String] @@ XAttribute,
-  body: Option[String] @@ XInlined
+  @x.attr id: Option[String],
+  @x.body body: Option[String]
 )
 
-@deriving(XEncoderTag, XDecoderTag)
-sealed abstract class TaggyNames
-
 @deriving(XEncoder, XDecoder)
+sealed abstract class TaggyNames
+@deriving(XEncoder, XDecoder)
+@x.body
 final case class TaggyA() extends TaggyNames
 @xderiving(XStrEncoder, XStrDecoder)
+@x.body
 final case class TaggyB(body: String) extends TaggyNames
 
 @deriving(XEncoder, XDecoder)
-final case class TaggyCoproduct(foo: TaggyNames @@ XInlined)
+final case class TaggyCoproduct(@x.body foo: TaggyNames)
 
 @deriving(XEncoder, XDecoder)
 final case class Stringy(value: String)

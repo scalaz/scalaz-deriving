@@ -272,7 +272,7 @@ class XEncoderTests extends FreeSpec {
     "should encode fields as XmlAttribute" in {
       import examples._
 
-      val multifield = MultiField("hello", Tag("goodbye"))
+      val multifield = MultiField("hello", "goodbye")
 
       multifield.toXml.shouldBe(
         XTag(
@@ -295,7 +295,7 @@ class XEncoderTests extends FreeSpec {
         ).asChild
       )
 
-      MultiOptyField("hello", Tag(Some("goodbye"))).toXml.shouldBe(
+      MultiOptyField("hello", Some("goodbye")).toXml.shouldBe(
         XTag(
           "MultiOptyField",
           IList(XAttr("b", XString("goodbye"))),
@@ -304,7 +304,7 @@ class XEncoderTests extends FreeSpec {
         ).asChild
       )
 
-      MultiOptyField("hello", Tag(None)).toXml
+      MultiOptyField("hello", None).toXml
         .shouldBe(
           XTag("MultiOptyField", XTag("a", XString("hello")).asChild).asChild
         )
@@ -334,7 +334,7 @@ class XEncoderTests extends FreeSpec {
       )
 
       List(
-        MultiField("hello", XAttribute("goodbye"))
+        MultiField("hello", "goodbye")
       ).toXml.shouldBe(
         XChildren(
           IList(
@@ -351,7 +351,6 @@ class XEncoderTests extends FreeSpec {
 
     "should support inlined semigroup fields" in {
       import examples._
-      import xmlformat.implicits._
 
       Inliner(Foo("hello"), "goodbye").toXml.shouldBe(
         XTag(
@@ -375,7 +374,6 @@ class XEncoderTests extends FreeSpec {
 
     "should support inlined single fields" in {
       import examples._
-      import xmlformat.implicits._
 
       AmbiguousCoproduct(Foo("hello")).toXml.shouldBe(
         XTag(
@@ -392,7 +390,6 @@ class XEncoderTests extends FreeSpec {
 
     "should support inlined monoid lists" in {
       import examples._
-      import xmlformat.implicits._
 
       Inliners(List(Foo("hello"), Foo("goodbye"))).toXml.shouldBe(
         XTag(
@@ -409,7 +406,6 @@ class XEncoderTests extends FreeSpec {
 
     "should support inlined content" in {
       import examples._
-      import xmlformat.implicits._
 
       Outliners(Some("hello"), Some("goodbye")).toXml.shouldBe(
         XTag(
@@ -424,11 +420,11 @@ class XEncoderTests extends FreeSpec {
     "should support tagged coproduct disambiguation" in {
       import examples._
 
-      TaggyCoproduct(XInlined(TaggyA())).toXml.shouldBe(
+      TaggyCoproduct(TaggyA()).toXml.shouldBe(
         XTag("TaggyCoproduct", XTag("TaggyA", XChildren(IList.empty)).asChild).asChild
       )
 
-      TaggyCoproduct(XInlined(TaggyB("hello"))).toXml.shouldBe(
+      TaggyCoproduct(TaggyB("hello")).toXml.shouldBe(
         XTag("TaggyCoproduct", XTag("TaggyB", XString("hello")).asChild).asChild
       )
 

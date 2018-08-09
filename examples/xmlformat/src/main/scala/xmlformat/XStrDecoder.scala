@@ -15,6 +15,13 @@ import simulacrum._
 @typeclass(generateAllOps = false)
 trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
+
+  // for performance
+  final def xmap[B](f: A => B, @unused g: B => A): XStrDecoder[B] = map(f)
+  final def map[B](f: A => B): XStrDecoder[B] =
+    j => fromXml(j).map(f)
+  final def emap[B](f: A => String \/ B): XStrDecoder[B] =
+    j => fromXml(j).flatMap(f)
 }
 object XStrDecoder
     extends XStrDecoderScalaz
@@ -60,15 +67,6 @@ object XStrDecoder
     case s                  => -\/(s"text too long: $s")
   }
   implicit val symbol: XStrDecoder[Symbol] = str(Symbol(_))
-
-  implicit val stringAttr: XStrDecoder[String @@ XAttribute] =
-    string.map(Tag(_))
-  implicit val booleanAttr: XStrDecoder[Boolean @@ XAttribute] =
-    boolean.map(Tag(_))
-  implicit val intAttr: XStrDecoder[Int @@ XAttribute] =
-    int.map(Tag(_))
-  implicit val longAttr: XStrDecoder[Long @@ XAttribute] =
-    long.map(Tag(_))
 
   implicit val xstring: XStrDecoder[XString] = _.right[String]
 

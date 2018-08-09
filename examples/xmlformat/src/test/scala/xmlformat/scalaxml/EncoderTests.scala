@@ -271,10 +271,10 @@ class EncoderTests extends FreeSpec {
     "should encode fields as XmlAttribute" in {
       import examples._
 
-      MultiField("hello", Tag("goodbye")).print
+      MultiField("hello", "goodbye").print
         .shouldBe("""<MultiField b="goodbye"><a>hello</a></MultiField>""")
 
-      (MultiField("hello", Tag("goodbye")): MultiFieldParent).print
+      (MultiField("hello", "goodbye"): MultiFieldParent).print
         .shouldBe(
           """<MultiFieldParent typehint="MultiField" b="goodbye"><a>hello</a></MultiFieldParent>"""
         )

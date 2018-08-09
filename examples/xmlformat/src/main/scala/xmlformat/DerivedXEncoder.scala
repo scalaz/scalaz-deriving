@@ -4,292 +4,412 @@
 package xmlformat
 package generic
 
-import scalaz.{ -\/, @@, \/, \/-, ICons, IList, INil }
+import scalaz.{ -\/, \/, \/-, ICons, IList, INil }
 import scalaz.Scalaz._
 
 import shapeless._
 import shapeless.labelled._
+import xmlformat.{ XAttr, XString, XTag }
 
-/**
- * Product and coproduct encoder.
- *
- * We get into problems with ambiguous decoding if we do not encode products to
- * a single tag. Therefore all return values are single entry XChildren.
- *
- * = Fields =
- *
- * For the following
- *
- * {{{
- * case class Bar(wobble: String)
- * case class Foo(wibble: Bar)
- * }}}
- *
- * the default encoding is
- *
- * {{{
- * <Bar><wobble>...</wobble></Bar>
- * <Foo><wibble><wobble>...</wobble></wibble></Foo>
- * }}}
- *
- * where each case class gets assigned an XTag according to its name, which is
- * overwritten when included as part of an outer tag. Attributes and body are
- * preserved.
- *
- * An alternative encoding is available using the Inlined which will use the
- * provided encoding directly, ignoring the field name, e.g.
- *
- * {{{
- * case class Baz(wibble: Bar @@ XInlined)
- * <Baz><Bar><wobble>...</wobble></Bar></Baz>
- * }}}
- *
- * this is useful when the decoder may use the tag name to distinguish between
- * coproducts.
- *
- * {{{
- * sealed trait AA
- * case object B extends AA
- * case object C extends AA
- *
- * case class A(as: List[AA] @@ XInlined)
- *
- * <A>
- *   <B></B>
- *   <B></B>
- *   <C></C>
- *   <T/>
- * </A>
- * }}}
- *
- * If the XInlined type has a Monoid, failure to decode anything will give Monoid.empty.
- * If it has a Semigroup, one or more values must be decoded or there will be a failure.
- * If there is neither, exactly one value is expected.
- *
- * = Coproducts =
- *
- * Coproducts are differentiated by a "typehint" attribute. Recall that tag
- * names can be rewritten by a container, therfore it is not feasible in the
- * general case to use tag names to differentiate between coproduct values.
- *
- * However, if a coproduct has derived an XEncoderTag instead of an XEncoder,
- * tags will be used to differentiate instead of attributes. If used as a field
- * in a container, it **must** be XInlined, which is enforced by the types.
- *
- * = Attributes =
- *
- * {{{
- * case class Fuh(foo: String @@ XAttribute)
- *
- * <Fuh foo="Hello world"/>
- * }}}
- *
- * Attributes can be specified with the `@@ XAttribute` tag and can only be used
- * on types that have an XStrEncoder. Option fields are handled specially and
- * a None value will not appear in the output.
- *
- * = String content =
- *
- * {{{
- * case class Duh(body: String @@ XInlined)
- *
- * <Duh>Hello world!</Duh>
- * }}}
- *
- * Values can be specfied as the content of the tag with the `@@ XInlined`
- * if they have an XStrEncoder. It is the developer's responsibility to ensure
- * that only one field has this tag. Multiple content fields will be
- * concatenated and may not be decoded.
- */
-sealed trait DerivedXEncoder[R] {
-  // a union type would be very nice here...
-  private[generic] def to(r: R): IList[XAttr \/ (XTag \/ XString)] \/ XTag
+sealed trait DerivedXEncoder[R, AS <: HList, BS <: HList] {
+  // a union type would be very nice here... left is for products, right is for
+  // coproducts. a left tag in a coproduct means the name can be replaced, a
+  // right tag in a coproduct means it should be retained.
+  private[generic] def to(
+    r: R,
+    as: AS,
+    bs: BS
+  ): IList[XAttr \/ (XTag \/ XString)] \/ (XTag \/ XTag)
 }
-object DerivedXEncoder extends LowPriorityDerivedXEncoder1 {
+object DerivedXEncoder {
 
-  def gen[T, Repr](
+  def gen[A, R, AS <: HList, BS <: HList](
     implicit
-    T: Typeable[T],
-    G: LabelledGeneric.Aux[T, Repr],
-    LER: Cached[Strict[DerivedXEncoder[Repr]]]
-  ): XEncoder[T] = { t =>
-    LER.value.value.to(G.to(t)) match {
+    T: Typeable[A],
+    G: LabelledGeneric.Aux[A, R],
+    AA: Annotations.Aux[x.attr, A, AS],
+    AB: Annotations.Aux[x.body, A, BS],
+    R: Cached[Strict[DerivedXEncoder[R, AS, BS]]]
+  ): XEncoder[A] = { t =>
+    R.value.value.to(G.to(t), AA(), AB()) match {
       case -\/(product) =>
         val (attrs, content) = product.separate
         val (children, body) = content.separate
         XTag(T.describe, attrs, children, body.fold1Opt.toMaybe).asChild
-      case \/-(coproduct) => coproduct.copy(name = T.describe).asChild
+      case \/-(coproduct) =>
+        coproduct.leftMap(_.copy(name = T.describe)).merge.asChild
     }
   }
 
-  trait PXEncoder[R] extends DerivedXEncoder[R] {
-    def to(r: R): IList[XAttr \/ (XTag \/ XString)] \/ XTag = -\/(product(r))
-    def product(r: R): IList[XAttr \/ (XTag \/ XString)]
-  }
-  trait CXEncoder[R] extends DerivedXEncoder[R] {
-    def to(r: R): IList[XAttr \/ (XTag \/ XString)] \/ XTag = \/-(coproduct(r))
-    def coproduct(r: R): XTag
+  sealed trait PXEncoder[R, AS <: HList, BS <: HList]
+      extends DerivedXEncoder[R, AS, BS] {
+    final def to(
+      r: R,
+      as: AS,
+      bs: BS
+    ): IList[XAttr \/ (XTag \/ XString)] \/ (XTag \/ XTag) =
+      -\/(product(r, as, bs))
+    def product(r: R, as: AS, bs: BS): IList[XAttr \/ (XTag \/ XString)]
+
+    protected final def lift(a: XAttr): XAttr \/ (XTag \/ XString) = -\/(a)
+    protected final def lift(a: XTag): XAttr \/ (XTag \/ XString)  = \/-(-\/(a))
+    protected final def lift(a: XString): XAttr \/ (XTag \/ XString) =
+      \/-(\/-(a))
   }
 
-  implicit val hnil: PXEncoder[HNil] = _ =>
-    IList.empty[XAttr \/ (XTag \/ XString)]
+  implicit val hnil: PXEncoder[HNil, HNil, HNil] =
+    new PXEncoder[HNil, HNil, HNil] {
+      def product(
+        r: HNil,
+        as: HNil,
+        bs: HNil
+      ): IList[XAttr \/ (XTag \/ XString)] = IList.empty
+    }
 
-  implicit def hconsAttr[K <: Symbol, A, T <: HList](
+  implicit def hcons[K <: Symbol, H, T <: HList, AS <: HList, BS <: HList](
     implicit
     K: Witness.Aux[K],
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A @@ XAttribute] :: T] = {
-    case head :: tail =>
-      val key   = K.value.name
-      val value = EV.toXml(XAttribute.unwrap(head))
-      -\/(XAttr(key, value)) :: ER.product(tail)
-  }
+    H: Lazy[XEncoder[H]],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] =
+    new PXEncoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
+      def product(
+        r: FieldType[K, H] :: T,
+        as: None.type :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = r match {
+        case head :: tail =>
+          H.value.toXml(head).tree.map {
+            case XTag(_, as, ts, bd) => lift(XTag(K.value.name, as, ts, bd))
+          } ::: T.product(tail, as.tail, bs.tail)
+      }
+    }
 
-  implicit def hconsAttrOptional[K <: Symbol, A, T <: HList](
+  implicit def hconsOptional[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
     implicit
     K: Witness.Aux[K],
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, Option[A] @@ XAttribute] :: T] = {
-    case head :: tail =>
-      XAttribute.unwrap(head) match {
-        case None => ER.product(tail)
-        case Some(h) =>
-          hconsAttr(K, EV, ER).product(field[K](XAttribute(h)) :: tail)
-      }
-  }
-  implicit def hconsInlinedField[K <: Symbol, A, T <: HList](
-    implicit
-    LEV: Lazy[XEncoder[A]],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A @@ XInlined] :: T] = {
-    case head :: tail =>
-      LEV.value
-        .toXml(XInlined.unwrap(head))
-        .tree
-        .map(_.left[XString].right[XAttr]) ::: ER.product(tail)
-  }
+    H: Lazy[XEncoder[H]],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, Option[H]] :: T,
+    None.type :: AS,
+    None.type :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, Option[H]] :: T,
+      None.type :: AS,
+      None.type :: BS
+    ] {
+      def product(
+        r: FieldType[K, Option[H]] :: T,
+        as: None.type :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] =
+        (r: Option[H] :: T) match {
+          case None :: tail => T.product(tail, as.tail, bs.tail)
+          case Some(head) :: tail =>
+            H.value.toXml(head).tree.map {
+              case XTag(_, as, ts, bd) => lift(XTag(K.value.name, as, ts, bd))
+            } ::: T.product(tail, as.tail, bs.tail)
+        }
+    }
 
-  // tags only allowed inline
-  implicit def hconsInlinedTag[K <: Symbol, A, T <: HList](
-    implicit
-    LEV: Lazy[XEncoderTag[A]],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A @@ XInlined] :: T] = {
-    case head :: tail =>
-      LEV.value
-        .toXTag(XInlined.unwrap(head))
-        .left[XString]
-        .right[XAttr] :: ER.product(tail)
-  }
-
-  implicit def hconsInlinedStr[K <: Symbol, A, T <: HList](
-    implicit
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A @@ XInlined] :: T] = {
-    case head :: tail =>
-      \/-(\/-(EV.toXml(XInlined.unwrap(head)))) :: ER.product(tail)
-  }
-
-  implicit def hconsInlinedStrOptional[K <: Symbol, A, T <: HList](
-    implicit
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, Option[A] @@ XInlined] :: T] = {
-    case head :: tail =>
-      XInlined.unwrap(head) match {
-        case None => ER.product(tail)
-        case Some(h) =>
-          hconsInlinedStr(EV, ER).product(
-            field[K](XInlined(h)) :: tail
-          )
-      }
-  }
-
-  private[this] val typehint: String = "typehint"
-  implicit val cnil: CXEncoder[CNil] = _ => sys.error("bad coproduct")
-  implicit def ccons[K <: Symbol, A, T <: Coproduct](
+  implicit def hconsStr[K <: Symbol, H, T <: HList, AS <: HList, BS <: HList](
     implicit
     K: Witness.Aux[K],
-    LEI: Lazy[XNodeEncoder[A]],
-    ER: CXEncoder[T]
-  ): CXEncoder[FieldType[K, A] :+: T] = {
-    case Inl(ins) =>
-      val hint = XAttr(typehint, XString(K.value.name))
-      LEI.value.toXml(ins) match {
-        case XChildren(ICons(XTag(n, as, ts, b), INil())) =>
-          XTag(n, hint :: as, ts, b)
-        case c =>
-          XTag("value", c).copy(attrs = IList.single(hint))
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] =
+    new PXEncoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
+      def product(
+        r: FieldType[K, H] :: T,
+        as: None.type :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = r match {
+        case head :: tail =>
+          val tag = XTag(K.value.name, H.toXml(head))
+          lift(tag) :: T.product(tail, as.tail, bs.tail)
       }
+    }
 
-    case Inr(rem) => ER.coproduct(rem)
-  }
-
-}
-
-trait LowPriorityDerivedXEncoder1 extends LowPriorityDerivedXEncoder2 {
-  this: DerivedXEncoder.type =>
-
-  implicit def hcons[K <: Symbol, A, T <: HList](
-    implicit K: Witness.Aux[K],
-    LEV: Lazy[XEncoder[A]],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A] :: T] = {
-    case head :: tail =>
-      LEV.value.toXml(head).tree.map {
-        case XTag(_, as, ts, bd) =>
-          XTag(K.value.name, as, ts, bd).left[XString].right[XAttr]
-      } ::: ER.product(tail)
-  }
-
-  implicit def hconsOptional[K <: Symbol, A, T <: HList](
-    implicit K: Witness.Aux[K],
-    LEV: Lazy[XEncoder[A]],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, Option[A]] :: T] = {
-    case head :: tail =>
-      (head: Option[A]) match {
-        case None => ER.product(tail)
-        case Some(value) =>
-          hcons(K, LEV, ER).product(field[K](value) :: tail)
+  implicit def hconsStrOptional[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, Option[H]] :: T,
+    None.type :: AS,
+    None.type :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, Option[H]] :: T,
+      None.type :: AS,
+      None.type :: BS
+    ] {
+      def product(
+        r: FieldType[K, Option[H]] :: T,
+        as: None.type :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = (r: Option[H] :: T) match {
+        case None :: tail => T.product(tail, as.tail, bs.tail)
+        case Some(head) :: tail =>
+          val tag = XTag(K.value.name, H.toXml(head))
+          lift(tag) :: T.product(tail, as.tail, bs.tail)
       }
-  }
+    }
 
-  implicit def hconsStr[K <: Symbol, A, T <: HList](
-    implicit K: Witness.Aux[K],
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A] :: T] = {
-    case head :: tail =>
-      val tag = XTag(K.value.name, EV.toXml(head))
-      \/-(-\/(tag)) :: ER.product(tail)
-  }
-
-  implicit def hconsStrOptional[K <: Symbol, A, T <: HList](
-    implicit K: Witness.Aux[K],
-    EV: XStrEncoder[A],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, Option[A]] :: T] = {
-    case head :: tail =>
-      (head: Option[A]) match {
-        case None => ER.product(tail)
-        case Some(value) =>
-          hconsStr(K, EV, ER).product(field[K](value) :: tail)
+  implicit def hconsAttr[K <: Symbol, H, T <: HList, AS <: HList, BS <: HList](
+    implicit
+    K: Witness.Aux[K],
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, H] :: T,
+    Some[x.attr] :: AS,
+    None.type :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, H] :: T,
+      Some[x.attr] :: AS,
+      None.type :: BS
+    ] {
+      def product(
+        r: FieldType[K, H] :: T,
+        as: Some[x.attr] :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = r match {
+        case head :: tail =>
+          val key   = K.value.name
+          val value = H.toXml(head)
+          lift(XAttr(key, value)) :: T.product(tail, as.tail, bs.tail)
       }
+    }
+
+  implicit def hconsAttrOptional[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, Option[H]] :: T,
+    Some[x.attr] :: AS,
+    None.type :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, Option[H]] :: T,
+      Some[x.attr] :: AS,
+      None.type :: BS
+    ] {
+      def product(
+        r: FieldType[K, Option[H]] :: T,
+        as: Some[x.attr] :: AS,
+        bs: None.type :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = (r: Option[H] :: T) match {
+        case None :: tail => T.product(tail, as.tail, bs.tail)
+        case Some(head) :: tail =>
+          val key   = K.value.name
+          val value = H.toXml(head)
+          lift(XAttr(key, value)) :: T.product(tail, as.tail, bs.tail)
+      }
+    }
+
+  implicit def hconsInlinedField[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    H: Lazy[XEncoder[H]],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, H] :: T,
+    None.type :: AS,
+    Some[x.body] :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, H] :: T,
+      None.type :: AS,
+      Some[x.body] :: BS
+    ] {
+      def product(
+        r: FieldType[K, H] :: T,
+        as: None.type :: AS,
+        bs: Some[x.body] :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = r match {
+        case head :: tail =>
+          H.value
+            .toXml(head)
+            .tree
+            .map(lift) ::: T.product(tail, as.tail, bs.tail)
+      }
+    }
+
+  implicit def hconsInlinedStr[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, H] :: T,
+    None.type :: AS,
+    Some[x.body] :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, H] :: T,
+      None.type :: AS,
+      Some[x.body] :: BS
+    ] {
+      def product(
+        r: FieldType[K, H] :: T,
+        as: None.type :: AS,
+        bs: Some[x.body] :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = r match {
+        case head :: tail =>
+          lift(H.toXml(head)) :: T.product(tail, as.tail, bs.tail)
+      }
+    }
+
+  implicit def hconsInlinedStrOptional[
+    K <: Symbol,
+    H,
+    T <: HList,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    H: XStrEncoder[H],
+    T: PXEncoder[T, AS, BS]
+  ): PXEncoder[
+    FieldType[K, Option[H]] :: T,
+    None.type :: AS,
+    Some[x.body] :: BS
+  ] =
+    new PXEncoder[
+      FieldType[K, Option[H]] :: T,
+      None.type :: AS,
+      Some[x.body] :: BS
+    ] {
+      def product(
+        r: FieldType[K, Option[H]] :: T,
+        as: None.type :: AS,
+        bs: Some[x.body] :: BS
+      ): IList[XAttr \/ (XTag \/ XString)] = (r: Option[H] :: T) match {
+        case None :: tail => T.product(tail, as.tail, bs.tail)
+        case Some(head) :: tail =>
+          lift(H.toXml(head)) :: T.product(tail, as.tail, bs.tail)
+      }
+    }
+
+  sealed trait CXEncoder[R, AS <: HList, BS <: HList]
+      extends DerivedXEncoder[R, AS, BS] {
+    final def to(
+      r: R,
+      as: AS,
+      bs: BS
+    ): IList[XAttr \/ (XTag \/ XString)] \/ (XTag \/ XTag) =
+      \/-(coproduct(r, as, bs))
+    def coproduct(r: R, as: AS, bs: BS): XTag \/ XTag
   }
 
-}
+  implicit val cnil: CXEncoder[CNil, HNil, HNil] =
+    new CXEncoder[CNil, HNil, HNil] {
+      def coproduct(r: CNil, as: HNil, bs: HNil): Nothing =
+        sys.error("impossible")
+    }
 
-trait LowPriorityDerivedXEncoder2 {
-  this: DerivedXEncoder.type =>
+  implicit def ccons[K <: Symbol, H, T <: Coproduct, AS <: HList, BS <: HList](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[XNodeEncoder[H]],
+    T: CXEncoder[T, AS, BS]
+  ): CXEncoder[
+    FieldType[K, H] :+: T,
+    None.type :: AS,
+    None.type :: BS
+  ] =
+    new CXEncoder[
+      FieldType[K, H] :+: T,
+      None.type :: AS,
+      None.type :: BS
+    ] {
+      private val hint = XAttr("typehint", XString(K.value.name))
+      def coproduct(
+        r: FieldType[K, H] :+: T,
+        as: None.type :: AS,
+        bs: None.type :: BS
+      ): XTag \/ XTag = r match {
+        case Inl(ins) =>
+          H.value.toXml(ins) match {
+            case XChildren(ICons(XTag(n, as, ts, b), INil())) =>
+              XTag(n, hint :: as, ts, b).left
+            case c =>
+              XTag("value", c).copy(attrs = IList.single(hint)).left
+          }
 
-  // WORKAROUND https://github.com/milessabin/shapeless/issues/309
-  implicit def hconsHack[K <: Symbol, A, Z, T <: HList](
-    implicit K: Witness.Aux[K],
-    LEV: Lazy[XEncoder[A @@ Z]],
-    ER: PXEncoder[T]
-  ): PXEncoder[FieldType[K, A @@ Z] :: T] = hcons(K, LEV, ER)
+        case Inr(rem) => T.coproduct(rem, as.tail, bs.tail)
+      }
+    }
+
+  implicit def cconsNodeTag[
+    K <: Symbol,
+    H,
+    T <: Coproduct,
+    AS <: HList,
+    BS <: HList
+  ](
+    implicit
+    K: Witness.Aux[K],
+    H: Lazy[XNodeEncoder[H]],
+    T: CXEncoder[T, AS, BS]
+  ): CXEncoder[
+    FieldType[K, H] :+: T,
+    None.type :: AS,
+    Some[x.body] :: BS
+  ] =
+    new CXEncoder[
+      FieldType[K, H] :+: T,
+      None.type :: AS,
+      Some[x.body] :: BS
+    ] {
+      private val key = K.value.name
+      def coproduct(
+        r: FieldType[K, H] :+: T,
+        as: None.type :: AS,
+        bs: Some[x.body] :: BS
+      ): XTag \/ XTag = r match {
+        case Inl(ins) =>
+          H.value.toXml(ins) match {
+            case XChildren(ICons(t: XTag, INil())) => t.copy(name = key).right
+            case c                                 => XTag(key, c).right
+          }
+        case Inr(rem) => T.coproduct(rem, as.tail, bs.tail)
+      }
+    }
+
 }

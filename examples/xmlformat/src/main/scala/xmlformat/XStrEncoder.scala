@@ -9,6 +9,10 @@ import simulacrum._
 /** Encoder for the XString half of the XNode ADT. */
 @typeclass trait XStrEncoder[A] { self =>
   def toXml(a: A): XString
+
+  // for performance
+  final def xmap[B](@unused f: A => B, g: B => A): XStrEncoder[B] = contramap(g)
+  final def contramap[B](g: B => A): XStrEncoder[B]               = b => toXml(g(b))
 }
 object XStrEncoder
     extends XStrEncoderScalaz
@@ -56,10 +60,7 @@ private[xmlformat] trait XStrEncoderRefined {
   this: XStrEncoder.type =>
 
   import eu.timepit.refined.api.Refined
-  implicit def refined[
-    A: XStrEncoder,
-    B
-  ]: XStrEncoder[A Refined B] =
+  implicit def refined[A: XStrEncoder, B]: XStrEncoder[A Refined B] =
     XStrEncoder[A].contramap(_.value)
 
 }

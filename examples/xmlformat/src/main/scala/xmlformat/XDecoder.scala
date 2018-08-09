@@ -9,6 +9,13 @@ import simulacrum._
 @typeclass(generateAllOps = false)
 trait XDecoder[A] { self =>
   def fromXml(x: XChildren): String \/ A
+
+  // for performance
+  final def xmap[B](f: A => B, @unused g: B => A): XDecoder[B] = map(f)
+  final def map[B](f: A => B): XDecoder[B] =
+    j => fromXml(j).map(f)
+  final def emap[B](f: A => String \/ B): XDecoder[B] =
+    j => fromXml(j).flatMap(f)
 }
 object XDecoder
     extends XDecoderScalaz1
@@ -84,6 +91,10 @@ private[xmlformat] trait XDecoderScalaz1 {
     ilist[A].emap { lst =>
       lst.toNel \/> "list was empty"
     }
+
+  implicit def tagged[A: XDecoder, Z]: XDecoder[A @@ Z] =
+    XDecoder[A].map(Tag(_))
+
 }
 
 private[xmlformat] trait XDecoderScalaz2 {

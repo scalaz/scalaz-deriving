@@ -8,6 +8,10 @@ import simulacrum._
 
 @typeclass trait XEncoder[A] {
   def toXml(a: A): XChildren
+
+  // for performance
+  final def xmap[B](@unused f: A => B, g: B => A): XEncoder[B] = contramap(g)
+  final def contramap[B](g: B => A): XEncoder[B]               = b => toXml(g(b))
 }
 object XEncoder
     extends XEncoderScalaz1
@@ -47,6 +51,9 @@ private[xmlformat] trait XEncoderScalaz1 {
 
   implicit def nel[A: XEncoder]: XEncoder[NonEmptyList[A]] =
     ilist[A].contramap(_.list)
+
+  implicit def tagged[A: XEncoder, Z]: XEncoder[A @@ Z] =
+    XEncoder[A].contramap(Tag.unwrap)
 
 }
 

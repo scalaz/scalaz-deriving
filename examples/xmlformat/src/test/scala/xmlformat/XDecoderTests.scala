@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 import scalaz._
 
-import org.scalatest.{ Tag => _, _ }
+import org.scalatest._
 import eu.timepit.refined
 import Matchers._
 
@@ -99,8 +99,8 @@ class XDecoderTests extends FreeSpec {
         .leftValue
         .shouldBe(
           """expected one branch to succeed, got:
-Left: Stringy -> expected a tag named 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])
-Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])"""
+Left: Stringy -> expected one 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])
+Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagged,[],[XTag(not-a-value,[],[],Just(XString(hello)))],Empty())])"""
         )
 
       // but when used with disambiguating tags, it works...
@@ -326,11 +326,11 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
         IList(XAttr("b", XString("goodbye"))),
         IList(XTag("a", XString("hello"))),
         Maybe.empty
-      ).as[MultiField].shouldBe(MultiField("hello", Tag("goodbye")))
+      ).as[MultiField].shouldBe(MultiField("hello", "goodbye"))
 
       XTag("MultiOptyField", XTag("a", XString("hello")).asChild).asChild
         .as[MultiOptyField]
-        .shouldBe(MultiOptyField("hello", Tag(None)))
+        .shouldBe(MultiOptyField("hello", None))
 
       XTag(
         "MultiFieldParent",
@@ -345,7 +345,7 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
         .shouldBe(
           MultiField(
             "hello",
-            Tag("goodbye")
+            "goodbye"
           )
         )
 
@@ -362,7 +362,7 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
         .shouldBe(
           MultiOptyField(
             "hello",
-            Tag(Some("goodbye"))
+            Some("goodbye")
           )
         )
 
@@ -375,12 +375,11 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
         Maybe.empty
       ).asChild
         .as[MultiFieldParent]
-        .shouldBe(MultiOptyField("hello", Tag(None)))
+        .shouldBe(MultiOptyField("hello", None))
     }
 
     "should support inlined semigroup fields" in {
       import examples._
-      import xmlformat.implicits._
 
       XTag(
         "Inliner",
@@ -430,14 +429,13 @@ Right: Inty -> expected a tag named 'value' with a body, got XChildren([XTag(Str
         .leftValue
         .shouldBe(
           """InlinerSingle -> wibble:
-Foo -> expected a tag named 's' with a body, got XChildren([XTag(Foo,[],[XTag(a,[],[],Just(XString(hello)))],Empty())])
-Foo -> expected a tag named 's' with a body, got XChildren([XTag(Foo,[],[XTag(b,[],[],Just(XString(world)))],Empty())])"""
+Foo -> expected one 's' with a body, got XChildren([XTag(Foo,[],[XTag(a,[],[],Just(XString(hello)))],Empty())])
+Foo -> expected one 's' with a body, got XChildren([XTag(Foo,[],[XTag(b,[],[],Just(XString(world)))],Empty())])"""
         )
     }
 
     "should support inlined single fields" in {
       import examples._
-      import xmlformat.implicits._
 
       XTag(
         "AmbiguousCoproduct",
@@ -467,14 +465,13 @@ Foo -> expected a tag named 's' with a body, got XChildren([XTag(Foo,[],[XTag(b,
         .leftValue
         .shouldBe(
           """AmbiguousCoproduct -> foo:
-SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(SimpleTrait,[XAttr(typehint,XString(Foo))],[XTag(a,[],[],Just(XString(hello)))],Empty())])"""
+SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTrait,[XAttr(typehint,XString(Foo))],[XTag(a,[],[],Just(XString(hello)))],Empty())])"""
         )
 
     }
 
     "should support inlined monoid lists" in {
       import examples._
-      import xmlformat.implicits._
 
       val xml2 = XTag(
         "Inliners",
@@ -517,12 +514,11 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
       ).asChild
 
       // never fails when there is a Monoid!
-      xml4.as[Inliners].shouldBe(Inliners(XInlined(Nil)))
+      xml4.as[Inliners].shouldBe(Inliners(Nil))
     }
 
     "should support inlined content" in {
       import examples._
-      import xmlformat.implicits._
 
       val xml1 = XTag(
         "Outliners",
@@ -563,7 +559,7 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
         ).asChild
       ).asChild
         .as[TaggyCoproduct]
-        .shouldBe(TaggyCoproduct(XInlined(TaggyA())))
+        .shouldBe(TaggyCoproduct(TaggyA()))
 
       XTag(
         "TaggyCoproduct",
@@ -573,7 +569,7 @@ SimpleTrait -> Foo -> expected a tag named 's' with a body, got XChildren([XTag(
         ).asChild
       ).asChild
         .as[TaggyCoproduct]
-        .shouldBe(TaggyCoproduct(XInlined(TaggyB("hello"))))
+        .shouldBe(TaggyCoproduct(TaggyB("hello")))
 
     }
 
