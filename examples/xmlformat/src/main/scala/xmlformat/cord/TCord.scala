@@ -28,9 +28,7 @@ object TCord {
   def apply(s: String): TCord = Leaf.apply(s)
   def apply(): TCord          = Leaf.Empty
 
-  private[cord] final class Leaf private (
-    val s: String
-  ) extends TCord
+  private[cord] final class Leaf private (val s: String) extends TCord
   private[cord] object Leaf {
     val Empty: Leaf = new Leaf("")
     def apply(s: String): Leaf =

@@ -152,13 +152,11 @@ object JsMagnoliaDecoder {
 
   def dispatch[A](ctx: SealedTrait[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
-      private val hints = StringyMap(
-        ctx.subtypes.map { s =>
-          s.typeName.full -> s.annotations.collectFirst {
-            case json.hint(name) => name
-          }.getOrElse(s.typeName.short)
-        }
-      )
+      private val subtype = ctx.subtypes.map { s =>
+        s.annotations.collectFirst {
+          case json.hint(name) => name
+        }.getOrElse(s.typeName.short) -> s
+      }.toMap
       private val typehint = ctx.annotations.collectFirst {
         case json.field(name) => name
       }.getOrElse("type")
@@ -171,9 +169,9 @@ object JsMagnoliaDecoder {
       def fromJson(j: JsValue): String \/ A = j match {
         case obj @ JsObject(_) =>
           obj.get(typehint) match {
-            case \/-(JsString(hint)) =>
-              ctx.subtypes.find(s => hints(s.typeName.full) == hint) match {
-                case None => fail(s"a valid '$hint'", obj)
+            case \/-(JsString(h)) =>
+              subtype.get(h) match {
+                case None => fail(s"a valid '$h'", obj)
                 case Some(sub) =>
                   val xvalue = xvalues(sub.index)
                   val value  = obj.get(xvalue).getOrElse(obj)
@@ -189,81 +187,51 @@ object JsMagnoliaDecoder {
 }
 
 // scalafix:off
-// Optimised String lookup
-private[jsonformat] sealed abstract class StringyMap[A] {
-  final def apply(s: String) = {
-    val got = unsafe(s)
-    if (got == null) sys.error("impossible") // careful now...
-    got
-  }
-  protected def unsafe(s: String): A
-  def get(s: String): Maybe[A] = Maybe.fromNullable(unsafe(s))
+//
+// Optimised String lookup. Performance testing has shown that the Java HashMap
+// is faster to create by about a factor of 5 than a Scala HashMap (and the gap
+// grows for larger collections).
+//
+// Java HashMap is faster to lookup than an IList, for all sizes (even 1 and 2
+// elements!).
+//
+// However, the scala HashMap is faster to lookup by about 20% than a Java
+// HashMap. so the usecase for this StringyMap is when everything needs to be
+// looked up approximately once, and then thrown away. For long lived stringy
+// map, prefer a scala HashMap.
+//
+// In other words, use toMap to cache subtype lookup, and StringyMap for field
+// lookup.
+private[jsonformat] abstract class StringyMap[A] {
+  def get(s: String): Maybe[A]
 }
 private[jsonformat] final class StringyHashMap[A](
   private[this] val hashmap: java.util.HashMap[String, A]
 ) extends StringyMap[A] {
-  override def unsafe(s: String) = hashmap.get(s)
+  def get(s: String) = Maybe.fromNullable(hashmap.get(s))
 }
-private[jsonformat] final class StringyIList[A >: Null](
-  private[this] val entries: IList[(String, A)]
-) extends StringyMap[A] {
-  @tailrec private[this] final def find(
-    rem: IList[(String, A)],
-    s: String
-  ): A =
-    rem match {
-      case _: INil[_] => null
-      case c: ICons[_] =>
-        val k = c.head._1
-        if ((k.eq(s)) || (k.hashCode == s.hashCode && k == s)) c.head._2
-        else find(c.tail, s)
-    }
-
-  override def unsafe(s: String) = find(entries, s)
+private[jsonformat] final class StringyEmptyMap[A] extends StringyMap[A] {
+  def get(s: String): Maybe[A] = Maybe.empty
 }
-private[jsonformat] final class StringySeq[A >: Null](
-  private[this] val entries: Seq[(String, A)]
-) extends StringyMap[A] {
-  override def unsafe(s: String): A = {
-    entries.foreach { e =>
-      val k = e._1
-      if ((k.eq(s)) || (k.hashCode == s.hashCode && k == s)) return e._2
-    }
-    null
-  }
+private[jsonformat] final class StringySingleMap[A](k: String, a: A)
+    extends StringyMap[A] {
+  def get(s: String) = if (k == s) Maybe.just(a) else Maybe.empty
 }
 private[jsonformat] object StringyMap {
-  private[this] val magic: Int = 5 // according to perf tests in scala-library
-
-  def apply[A >: Null](entries: IList[(String, A)]): StringyMap[A] = {
-    @tailrec def short(rem: IList[(String, A)], acc: Int): Boolean = rem match {
-      case _: INil[_] => true
-      case c: ICons[_] =>
-        if (acc >= magic) false
-        else short(c.tail, acc + 1)
-    }
-
-    if (short(entries, 0)) {
-      new StringyIList(entries)
-    } else {
-      val hashmap = new java.util.HashMap[String, A]
-      @tailrec def visit(rem: IList[(String, A)]): Unit = rem match {
-        case _: INil[_] => ()
-        case c: ICons[_] =>
-          hashmap.put(c.head._1, c.head._2)
-          visit(c.tail)
-      }
-      visit(entries)
-      new StringyHashMap(hashmap)
-    }
-  }
-  def apply[A >: Null](entries: Seq[(String, A)]): StringyMap[A] =
-    if (entries.length < magic) {
-      new StringySeq(entries)
-    } else {
-      val hashmap = new java.util.HashMap[String, A]
-      entries.foreach(e => hashmap.put(e._1, e._2))
-      new StringyHashMap(hashmap)
+  def apply[A >: Null](entries: IList[(String, A)]): StringyMap[A] =
+    entries match {
+      case INil()              => new StringyEmptyMap()
+      case ICons(head, INil()) => new StringySingleMap(head._1, head._2)
+      case _ =>
+        val hashmap = new java.util.HashMap[String, A]
+        @tailrec def visit(rem: IList[(String, A)]): Unit = rem match {
+          case _: INil[_] => ()
+          case c: ICons[_] =>
+            hashmap.put(c.head._1, c.head._2)
+            visit(c.tail)
+        }
+        visit(entries)
+        new StringyHashMap(hashmap)
     }
 }
 // scalafix:on
