@@ -147,16 +147,16 @@ class GeoJSONBenchmarks {
     jsonStringErr = getResourceAsString("che-err.geo.json")
     ast1 = JsParser(jsonString).getOrElse(null)
     ast2 = JsParser(jsonStringErr).getOrElse(null)
-    objm = decodeMagnolia().getOrElse(null)
+    objm = decodeMagnoliaSuccess().getOrElse(null)
     require(decodeMagnoliaError.isLeft)
     require(CompactPrinter(encodeMagnolia()) == jsonString)
-    objs = decodeShapeless().getOrElse(null)
+    objs = decodeShapelessSuccess().getOrElse(null)
     require(decodeShapelessError.isLeft)
     require(CompactPrinter(encodeShapeless()) == jsonString)
   }
 
   @Benchmark
-  def decodeMagnolia(): \/[String, m.GeoJSON] =
+  def decodeMagnoliaSuccess(): \/[String, m.GeoJSON] =
     ast1.as[m.GeoJSON]
 
   @Benchmark
@@ -167,7 +167,7 @@ class GeoJSONBenchmarks {
   def encodeMagnolia(): JsValue = objm.toJson
 
   @Benchmark
-  def decodeShapeless(): \/[String, s.GeoJSON] =
+  def decodeShapelessSuccess(): \/[String, s.GeoJSON] =
     ast1.as[s.GeoJSON]
 
   @Benchmark

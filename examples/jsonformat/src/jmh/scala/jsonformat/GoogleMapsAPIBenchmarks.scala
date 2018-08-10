@@ -97,17 +97,17 @@ class GoogleMapsAPIBenchmarks {
     ast1 = JsParser(jsonString).getOrElse(null)
     ast2 = JsParser(jsonString3).getOrElse(null)
 
-    objm = decodeMagnolia().getOrElse(null)
+    objm = decodeMagnoliaSuccess().getOrElse(null)
     require(CompactPrinter(encodeMagnolia()) == jsonString2)
     require(decodeMagnoliaError().isLeft)
 
-    objs = decodeShapeless().getOrElse(null)
+    objs = decodeShapelessSuccess().getOrElse(null)
     require(CompactPrinter(encodeShapeless()) == jsonString2)
     require(decodeShapelessError().isLeft)
   }
 
   @Benchmark
-  def decodeMagnolia(): \/[String, m.DistanceMatrix] =
+  def decodeMagnoliaSuccess(): \/[String, m.DistanceMatrix] =
     ast1.as[m.DistanceMatrix]
 
   @Benchmark
@@ -118,7 +118,7 @@ class GoogleMapsAPIBenchmarks {
   def encodeMagnolia(): JsValue = objm.toJson
 
   @Benchmark
-  def decodeShapeless(): \/[String, s.DistanceMatrix] =
+  def decodeShapelessSuccess(): \/[String, s.DistanceMatrix] =
     ast1.as[s.DistanceMatrix]
 
   @Benchmark

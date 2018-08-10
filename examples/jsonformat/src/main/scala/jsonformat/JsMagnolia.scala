@@ -3,7 +3,7 @@
 
 package jsonformat
 
-import scala.annotation.Annotation
+import scala.annotation.{ tailrec, Annotation }
 
 import magnolia._
 import scalaz._, Scalaz._
@@ -129,21 +129,23 @@ object JsMagnoliaDecoder {
 
       def fromJson(j: JsValue): String \/ A = j match {
         case obj @ JsObject(_) =>
-          ctx.constructEither { p =>
+          import mercator._
+          val lookup = StringyMap(obj.fields)
+          ctx.constructMonadic { p =>
             val field = fieldnames(p.index)
-            obj
+            lookup
               .get(field)
               .into {
-                case \/-(value) => p.typeclass.fromJson(value)
-                case err @ -\/(_) =>
+                case Maybe.Just(value) => p.typeclass.fromJson(value)
+                case _ =>
                   p.default match {
-                    case Some(default)          => \/-(default)
-                    case None if nulls(p.index) => err
-                    case None                   => p.typeclass.fromJson(JsNull)
+                    case Some(default) => \/-(default)
+                    case None if nulls(p.index) =>
+                      s"missing field '$field'".left
+                    case None => p.typeclass.fromJson(JsNull)
                   }
               }
-              .toEither
-          }.disjunction
+          }
         case other => fail("JsObject", other)
       }
     }
@@ -187,35 +189,81 @@ object JsMagnoliaDecoder {
 }
 
 // scalafix:off
-//
-// Optimised String lookup, works even faster if keys are interned.
-private[jsonformat] final class StringyMap[A](
-  private[this] val entries: Array[(String, A)]
-) {
-  private[this] val hashmap = {
-    val m = new java.util.HashMap[String, A]
-    entries.foreach {
-      case (s, a) => m.put(s, a)
-    }
-    m
+// Optimised String lookup
+private[jsonformat] sealed abstract class StringyMap[A] {
+  final def apply(s: String) = {
+    val got = unsafe(s)
+    if (got == null) sys.error("impossible") // careful now...
+    got
   }
-  private[this] val keys = entries.map(_._1).toArray
-
-  // only if you're certain this is total...
-  def apply(s: String): A = {
-    var i = 0
-    while (i < keys.length) {
-      if (keys(i).eq(s)) return entries(i)._2
-      i += 1
+  protected def unsafe(s: String): A
+  def get(s: String): Maybe[A] = Maybe.fromNullable(unsafe(s))
+}
+private[jsonformat] final class StringyHashMap[A](
+  private[this] val hashmap: java.util.HashMap[String, A]
+) extends StringyMap[A] {
+  override def unsafe(s: String) = hashmap.get(s)
+}
+private[jsonformat] final class StringyIList[A >: Null](
+  private[this] val entries: IList[(String, A)]
+) extends StringyMap[A] {
+  @tailrec private[this] final def find(
+    rem: IList[(String, A)],
+    s: String
+  ): A =
+    rem match {
+      case _: INil[_] => null
+      case c: ICons[_] =>
+        val k = c.head._1
+        if ((k.eq(s)) || (k.hashCode == s.hashCode && k == s)) c.head._2
+        else find(c.tail, s)
     }
-    hashmap.get(s)
-  }
 
+  override def unsafe(s: String) = find(entries, s)
+}
+private[jsonformat] final class StringySeq[A >: Null](
+  private[this] val entries: Seq[(String, A)]
+) extends StringyMap[A] {
+  override def unsafe(s: String): A = {
+    entries.foreach { e =>
+      val k = e._1
+      if ((k.eq(s)) || (k.hashCode == s.hashCode && k == s)) return e._2
+    }
+    null
+  }
 }
 private[jsonformat] object StringyMap {
-  def apply[F[_]: Foldable, A](a: F[(String, A)]): StringyMap[A] =
-    apply[A](a.toList)
-  def apply[A](a: Seq[(String, A)]): StringyMap[A] =
-    new StringyMap(a.toArray)
+  private[this] val magic: Int = 5 // according to perf tests in scala-library
+
+  def apply[A >: Null](entries: IList[(String, A)]): StringyMap[A] = {
+    @tailrec def short(rem: IList[(String, A)], acc: Int): Boolean = rem match {
+      case _: INil[_] => true
+      case c: ICons[_] =>
+        if (acc >= magic) false
+        else short(c.tail, acc + 1)
+    }
+
+    if (short(entries, 0)) {
+      new StringyIList(entries)
+    } else {
+      val hashmap = new java.util.HashMap[String, A]
+      @tailrec def visit(rem: IList[(String, A)]): Unit = rem match {
+        case _: INil[_] => ()
+        case c: ICons[_] =>
+          hashmap.put(c.head._1, c.head._2)
+          visit(c.tail)
+      }
+      visit(entries)
+      new StringyHashMap(hashmap)
+    }
+  }
+  def apply[A >: Null](entries: Seq[(String, A)]): StringyMap[A] =
+    if (entries.length < magic) {
+      new StringySeq(entries)
+    } else {
+      val hashmap = new java.util.HashMap[String, A]
+      entries.foreach(e => hashmap.put(e._1, e._2))
+      new StringyHashMap(hashmap)
+    }
 }
 // scalafix:on

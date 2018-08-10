@@ -10,6 +10,13 @@ import JsDecoder.ops._
 
 @typeclass(generateAllOps = false) trait JsDecoder[A] {
   def fromJson(json: JsValue): String \/ A
+
+  // for performance
+  final def xmap[B](f: A => B, @unused g: B => A): JsDecoder[B] = map(f)
+  final def map[B](f: A => B): JsDecoder[B] =
+    j => fromJson(j).map(f)
+  final def emap[B](f: A => String \/ B): JsDecoder[B] =
+    j => fromJson(j).flatMap(f)
 }
 object JsDecoder
     extends JsDecoderScalaz1

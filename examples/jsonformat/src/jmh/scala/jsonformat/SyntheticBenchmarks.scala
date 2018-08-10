@@ -81,12 +81,12 @@ class SyntheticBenchmarks {
 
     require(decodingErrorMagnolia().isLeft)
     // require(parsingErrorMagnolia().isLeft)
-    require(decodeMagnolia().getOrElse(null) == objm)
+    require(decodeMagnoliaSuccess().getOrElse(null) == objm)
     require(CompactPrinter(encodeMagnolia()) == jsonString)
 
     require(decodingErrorShapeless().isLeft)
     // require(parsingErrorShapeless().isLeft)
-    require(decodeShapeless().getOrElse(null) == objs)
+    require(decodeShapelessSuccess().getOrElse(null) == objs)
     require(CompactPrinter(encodeShapeless()) == jsonString)
   }
 
@@ -106,7 +106,7 @@ class SyntheticBenchmarks {
     ast2.as[m.Nested]
 
   //@Benchmark
-  def decodeMagnolia(): String \/ m.Nested =
+  def decodeMagnoliaSuccess(): String \/ m.Nested =
     ast1.as[m.Nested]
 
   //@Benchmark
@@ -117,7 +117,7 @@ class SyntheticBenchmarks {
     ast2.as[s.Nested]
 
   //@Benchmark
-  def decodeShapeless(): String \/ s.Nested =
+  def decodeShapelessSuccess(): String \/ s.Nested =
     ast1.as[s.Nested]
 
   //@Benchmark

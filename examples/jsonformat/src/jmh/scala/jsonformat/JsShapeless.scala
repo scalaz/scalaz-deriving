@@ -352,7 +352,11 @@ private[jsonformat] trait DerivedCoproductJsDecoder1 {
 }
 
 sealed trait DerivedProductJsDecoder[A, R, J <: HList, D <: HList] {
-  def fromJsObject(j: JsObject, anns: J, defaults: D): String \/ R
+  private[jsonformat] def fromJsObject(
+    j: StringyMap[JsValue],
+    anns: J,
+    defaults: D
+  ): String \/ R
 }
 object DerivedProductJsDecoder
     extends DerivedProductJsDecoder1
@@ -365,15 +369,17 @@ object DerivedProductJsDecoder
   ): JsDecoder[A] = new JsDecoder[A] {
     def fromJson(j: JsValue) = j match {
       case o @ JsObject(_) =>
-        R.value.value.fromJsObject(o, J(), D()).map(G.from)
+        val stringy = StringyMap(o.fields)
+        R.value.value.fromJsObject(stringy, J(), D()).map(G.from)
       case other => fail("JsObject", other)
     }
   }
 
   implicit def hnil[A]: DerivedProductJsDecoder[A, HNil, HNil, HNil] =
     new DerivedProductJsDecoder[A, HNil, HNil, HNil] {
-      private val nil                                        = HNil.right[String]
-      def fromJsObject(j: JsObject, a: HNil, defaults: HNil) = nil
+      private val nil = HNil.right[String]
+
+      def fromJsObject(j: StringyMap[JsValue], a: HNil, defaults: HNil) = nil
     }
 }
 private[jsonformat] trait DerivedProductJsDecoder1 {
@@ -398,14 +404,14 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
     ] {
       private val fieldname = K.value.name
       def fromJsObject(
-        j: JsObject,
+        j: StringyMap[JsValue],
         anns: None.type :: J,
         defaults: Option[H] :: D
       ) =
         for {
           head <- j.get(fieldname) match {
-                   case \/-(v) => H.value.fromJson(v)
-                   case -\/(_) =>
+                   case Maybe.Just(v) => H.value.fromJson(v)
+                   case _ =>
                      defaults.head match {
                        case Some(default) => \/-(default)
                        case None          => H.value.fromJson(JsNull)
@@ -439,8 +445,10 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
       Some[json] :: J,
       Option[H] :: D
     ] {
+      private val err = s"missing field '$field'".left[H]
+
       def fromJsObject(
-        j: JsObject,
+        j: StringyMap[JsValue],
         anns: Some[json] :: J,
         defaults: Option[H] :: D
       ) = {
@@ -448,8 +456,8 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
         val fieldname = ann.field.getOrElse(K.value.name)
         for {
           head <- j.get(fieldname) match {
-                   case \/-(v) => H.value.fromJson(v)
-                   case err @ -\/(_) =>
+                   case Maybe.Just(v) => H.value.fromJson(v)
+                   case _ =>
                      defaults.head match {
                        case Some(default)     => \/-(default)
                        case None if ann.nulls => err

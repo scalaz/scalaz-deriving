@@ -9,6 +9,10 @@ import JsEncoder.ops._
 
 @typeclass trait JsEncoder[A] {
   def toJson(obj: A): JsValue
+
+  // for performance
+  final def xmap[B](@unused f: A => B, g: B => A): JsEncoder[B] = contramap(g)
+  final def contramap[B](g: B => A): JsEncoder[B]               = b => toJson(g(b))
 }
 object JsEncoder
     extends JsEncoderScalaz1

@@ -86,6 +86,13 @@ object ProjectPlugin extends AutoPlugin {
         "-Xlog-reflective-calls",
         "-Yrangepos"
       ),
+      scalacOptions := {
+        // WORKAROUND https://github.com/propensive/magnolia/pull/132
+        val old = scalacOptions.value
+        val bin = scalaBinaryVersion.value
+        if (bin == "2.11") old.filterNot(_ == "-Xfatal-warnings")
+        else old
+      },
       scalacOptions ++= extraScalacOptions(scalaVersion.value),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),

@@ -41,9 +41,17 @@ final class IotaMacros(val c: blackbox.Context) {
           q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }
 
+      // this could be optimised if there was a way to create an immutable.Seq
+      // from a Product, but alas there is only an Iterator. A custom impl may
+      // be needed.
+      val cons =
+        if (aSym.isCaseClass)
+          q"(a: $A) => ${Prod.companion}.unsafeApply[$R](a.productIterator.toList)"
+        else q"(a: $A) => ${Prod.companion}[$R](..$fromParts)"
+
       q"""
        _root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]](
-         (a: $A) => ${Prod.companion}[$R](..$fromParts),
+         $cons,
          (p: $Prod[$R]) => ${aSym.companion}(..$toParts): $A
        )
        """

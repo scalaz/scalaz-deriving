@@ -327,17 +327,17 @@ class TwitterAPIBenchmarks {
     jsonString3 = getResourceAsString("twitter_api_error_response.json")
     ast1 = JsParser(jsonString).getOrElse(null)
     ast2 = JsParser(jsonString3).getOrElse(null)
-    objm = decodeMagnolia().getOrElse(null)
+    objm = decodeMagnoliaSuccess().getOrElse(null)
     require(CompactPrinter(encodeMagnolia()) == jsonString2)
     require(decodeMagnoliaError.isLeft)
 
-    objs = decodeShapeless().getOrElse(null)
+    objs = decodeShapelessSuccess().getOrElse(null)
     require(CompactPrinter(encodeShapeless()) == jsonString2)
     require(decodeShapelessError.isLeft)
   }
 
   @Benchmark
-  def decodeMagnolia(): \/[String, List[m.Tweet]] =
+  def decodeMagnoliaSuccess(): \/[String, List[m.Tweet]] =
     ast1.as[List[m.Tweet]]
 
   @Benchmark
@@ -348,7 +348,7 @@ class TwitterAPIBenchmarks {
   def encodeMagnolia(): JsValue = objm.toJson
 
   @Benchmark
-  def decodeShapeless(): \/[String, List[s.Tweet]] =
+  def decodeShapelessSuccess(): \/[String, List[s.Tweet]] =
     ast1.as[List[s.Tweet]]
 
   @Benchmark

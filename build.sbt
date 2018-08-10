@@ -1,7 +1,7 @@
 val scalazVersion     = "7.2.25"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.13.0"
-val magnoliaVersion   = "0.9.1"
+val magnoliaVersion   = "0.10.0"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -77,7 +77,9 @@ val base = (project in file("scalaz-deriving-base")).settings(
 )
 
 // val magnolia_upstream = ProjectRef(
-//   uri("https://github.com/propensive/magnolia.git#6599b37b2da9b0adb69c4402adaa6e92d64e1f88"),
+//   uri(
+//     "https://github.com/propensive/magnolia.git#891bbe4bea65e28e94c7ee4b02c70c27fd3b3f01"
+//   ),
 //   "coreJVM"
 // )
 
