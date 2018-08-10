@@ -71,6 +71,20 @@ You can provide your own project-specific wirings in a `deriving.conf` file, whi
 
 The config file is plain text with one line per wiring, formatted: `fqn.TypeClass=fqn.DerivedTypeClass.method`, comments start with `#`.
 
+If you wish to use `@deriving` with a custom deriver defined in the same project as the deriver, add your `resources` directory to the compiler classpath, e.g.
+
+```scala
+  // WORKAROUND: https://github.com/sbt/sbt/issues/1965
+  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
+    managedClasspath in config := {
+      val res = (resourceDirectory in config).value
+      val old = (managedClasspath in config).value
+      Attributed.blank(res) +: old
+    }
+```
+
+and call with, e.g. `resourcesOnCompilerCp(Compile)`.
+
 ## `@xderiving`
 
 A variant `@xderiving` works only on classes with one parameter (including those that extend `AnyVal`), making use of an `.xmap` that the typeclass may provide directly or via an instance of `scalaz.InvariantFunctor`, e.g.
@@ -145,27 +159,17 @@ libraryDependencies ++= Seq(
 
   // instances for Show and Arbitrary
   "com.fommil" %% "scalaz-deriving-magnolia" % derivingVersion,
-  "com.fommil" %% "scalaz-deriving-scalacheck" % derivingVersion
+  "com.fommil" %% "scalaz-deriving-scalacheck" % derivingVersion,
+
+  // shapeless alternatives to Deriving, trading compiletime for
+  // runtime performance. See below for additional actions.
+  "com.fommil" %% "scalaz-deriving-shapeless" % derivingVersion
 )
 ```
 
 where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil%20a:scalaz-deriving_2.12).
 
-Snapshots are also available if you have `resolvers += Resolver.sonatypeRepo("snapshots")`.
-
-If you wish to use `@deriving` with a custom deriver, you need to add your `resources` directory to the compiler classpath, e.g.
-
-```scala
-  // WORKAROUND: https://github.com/sbt/sbt/issues/1965
-  def resourcesOnCompilerCp(config: Configuration): Setting[_] =
-    managedClasspath in config := {
-      val res = (resourceDirectory in config).value
-      val old = (managedClasspath in config).value
-      Attributed.blank(res) +: old
-    }
-```
-
-and call with, e.g. `resourcesOnCompilerCp(Compile)`.
+Note that the opt-in shapeless derivations require annotations on every element of an ADT, not just the top element.
 
 ## Breaking Changes
 

@@ -1,4 +1,4 @@
-// Copyright: 2010 - 2018 Sam Halliday
+// Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 // Copyright 2018 Andriy Plokhotnyuk

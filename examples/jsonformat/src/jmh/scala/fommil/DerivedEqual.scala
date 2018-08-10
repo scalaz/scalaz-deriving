@@ -1,0 +1,1 @@
+../../../../../../shapeless/src/main/scala/fommil/DerivedEqual.scala

@@ -86,13 +86,13 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
 
     if (aSym.isSealed) {
       q"""
-       val gen = _root_.iotaz.CopGen.gen[$A, $data]
+       val gen = _root_.iotaz.Cop.gen[$A, $data]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
        _root_.scalaz.Deriving[$F].xcoproductz(tcs)(gen.from, gen.to)
        """
     } else {
       q"""
-       val gen = _root_.iotaz.ProdGen.gen[$A, $data]
+       val gen = _root_.iotaz.Prod.gen[$A, $data]
        val tcs = _root_.iotaz.Prod[$tcs](..$tcs_rhs)
        _root_.scalaz.DerivingProducts[$F].xproductz(tcs)(gen.from, gen.to)
        """

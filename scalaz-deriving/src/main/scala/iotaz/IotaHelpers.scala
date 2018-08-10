@@ -13,15 +13,6 @@ import TList.Compute.{ Aux => ↦ }
 import TList.Op.{ Map => ƒ }
 
 import scalaz._, Scalaz._
-import Isomorphism._
-
-object ProdGen {
-  def gen[A, R <: TList]: A <=> Prod[R] = macro IotaMacros.prodGen[A, R]
-}
-
-object CopGen {
-  def gen[A, R <: TList]: A <=> Cop[R] = macro IotaMacros.copGen[A, R]
-}
 
 // unintentional joke about the state of northern irish politics...
 object LazyProd {
@@ -44,17 +35,20 @@ object LazyProd {
 }
 
 object Prods {
+  import scala.Array
+  import internal.ArraySeq
+
   val empty: Prod[TNil] = Prod()
   def from1T[A1](e: A1): Prod[A1 :: TNil] =
-    Prod.unsafeApply(List(e))
+    Prod.unsafeApply(new ArraySeq(Array(e)))
   def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
-    Prod.unsafeApply(List(e._1, e._2))
+    Prod.unsafeApply(new ArraySeq(Array(e._1, e._2)))
   def from3T[A1, A2, A3](e: (A1, A2, A3)): Prod[A1 :: A2 :: A3 :: TNil] =
-    Prod.unsafeApply(List(e._1, e._2, e._3))
+    Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3)))
   def from4T[A1, A2, A3, A4](
     e: (A1, A2, A3, A4)
   ): Prod[A1 :: A2 :: A3 :: A4 :: TNil] =
-    Prod.unsafeApply(List(e._1, e._2, e._3, e._4))
+    Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3, e._4)))
 
   def to1T[A1](a: Prod[A1 :: TNil]): A1 = a.values(0).asInstanceOf[A1]
   def to2T[A1, A2](a: Prod[A1 :: A2 :: TNil]): (A1, A2) = (
@@ -75,9 +69,38 @@ object Prods {
     a.values(3).asInstanceOf[A4]
   )
 
+  import iotaz.internal.{ OptimisedIndexedSeq => Backdoor }
+
+  // scalafix:off
+  implicit private final class BackdoorOps[A](private val self: Backdoor[A])
+      extends AnyVal {
+    def zipmap[B, C](bs: Backdoor[B])(f: (A, B) => C): IList[C] = {
+      var lst = IList.empty[C]
+      var i   = self.length - 1
+      while (i >= 0) {
+        lst ::= f(self(i), bs(i))
+        i -= 1
+      }
+      lst
+    }
+    def zipmap2[B1, B2, C](
+      b1s: Backdoor[B1],
+      b2s: Backdoor[B2]
+    )(f: (A, B1, B2) => C): IList[C] = {
+      var lst = IList.empty[C]
+      var i   = self.length - 1
+      while (i >= 0) {
+        lst ::= f(self(i), b1s(i), b2s(i))
+        i -= 1
+      }
+      lst
+    }
+  }
+  // scalafix:on
+
   object ops {
 
-    final implicit class UnsafeProds[T <: TList](
+    implicit final class UnsafeProds[T <: TList](
       private val self: Prod[T]
     ) extends AnyVal {
       def as[A <: TList]: Prod[A] = self.asInstanceOf[Prod[A]]
@@ -87,14 +110,23 @@ object Prods {
         extends AnyVal {
       def zip[B <: TList, H[_]](b: Prod[B])(
         implicit ev: H ƒ A ↦ B
-      ): List[Id /~\ H] = {
-        val _ = ev
+      ): IList[Id /~\ H] = {
+        val _  = ev
+        val as = a.values
+        val bs = b.values.asInstanceOf[Seq[H[Any]]]
 
-        a.values
-          .zip(b.values.asInstanceOf[Seq[H[Any]]])
-          .map {
-            case (a, h) => /~\[Id, H, Any](a, h)
-          }(breakOut)
+        (as, bs) match {
+          case (ap: Backdoor[_], bp: Backdoor[H[_]]) =>
+            ap.zipmap(bp)((a, h) => /~\[Id, H, Any](a, h))
+          case _ if as.length == 0 => IList.empty
+          case _ =>
+            val lst: List[Id /~\ H] = as
+              .zip(bs)
+              .map {
+                case (a, h) => /~\[Id, H, Any](a, h)
+              }(breakOut)
+            lst.toIList
+        }
       }
 
       def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(
@@ -151,15 +183,30 @@ object Prods {
     ) extends AnyVal {
       def zip[B <: TList, H[_]](b: Prod[B])(
         implicit ev: H ƒ A ↦ B
-      ): List[Pair /~\ H] = {
+      ): IList[Pair /~\ H] = {
         val _        = ev
         val (a1, a2) = as
-        a1.values
-          .zip(a2.values)
-          .zip(b.values.asInstanceOf[Seq[H[Any]]])
-          .map {
-            case (aa, h) => /~\[Pair, H, Any](aa, h)
-          }(breakOut)
+
+        val a1s = a1.values
+        val a2s = a2.values
+        val bs  = b.values.asInstanceOf[Seq[H[Any]]]
+
+        (a1s, a2s, bs) match {
+          case (p1: Backdoor[_], p2: Backdoor[_], p3: Backdoor[H[_]]) =>
+            p1.zipmap2(p2, p3)((a, b, h) => /~\[Pair, H, Any]((a, b), h))
+
+          case _ if as.length == 0 => IList.empty
+          case _ =>
+            val lst: List[Pair /~\ H] = a1.values
+              .zip(a2.values)
+              .zip(bs)
+              .map {
+                case (aa, h) => /~\[Pair, H, Any](aa, h)
+              }(breakOut)
+            lst.toIList
+
+        }
+
       }
     }
   }

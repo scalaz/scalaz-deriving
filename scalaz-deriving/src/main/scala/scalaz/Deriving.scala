@@ -84,12 +84,12 @@ object Deriving {
    * generated:
    *
    * {{{
-   * val iso = ProdGen.gen[Foo, String :: Int :: TNil]
+   * val iso = Prod.gen[Foo, String :: Int :: TNil]
    * val tcs = Prod(Need(Equal[String]), Need(Equal[Int]))
    * implicitly[Deriving[Equal]].xproductz(tcs)(iso.to, iso.from)
    * }}}
    *
-   * And similarly for a sealed trait (but instead calling `CopGen.gen` and
+   * And similarly for a sealed trait (but instead calling `Cop.gen` and
    * `xcoproductz`).
    */
   def gen[F[_], A]: F[A] = macro macros.IotaDerivingMacros.gen[F, A]
@@ -103,9 +103,8 @@ object Deriving {
     )(
       implicit ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
-      (g(z1), g(z2)).zip(tcs).foldRight(true) {
-        case ((a1, a2) /~\ fa, acc) =>
-          (quick(a1, a2) || fa.value.equal(a1, a2)) && acc
+      (g(z1), g(z2)).zip(tcs).all {
+        case (a1, a2) /~\ fa => quick(a1, a2) || fa.value.equal(a1, a2)
       }
     }
 

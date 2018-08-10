@@ -1,10 +1,11 @@
-// Copyright: 2010 - 2018 Sam Halliday
+// Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 // Copyright 2018 Andriy Plokhotnyuk
 
 package jsonformat.benchmarks
 
+import fommil.DerivedEqual
 import jsonformat._
 import jsonformat.JsDecoder.ops._
 import jsonformat.JsEncoder.ops._
@@ -16,8 +17,8 @@ import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
 
 // To enable the yourkit agent enable a profiling mode, e.g.:
 //
-// set jsonformat/neoJmhYourkit in Jmh := Seq("sampling", "onexit=snapshot")
-// set jsonformat/neoJmhYourkit in Jmh := Seq("allocsampled", "onexit=snapshot")
+// set jsonformat/neoJmhYourkit in Jmh := Seq("sampling")
+// set jsonformat/neoJmhYourkit in Jmh := Seq("allocsampled")
 //
 // more options at https://www.yourkit.com/docs/java/help/startup_options.jsp
 //
@@ -26,6 +27,19 @@ import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
 // jsonformat/jmh:run -i 1 -wi 0 -f0 -t1 -w0 -r10 GoogleMaps.*encodeMagnolia
 //
 // and look for the generated snapshot in YourKit (ignore the rest)
+//
+// also try appending the async profiler, e.g.
+//
+//  -prof jmh.extras.Async
+//
+// which may require kernel permissions:
+//
+//   echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
+//
+// and needs these variables:
+//
+// export ASYNC_PROFILER_DIR=$HOME/Projects/async-profiler
+// export FLAME_GRAPH_DIR=$HOME/Projects/FlameGraph
 
 package m {
   @deriving(JsEncoder, JsDecoder)
@@ -44,6 +58,19 @@ package m {
     rows: IList[Rows],
     status: String
   )
+
+  object Value {
+    implicit val equal: Equal[Value] = MagnoliaEqual.gen
+  }
+  object Elements {
+    implicit val equal: Equal[Elements] = MagnoliaEqual.gen
+  }
+  object Rows {
+    implicit val equal: Equal[Rows] = MagnoliaEqual.gen
+  }
+  object DistanceMatrix {
+    implicit val equal: Equal[DistanceMatrix] = MagnoliaEqual.gen
+  }
 }
 
 package s {
@@ -61,31 +88,70 @@ package s {
   object Value {
     implicit val encoder: JsEncoder[Value] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Value] = DerivedProductJsDecoder.gen
+    implicit val equal: Equal[Value]       = DerivedEqual.gen
   }
   object Elements {
     implicit val encoder: JsEncoder[Elements] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Elements] = DerivedProductJsDecoder.gen
+    implicit val equal: Equal[Elements]       = DerivedEqual.gen
   }
   object Rows {
     implicit val encoder: JsEncoder[Rows] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Rows] = DerivedProductJsDecoder.gen
+    implicit val equal: Equal[Rows]       = DerivedEqual.gen
   }
   object DistanceMatrix {
     implicit val encoder: JsEncoder[DistanceMatrix] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[DistanceMatrix] =
       DerivedProductJsDecoder.gen
+    implicit val equal: Equal[DistanceMatrix] = DerivedEqual.gen
+  }
+
+}
+
+package z {
+  @deriving(JsDecoder)
+  final case class Value(text: String, value: Int)
+
+  @deriving(JsDecoder)
+  final case class Elements(distance: Value, duration: Value, status: String)
+
+  @deriving(JsDecoder)
+  final case class Rows(elements: IList[Elements])
+
+  @deriving(JsDecoder)
+  final case class DistanceMatrix(
+    destination_addresses: IList[String],
+    origin_addresses: IList[String],
+    rows: IList[Rows],
+    status: String
+  )
+
+  object Value {
+    implicit val equal: Equal[Value] = Deriving.gen[Equal, Value]
+  }
+  object Elements {
+    implicit val equal: Equal[Elements] = Deriving.gen[Equal, Elements]
+  }
+  object Rows {
+    implicit val equal: Equal[Rows] = Deriving.gen[Equal, Rows]
+  }
+  object DistanceMatrix {
+    implicit val equal: Equal[DistanceMatrix] =
+      Deriving.gen[Equal, DistanceMatrix]
   }
 
 }
 
 @State(Scope.Benchmark)
 class GoogleMapsAPIBenchmarks {
-  var jsonString: String     = _
-  var jsonString2: String    = _
-  var jsonString3: String    = _
-  var objm: m.DistanceMatrix = _
-  var objs: s.DistanceMatrix = _
-  var ast1, ast2: JsValue    = _
+  var jsonString: String                     = _
+  var jsonString2: String                    = _
+  var jsonString3: String                    = _
+  var objm, objm_, objm__ : m.DistanceMatrix = _
+  var objs, objs_, objs__ : s.DistanceMatrix = _
+  var objz, objz_, objz__ : z.DistanceMatrix = _
+  var ast1, ast2: JsValue                    = _
 
   @Setup
   def setup(): Unit = {
@@ -104,6 +170,15 @@ class GoogleMapsAPIBenchmarks {
     objs = decodeShapelessSuccess().getOrElse(null)
     require(CompactPrinter(encodeShapeless()) == jsonString2)
     require(decodeShapelessError().isLeft)
+
+    objz = decodeScalazSuccess().getOrElse(null)
+    // not reusing the same objects to avoid instance identity
+    objm_ = decodeMagnoliaSuccess().getOrElse(null)
+    objs_ = decodeShapelessSuccess().getOrElse(null)
+    objz_ = decodeScalazSuccess().getOrElse(null)
+    objm__ = decodeMagnoliaSuccess().getOrElse(null).copy(status = "z")
+    objs__ = decodeShapelessSuccess().getOrElse(null).copy(status = "z")
+    objz__ = decodeScalazSuccess().getOrElse(null).copy(status = "z")
   }
 
   @Benchmark
@@ -113,6 +188,9 @@ class GoogleMapsAPIBenchmarks {
   @Benchmark
   def decodeMagnoliaError(): \/[String, m.DistanceMatrix] =
     ast2.as[m.DistanceMatrix]
+
+  def decodeScalazSuccess(): \/[String, z.DistanceMatrix] =
+    ast1.as[z.DistanceMatrix]
 
   @Benchmark
   def encodeMagnolia(): JsValue = objm.toJson
@@ -127,4 +205,23 @@ class GoogleMapsAPIBenchmarks {
 
   @Benchmark
   def encodeShapeless(): JsValue = objs.toJson
+
+  @Benchmark
+  def equalScalazTrue(): Boolean = objz === objz_
+
+  @Benchmark
+  def equalScalazFalse(): Boolean = objz === objz__
+
+  @Benchmark
+  def equalMagnoliaTrue(): Boolean = objm === objm_
+
+  @Benchmark
+  def equalMagnoliaFalse(): Boolean = objm === objm__
+
+  @Benchmark
+  def equalShapelessTrue(): Boolean = objs === objs_
+
+  @Benchmark
+  def equalShapelessFalse(): Boolean = objs === objs__
+
 }

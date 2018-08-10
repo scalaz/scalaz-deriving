@@ -76,13 +76,6 @@ val base = (project in file("scalaz-deriving-base")).settings(
   )
 )
 
-// val magnolia_upstream = ProjectRef(
-//   uri(
-//     "https://github.com/propensive/magnolia.git#891bbe4bea65e28e94c7ee4b02c70c27fd3b3f01"
-//   ),
-//   "coreJVM"
-// )
-
 val magnolia = project
   .dependsOn(
     //magnolia_upstream,
@@ -94,6 +87,19 @@ val magnolia = project
     libraryDependencies ++= Seq(
       "com.propensive" %% "magnolia"    % magnoliaVersion,
       "org.scalaz"     %% "scalaz-core" % scalazVersion
+    )
+  )
+
+val shapeless = project
+  .dependsOn(
+    macros % "test"
+  )
+  .settings(ScalazDeriving)
+  .settings(
+    name := "scalaz-deriving-shapeless",
+    libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless"   % shapelessVersion,
+      "org.scalaz"  %% "scalaz-core" % scalazVersion
     )
   )
 
@@ -130,7 +136,7 @@ val deriving = (project in file("scalaz-deriving"))
       "io.estatico"          %% "newtype"       % "0.4.2" % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion % "test",
       "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
-      "io.frees"             %% "iotaz-core"    % "0.3.8"
+      "io.frees"             %% "iotaz-core"    % "0.3.10"
     )
   )
 
@@ -163,7 +169,6 @@ val jsonformat = (project in file("examples/jsonformat"))
     KindProjector,
     MacroParadise,
     MonadicFor,
-    startYear := Some(2010),
     libraryDependencies ++= Seq(
       "eu.timepit"           %% "refined"     % "0.9.2",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
@@ -176,7 +181,8 @@ val jsonformat = (project in file("examples/jsonformat"))
   .settings(
     inConfig(Jmh)(
       org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
-    )
+    ),
+    libraryDependencies += "pl.project13.scala" % "sbt-jmh-extras" % "0.3.4" % "test,jmh"
   )
 
 // root project
