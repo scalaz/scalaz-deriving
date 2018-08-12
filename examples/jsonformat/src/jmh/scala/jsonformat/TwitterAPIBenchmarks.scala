@@ -649,7 +649,10 @@ package h {
         } yield Urls(url, expanded_url, display_url, indices)
     )
 
-    implicit val equal: Equal[Urls] = DerivedEqual.gen
+    implicit val equal: Equal[Urls] = (a1, a2) =>
+      a1.url === a2.url &&
+        a1.expanded_url === a2.expanded_url &&
+        a1.display_url === a2.display_url
   }
   object Url {
     implicit val encoder: JsEncoder[Url] = a =>
@@ -663,7 +666,7 @@ package h {
           urls <- j.getAs[IList[Urls]]("urls")
         } yield Url(urls)
     )
-    implicit val equal: Equal[Url] = DerivedEqual.gen
+    implicit val equal: Equal[Url] = (a1, a2) => a1.urls === a2.urls
   }
   object UserEntities {
     implicit val encoder: JsEncoder[UserEntities] = a =>
@@ -679,7 +682,9 @@ package h {
           description <- j.getAs[Url]("description")
         } yield UserEntities(url, description)
     )
-    implicit val equal: Equal[UserEntities] = DerivedEqual.gen
+    implicit val equal: Equal[UserEntities] = (a1, a2) =>
+      a1.url === a2.url &&
+        a1.description === a2.description
   }
   object UserMentions {
     implicit val encoder: JsEncoder[UserMentions] = a =>
@@ -701,7 +706,13 @@ package h {
           indices     <- j.getAs[IList[Int]]("indices")
         } yield UserMentions(screen_name, name, id, id_str, indices)
     )
-    implicit val equal: Equal[UserMentions] = DerivedEqual.gen
+    implicit val equal: Equal[UserMentions] = (a1, a2) =>
+      a1.screen_name === a2.screen_name &&
+        a1.name === a2.name &&
+        a1.id === a2.id &&
+        a1.id_str === a2.id_str &&
+        a1.indices === a2.indices
+
   }
   object User {
     implicit val encoder: JsEncoder[User] = a =>
@@ -853,7 +864,49 @@ package h {
             translator_type
           )
     )
-    implicit val equal: Equal[User] = DerivedEqual.gen
+    implicit val equal: Equal[User] = (a1, a2) =>
+      a1.id === a2.id &&
+        a1.id_str === a2.id_str &&
+        a1.name === a2.name &&
+        a1.screen_name === a2.screen_name &&
+        a1.location === a2.location &&
+        a1.description === a2.description &&
+        a1.url === a2.url &&
+        a1.entities === a2.entities &&
+        a1.`protected` === a2.`protected` &&
+        a1.followers_count === a2.followers_count &&
+        a1.friends_count === a2.friends_count &&
+        a1.listed_count === a2.listed_count &&
+        a1.created_at === a2.created_at &&
+        a1.favourites_count === a2.favourites_count &&
+        a1.utc_offset === a2.utc_offset &&
+        a1.time_zone === a2.time_zone &&
+        a1.geo_enabled === a2.geo_enabled &&
+        a1.verified === a2.verified &&
+        a1.statuses_count === a2.statuses_count &&
+        a1.lang === a2.lang &&
+        a1.contributors_enabled === a2.contributors_enabled &&
+        a1.is_translator === a2.is_translator &&
+        a1.is_translation_enabled === a2.is_translation_enabled &&
+        a1.profile_background_color === a2.profile_background_color &&
+        a1.profile_background_image_url === a2.profile_background_image_url &&
+        a1.profile_background_image_url_https === a2.profile_background_image_url_https &&
+        a1.profile_background_tile === a2.profile_background_tile &&
+        a1.profile_image_url === a2.profile_image_url &&
+        a1.profile_image_url_https === a2.profile_image_url_https &&
+        a1.profile_banner_url === a2.profile_banner_url &&
+        a1.profile_link_color === a2.profile_link_color &&
+        a1.profile_sidebar_border_color === a2.profile_sidebar_border_color &&
+        a1.profile_sidebar_fill_color === a2.profile_sidebar_fill_color &&
+        a1.profile_text_color === a2.profile_text_color &&
+        a1.profile_use_background_image === a2.profile_use_background_image &&
+        a1.has_extended_profile === a2.has_extended_profile &&
+        a1.default_profile === a2.default_profile &&
+        a1.default_profile_image === a2.default_profile_image &&
+        a1.following === a2.following &&
+        a1.follow_request_sent === a2.follow_request_sent &&
+        a1.notifications === a2.notifications &&
+        a1.translator_type === a2.translator_type
   }
   object Entities {
     implicit val encoder: JsEncoder[Entities] = a =>
@@ -873,7 +926,11 @@ package h {
           urls          <- j.getAs[IList[Urls]]("urls")
         } yield Entities(hashtags, symbols, user_mentions, urls)
     )
-    implicit val equal: Equal[Entities] = DerivedEqual.gen
+    implicit val equal: Equal[Entities] = (a1, a2) =>
+      a1.hashtags === a2.hashtags &&
+        a1.symbols === a2.symbols &&
+        a1.user_mentions === a2.user_mentions &&
+        a1.urls === a2.urls
   }
   object RetweetedStatus {
     def opt[A: JsEncoder](
@@ -976,7 +1033,32 @@ package h {
             lang
           )
     )
-    implicit val equal: Equal[RetweetedStatus] = DerivedEqual.gen
+    implicit val equal: Equal[RetweetedStatus] = (a1, a2) =>
+      a1.created_at === a2.created_at &&
+        a1.id === a2.id &&
+        a1.id_str === a2.id_str &&
+        a1.text === a2.text &&
+        a1.truncated === a2.truncated &&
+        a1.entities === a2.entities &&
+        a1.source === a2.source &&
+        a1.in_reply_to_status_id === a2.in_reply_to_status_id &&
+        a1.in_reply_to_status_id_str === a2.in_reply_to_status_id_str &&
+        a1.in_reply_to_user_id === a2.in_reply_to_user_id &&
+        a1.in_reply_to_user_id_str === a2.in_reply_to_user_id_str &&
+        a1.in_reply_to_screen_name === a2.in_reply_to_screen_name &&
+        a1.user === a2.user &&
+        a1.geo === a2.geo &&
+        a1.coordinates === a2.coordinates &&
+        a1.place === a2.place &&
+        a1.contributors === a2.contributors &&
+        a1.is_quote_status === a2.is_quote_status &&
+        a1.retweet_count === a2.retweet_count &&
+        a1.favorite_count === a2.favorite_count &&
+        a1.favorited === a2.favorited &&
+        a1.retweeted === a2.retweeted &&
+        a1.possibly_sensitive === a2.possibly_sensitive &&
+        a1.lang === a2.lang
+
   }
   object Tweet {
     def opt[A: JsEncoder](
@@ -1082,7 +1164,33 @@ package h {
             lang
           )
     )
-    implicit val equal: Equal[Tweet] = DerivedEqual.gen
+    implicit val equal: Equal[Tweet] = (a1, a2) =>
+      a1.created_at === a2.created_at &&
+        a1.id === a2.id &&
+        a1.id_str === a2.id_str &&
+        a1.text === a2.text &&
+        a1.truncated === a2.truncated &&
+        a1.entities === a2.entities &&
+        a1.source === a2.source &&
+        a1.in_reply_to_status_id === a2.in_reply_to_status_id &&
+        a1.in_reply_to_status_id_str === a2.in_reply_to_status_id_str &&
+        a1.in_reply_to_user_id === a2.in_reply_to_user_id &&
+        a1.in_reply_to_user_id_str === a2.in_reply_to_user_id_str &&
+        a1.in_reply_to_screen_name === a2.in_reply_to_screen_name &&
+        a1.user === a2.user &&
+        a1.geo === a2.geo &&
+        a1.coordinates === a2.coordinates &&
+        a1.place === a2.place &&
+        a1.contributors === a2.contributors &&
+        a1.retweeted_status === a2.retweeted_status &&
+        a1.is_quote_status === a2.is_quote_status &&
+        a1.retweet_count === a2.retweet_count &&
+        a1.favorite_count === a2.favorite_count &&
+        a1.favorited === a2.favorited &&
+        a1.retweeted === a2.retweeted &&
+        a1.possibly_sensitive === a2.possibly_sensitive &&
+        a1.lang === a2.lang
+
   }
 }
 
@@ -1182,5 +1290,11 @@ class TwitterAPIBenchmarks {
 
   @Benchmark
   def equalShapelessFalse(): Boolean = objs === objs__
+
+  @Benchmark
+  def equalManualTrue(): Boolean = objh === objh_
+
+  @Benchmark
+  def equalManualFalse(): Boolean = objh === objh__
 
 }

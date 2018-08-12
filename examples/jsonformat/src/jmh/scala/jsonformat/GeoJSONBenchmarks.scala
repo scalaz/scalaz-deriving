@@ -339,6 +339,45 @@ package h {
         case other => fail("valid type field", other)
       }
     }
+    implicit val equal: Equal[Geometry] = (a1, a2) =>
+      a1 match {
+        case Point(c1) =>
+          a2 match {
+            case Point(c2) => c1 === c2
+            case _         => false
+          }
+        case MultiPoint(c1) =>
+          a2 match {
+            case MultiPoint(c2) => c1 === c2
+            case _              => false
+          }
+        case LineString(c1) =>
+          a2 match {
+            case LineString(c2) => c1 === c2
+            case _              => false
+          }
+        case MultiLineString(c1) =>
+          a2 match {
+            case MultiLineString(c2) => c1 === c2
+            case _                   => false
+          }
+        case Polygon(c1) =>
+          a2 match {
+            case Polygon(c2) => c1 === c2
+            case _           => false
+          }
+        case MultiPolygon(c1) =>
+          a2 match {
+            case MultiPolygon(c2) => c1 === c2
+            case _                => false
+          }
+        case GeometryCollection(gs1) =>
+          a2 match {
+            case GeometryCollection(gs2) => gs1 === gs2
+            case _                       => false
+          }
+      }
+
   }
 
   object GeoJSON {
@@ -382,6 +421,19 @@ package h {
         case other => fail("valid type field", other)
       }
     }
+    implicit val equal: Equal[GeoJSON] = (a1, a2) =>
+      a1 match {
+        case Feature(props1, geo1) =>
+          a2 match {
+            case Feature(props2, geo2) => props1 === props2 && geo1 === geo2
+            case _                     => false
+          }
+        case FeatureCollection(features1) =>
+          a2 match {
+            case FeatureCollection(features2) => features1 === features2
+            case _                            => false
+          }
+      }
   }
 
 }
@@ -420,9 +472,11 @@ class GeoJSONBenchmarks {
     objm_ = decodeMagnoliaSuccess().getOrElse(null)
     objs_ = decodeShapelessSuccess().getOrElse(null)
     objz_ = decodeScalazSuccess().getOrElse(null)
+    objh_ = decodeManualSuccess().getOrElse(null)
     objm__ = ast2.as[m.GeoJSON].getOrElse(null)
     objs__ = ast2.as[s.GeoJSON].getOrElse(null)
     objz__ = ast2.as[z.GeoJSON].getOrElse(null)
+    objh__ = ast2.as[h.GeoJSON].getOrElse(null)
   }
 
   @Benchmark
@@ -478,5 +532,11 @@ class GeoJSONBenchmarks {
 
   @Benchmark
   def equalShapelessFalse(): Boolean = objs === objs__
+
+  @Benchmark
+  def equalManualTrue(): Boolean = objh === objh_
+
+  @Benchmark
+  def equalManualFalse(): Boolean = objh === objh__
 
 }

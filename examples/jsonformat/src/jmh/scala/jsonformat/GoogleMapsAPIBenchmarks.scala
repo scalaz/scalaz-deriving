@@ -174,6 +174,8 @@ package h {
         value <- j.getAs[Int]("value")
       } yield Value(text, value)
     }
+    implicit val equal: Equal[Value] = (a1, a2) =>
+      a1.text === a2.text && a1.value === a2.value
   }
   object Elements {
     implicit val encoder: JsEncoder[Elements] = a =>
@@ -190,6 +192,10 @@ package h {
         status   <- j.getAs[String]("status")
       } yield Elements(distance, duration, status)
     }
+    implicit val equal: Equal[Elements] = (a1, a2) =>
+      a1.distance === a2.distance &&
+        a1.duration === a2.duration &&
+        a1.status === a2.status
   }
   object Rows {
     private def list[A: JsEncoder](
@@ -206,6 +212,7 @@ package h {
     implicit val decoder: JsDecoder[Rows] = JsDecoder.obj(1) { j =>
       j.getNullable[IList[Elements]]("elements").map(Rows(_))
     }
+    implicit val equal: Equal[Rows] = (a1, a2) => a1.elements === a2.elements
   }
   object DistanceMatrix {
     private def list[A: JsEncoder](
@@ -231,6 +238,11 @@ package h {
         status <- j.getAs[String]("status")
       } yield DistanceMatrix(dest, origin, rows, status)
     }
+    implicit val equal: Equal[DistanceMatrix] = (a1, a2) =>
+      a1.destination_addresses === a2.destination_addresses &&
+        a1.origin_addresses === a2.origin_addresses &&
+        a1.rows === a2.rows &&
+        a1.status === a2.status
   }
 
 }
@@ -272,9 +284,11 @@ class GoogleMapsAPIBenchmarks {
     objm_ = decodeMagnoliaSuccess().getOrElse(null)
     objs_ = decodeShapelessSuccess().getOrElse(null)
     objz_ = decodeScalazSuccess().getOrElse(null)
+    objh_ = decodeManualSuccess().getOrElse(null)
     objm__ = decodeMagnoliaSuccess().getOrElse(null).copy(status = "z")
     objs__ = decodeShapelessSuccess().getOrElse(null).copy(status = "z")
     objz__ = decodeScalazSuccess().getOrElse(null).copy(status = "z")
+    objh__ = decodeManualSuccess().getOrElse(null).copy(status = "z")
   }
 
   @Benchmark
@@ -330,5 +344,11 @@ class GoogleMapsAPIBenchmarks {
 
   @Benchmark
   def equalShapelessFalse(): Boolean = objs === objs__
+
+  @Benchmark
+  def equalManualTrue(): Boolean = objh === objh_
+
+  @Benchmark
+  def equalManualFalse(): Boolean = objh === objh__
 
 }
