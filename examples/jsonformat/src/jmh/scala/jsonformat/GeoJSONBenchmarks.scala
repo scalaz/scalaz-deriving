@@ -249,19 +249,33 @@ package z {
 
 package h {
 
+  // this is kind of cheating, but it's to prove a point that manual instances
+  // can be orders of magnitude faster. In this case we're using a manual
+  // instance of a custom case class that avoids the boxing of the doubles seen
+  // in the other implementations, and bypassing straight to natural equality.
+
+  final case class Coords(x: Double, y: Double)
+  object Coords {
+    implicit val encoder: JsEncoder[Coords] = a =>
+      JsArray(IList(JsDouble(a.x), JsDouble(a.y)))
+    implicit val decoder: JsDecoder[Coords] = {
+      case JsArray(ICons(JsDouble(x), ICons(JsDouble(y), INil()))) =>
+        Coords(x, y).right
+      case other => fail("JsArray with two numbers", other)
+    }
+    implicit val equal: Equal[Coords] = (a1, a2) => a1.x == a2.x && a1.y == a2.y
+  }
+
   sealed abstract class Geometry
-  final case class Point(coordinates: (Double, Double)) extends Geometry
-  final case class MultiPoint(coordinates: IList[(Double, Double)])
-      extends Geometry
-  final case class LineString(coordinates: IList[(Double, Double)])
-      extends Geometry
+  final case class Point(coordinates: Coords)             extends Geometry
+  final case class MultiPoint(coordinates: IList[Coords]) extends Geometry
+  final case class LineString(coordinates: IList[Coords]) extends Geometry
   final case class MultiLineString(
-    coordinates: IList[IList[(Double, Double)]]
+    coordinates: IList[IList[Coords]]
   ) extends Geometry
-  final case class Polygon(coordinates: IList[IList[(Double, Double)]])
-      extends Geometry
+  final case class Polygon(coordinates: IList[IList[Coords]]) extends Geometry
   final case class MultiPolygon(
-    coordinates: IList[IList[IList[(Double, Double)]]]
+    coordinates: IList[IList[IList[Coords]]]
   ) extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
@@ -317,21 +331,21 @@ package h {
             list("geometries", gs)
         )
     }
-    private type C = (Double, Double)
     implicit val decoder: JsDecoder[Geometry] = JsDecoder.obj(2) { j =>
       j.get("type").flatMap {
         case JsString("Point") =>
-          j.getAs[C]("coordinates").map(Point(_))
+          j.getAs[Coords]("coordinates").map(Point(_))
         case JsString("MultiPoint") =>
-          j.getNullable[IList[C]]("coordinates").map(MultiPoint(_))
+          j.getNullable[IList[Coords]]("coordinates").map(MultiPoint(_))
         case JsString("LineString") =>
-          j.getNullable[IList[C]]("coordinates").map(LineString(_))
+          j.getNullable[IList[Coords]]("coordinates").map(LineString(_))
         case JsString("MultiLineString") =>
-          j.getNullable[IList[IList[C]]]("coordinates").map(MultiLineString(_))
+          j.getNullable[IList[IList[Coords]]]("coordinates")
+            .map(MultiLineString(_))
         case JsString("Polygon") =>
-          j.getNullable[IList[IList[C]]]("coordinates").map(Polygon(_))
+          j.getNullable[IList[IList[Coords]]]("coordinates").map(Polygon(_))
         case JsString("MultiPolygon") =>
-          j.getNullable[IList[IList[IList[C]]]]("coordinates")
+          j.getNullable[IList[IList[IList[Coords]]]]("coordinates")
             .map(MultiPolygon(_))
         case JsString("GeometryCollection") =>
           j.getNullable[IList[Geometry]]("geometries")
