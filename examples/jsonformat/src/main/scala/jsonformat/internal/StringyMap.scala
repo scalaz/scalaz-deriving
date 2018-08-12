@@ -10,8 +10,8 @@ import scalaz._
  * Optimised String lookup. Provide the fastest aggregate creation and lookup
  * time for a fixed table of values indexed by Strings.
  *
- * Roughly speaking, Java HashMap is faster to create but slower to query than
- * Scala HashMap. And there are edge cases.
+ * Roughly speaking, Java HashMap is faster to create but slower to query than a
+ * linked list structure. And there are edge cases.
  *
  * Design constraints are:
  *

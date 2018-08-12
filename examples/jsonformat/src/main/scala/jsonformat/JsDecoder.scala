@@ -123,9 +123,12 @@ object JsDecoder
 private[jsonformat] trait JsDecoderScalaz1 {
   this: JsDecoder.type =>
 
+  import internal.FastTraverse._
   implicit def ilist[A: JsDecoder]: JsDecoder[IList[A]] = {
-    case JsArray(js) => js.traverse(_.as[A])
-    case other       => fail("JsArray", other)
+    case JsArray(js) =>
+      val A = JsDecoder[A]
+      js.traverseDisjunction(A.fromJson)
+    case other => fail("JsArray", other)
   }
 
   implicit def nel[A: JsDecoder]: JsDecoder[NonEmptyList[A]] =
