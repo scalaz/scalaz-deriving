@@ -8,6 +8,7 @@ package jsonformat.benchmarks
 import fommil.DerivedEqual
 import jsonformat._
 import jsonformat.JsDecoder.ops._
+import jsonformat.JsDecoder.fail
 import jsonformat.JsEncoder.ops._
 import scalaz._, Scalaz._
 import jsonformat.BenchmarkUtils.getResourceAsString
@@ -246,6 +247,145 @@ package z {
 
 }
 
+package h {
+
+  sealed abstract class Geometry
+  final case class Point(coordinates: (Double, Double)) extends Geometry
+  final case class MultiPoint(coordinates: IList[(Double, Double)])
+      extends Geometry
+  final case class LineString(coordinates: IList[(Double, Double)])
+      extends Geometry
+  final case class MultiLineString(
+    coordinates: IList[IList[(Double, Double)]]
+  ) extends Geometry
+  final case class Polygon(coordinates: IList[IList[(Double, Double)]])
+      extends Geometry
+  final case class MultiPolygon(
+    coordinates: IList[IList[IList[(Double, Double)]]]
+  ) extends Geometry
+  final case class GeometryCollection(geometries: IList[Geometry])
+      extends Geometry
+
+  sealed abstract class GeoJSON
+  final case class Feature(properties: Map[String, String], geometry: Geometry)
+      extends GeoJSON
+  final case class FeatureCollection(features: IList[GeoJSON]) extends GeoJSON
+
+  object Geometry {
+    private def list[A: JsEncoder](
+      field: String,
+      as: IList[A]
+    ): IList[(String, JsValue)] =
+      if (as.isEmpty) IList.empty
+      else field -> as.toJson :: IList.empty
+
+    implicit val encoder: JsEncoder[Geometry] = {
+      case Point(c) =>
+        JsObject(
+          "type"          -> JsString("Point") ::
+            "coordinates" -> c.toJson ::
+            IList.empty
+        )
+      case MultiPoint(c) =>
+        JsObject(
+          "type" -> JsString("MultiPoint") ::
+            list("coordinates", c)
+        )
+      case LineString(c) =>
+        JsObject(
+          "type" -> JsString("LineString") ::
+            list("coordinates", c)
+        )
+      case MultiLineString(c) =>
+        JsObject(
+          "type" -> JsString("MultiLineString") ::
+            list("coordinates", c)
+        )
+      case Polygon(c) =>
+        JsObject(
+          "type" -> JsString("Polygon") ::
+            list("coordinates", c)
+        )
+      case MultiPolygon(c) =>
+        JsObject(
+          "type" -> JsString("MultiPolygon") ::
+            list("coordinates", c)
+        )
+      case GeometryCollection(gs) =>
+        JsObject(
+          "type" -> JsString("GeometryCollection") ::
+            list("geometries", gs)
+        )
+    }
+    private type C = (Double, Double)
+    implicit val decoder: JsDecoder[Geometry] = JsDecoder.obj(2) { j =>
+      j.get("type").flatMap {
+        case JsString("Point") =>
+          j.getAs[C]("coordinates").map(Point(_))
+        case JsString("MultiPoint") =>
+          j.getNullable[IList[C]]("coordinates").map(MultiPoint(_))
+        case JsString("LineString") =>
+          j.getNullable[IList[C]]("coordinates").map(LineString(_))
+        case JsString("MultiLineString") =>
+          j.getNullable[IList[IList[C]]]("coordinates").map(MultiLineString(_))
+        case JsString("Polygon") =>
+          j.getNullable[IList[IList[C]]]("coordinates").map(Polygon(_))
+        case JsString("MultiPolygon") =>
+          j.getNullable[IList[IList[IList[C]]]]("coordinates")
+            .map(MultiPolygon(_))
+        case JsString("GeometryCollection") =>
+          j.getNullable[IList[Geometry]]("geometries")
+            .map(GeometryCollection(_))
+        case other => fail("valid type field", other)
+      }
+    }
+  }
+
+  object GeoJSON {
+    private def list[A: JsEncoder](
+      field: String,
+      as: IList[A]
+    ): IList[(String, JsValue)] =
+      if (as.isEmpty) IList.empty
+      else field -> as.toJson :: IList.empty
+
+    private def dict[A: JsEncoder](
+      field: String,
+      as: Map[String, A]
+    ): IList[(String, JsValue)] =
+      if (as.isEmpty) IList.empty
+      else field -> as.toJson :: IList.empty
+
+    implicit val encoder: JsEncoder[GeoJSON] = {
+      case Feature(props, geo) =>
+        JsObject(
+          "type" -> JsString("Feature") ::
+            dict("properties", props) :::
+            "geometry" -> geo.toJson ::
+            IList.empty
+        )
+      case FeatureCollection(features) =>
+        JsObject(
+          "type" -> JsString("FeatureCollection") ::
+            list("features", features)
+        )
+    }
+    implicit val decoder: JsDecoder[GeoJSON] = JsDecoder.obj(3) { j =>
+      j.get("type").flatMap {
+        case JsString("Feature") =>
+          for {
+            props <- j.getNullable[Map[String, String]]("properties")
+            geo   <- j.getAs[Geometry]("geometry")
+          } yield Feature(props, geo)
+        case JsString("FeatureCollection") =>
+          j.getNullable[IList[GeoJSON]]("features").map(FeatureCollection(_))
+        case other => fail("valid type field", other)
+      }
+    }
+  }
+
+}
+
 @State(Scope.Benchmark)
 class GeoJSONBenchmarks {
   var jsonString: String              = _
@@ -254,6 +394,7 @@ class GeoJSONBenchmarks {
   var objm, objm_, objm__ : m.GeoJSON = _
   var objs, objs_, objs__ : s.GeoJSON = _
   var objz, objz_, objz__ : z.GeoJSON = _
+  var objh, objh_, objh__ : h.GeoJSON = _
   var ast1, ast2, astErr: JsValue     = _
 
   @Setup
@@ -270,6 +411,9 @@ class GeoJSONBenchmarks {
     objs = decodeShapelessSuccess().getOrElse(null)
     require(decodeShapelessError.isLeft)
     require(CompactPrinter(encodeShapeless()) == jsonString)
+    objh = decodeManualSuccess().getOrElse(null)
+    require(decodeManualError.isLeft)
+    require(CompactPrinter(encodeManual()) == jsonString)
 
     objz = decodeScalazSuccess().getOrElse(null)
     // not reusing the same objects to avoid instance identity
@@ -289,11 +433,22 @@ class GeoJSONBenchmarks {
   def decodeMagnoliaError(): String \/ m.GeoJSON =
     astErr.as[m.GeoJSON]
 
-  def decodeScalazSuccess(): \/[String, z.GeoJSON] =
-    ast1.as[z.GeoJSON]
-
   @Benchmark
   def encodeMagnolia(): JsValue = objm.toJson
+
+  @Benchmark
+  def decodeManualSuccess(): \/[String, h.GeoJSON] =
+    ast1.as[h.GeoJSON]
+
+  @Benchmark
+  def decodeManualError(): String \/ h.GeoJSON =
+    astErr.as[h.GeoJSON]
+
+  @Benchmark
+  def encodeManual(): JsValue = objh.toJson
+
+  def decodeScalazSuccess(): \/[String, z.GeoJSON] =
+    ast1.as[z.GeoJSON]
 
   @Benchmark
   def decodeShapelessSuccess(): \/[String, s.GeoJSON] =

@@ -4,13 +4,13 @@
 package xmlformat
 package generic
 
-import scala.annotation.tailrec
 import scalaz.{ Coproduct => _, :+: => _, _ }, Scalaz._
 import shapeless._
 import shapeless.labelled._
 
 import XDecoder.fail
 import xmlformat.XAttr
+import xmlformat.internal.StringyMultiMap
 
 private[generic] final case class FastXTag(
   x: XTag,
@@ -46,8 +46,9 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     private[generic] def from(x: FastXTag, as: AS, bs: BS): String \/ R
 
     override final def from(x: XTag, as: AS, bs: BS): String \/ R = {
-      val attrs    = StringyMultiMap(x.attrs)(_.name)
-      val children = StringyMultiMap(x.children)(_.name)
+      // we should get the length of the AS from shapeless here
+      val attrs    = StringyMultiMap(x.attrs, 1)(_.name)
+      val children = StringyMultiMap(x.children, 1)(_.name)
       from(FastXTag(x, attrs, children), as, bs)
     }
   }
@@ -498,52 +499,4 @@ trait LowPriorityDerivedXDecoder2 {
         }
     }
 
-}
-
-private[generic] abstract class StringyMultiMap[A] {
-  def get(s: String): IList[A]
-  final def find(s: String): Maybe[A] = get(s).headMaybe
-}
-private[generic] final class StringyHashMultiMap[A](
-  private[this] val hashmap: java.util.HashMap[String, IList[A]]
-) extends StringyMultiMap[A] {
-  // scalafix:off
-  def get(s: String): IList[A] = {
-    val got = hashmap.get(s)
-    if (got == null) IList.empty else got
-  }
-  // scalafix:on
-}
-private[generic] final class StringySingleMap[A](k: String, as: IList[A])
-    extends StringyMultiMap[A] {
-  def get(s: String): IList[A] = if (s == k) as else IList.empty
-}
-private[generic] final class StringyEmptyMap[A] extends StringyMultiMap[A] {
-  def get(s: String): IList[A] = IList.empty
-}
-private[generic] object StringyMultiMap {
-  def apply[A >: Null](
-    entries: IList[A]
-  )(extract: A => String): StringyMultiMap[A] = entries match {
-    case INil() =>
-      new StringyEmptyMap()
-    case ICons(head, INil()) =>
-      new StringySingleMap(extract(head), IList.single(head))
-    case _ =>
-      val hashmap = new java.util.HashMap[String, IList[A]]
-      @tailrec def visit(rem: IList[A]): Unit = rem match {
-        case _: INil[_] => ()
-        case c: ICons[_] =>
-          val value = c.head
-          val key   = extract(value)
-          val old   = hashmap.get(key)
-          if (old == null) // scalafix:ok
-            hashmap.put(key, value :: IList.empty)
-          else
-            hashmap.put(key, value :: old)
-          visit(c.tail)
-      }
-      visit(entries.reverse)
-      new StringyHashMultiMap(hashmap)
-  }
 }

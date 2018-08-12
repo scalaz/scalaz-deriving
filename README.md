@@ -161,15 +161,14 @@ libraryDependencies ++= Seq(
   "com.fommil" %% "scalaz-deriving-magnolia" % derivingVersion,
   "com.fommil" %% "scalaz-deriving-scalacheck" % derivingVersion,
 
-  // shapeless alternatives to Deriving, trading compiletime for
-  // runtime performance. See below for additional actions.
+  // shapeless alternatives to Deriving. See below for additional actions.
   "com.fommil" %% "scalaz-deriving-shapeless" % derivingVersion
 )
 ```
 
 where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil%20a:scalaz-deriving_2.12).
 
-Note that the opt-in shapeless derivations require annotations on every element of an ADT, not just the top element.
+To use the opt-in shapeless alternatives, which can sometimes improve runtime performance (and sometimes slow it down), either manually call the `DerivingEqual.gen` etc from your companions, or create a `deriving.conf` containing the wirings following the instructions above. Recall that shapeless derivations require annotations on every element of an ADT, not just the top element.
 
 ## Breaking Changes
 

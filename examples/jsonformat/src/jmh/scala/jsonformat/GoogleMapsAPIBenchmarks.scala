@@ -28,18 +28,24 @@ import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
 //
 // and look for the generated snapshot in YourKit (ignore the rest)
 //
-// also try appending the async profiler, e.g.
+// Also try the async profiler, e.g.
 //
-//  -prof jmh.extras.Async
+//  jsonformat/jmh:run -i 1 -wi 0 -f1 -t1 -w0 -r10 -prof jmh.extras.Async GoogleMaps.*encodeMagnolia
+//  jsonformat/jmh:run -i 1 -wi 0 -f1 -t1 -w0 -r10 -prof jmh.extras.Async:event=alloc GoogleMaps.*encodeMagnolia
 //
 // which may require kernel permissions:
 //
 //   echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
+//   echo 0 | sudo tee /proc/sys/kernel/kptr_restrict
 //
-// and needs these variables:
+// and needs these projects installed, with these variables:
 //
 // export ASYNC_PROFILER_DIR=$HOME/Projects/async-profiler
 // export FLAME_GRAPH_DIR=$HOME/Projects/FlameGraph
+//
+// (note you need to type `make` in the async-profiler directory)
+//
+// to use allocation profiling, you need debugging symbols in your jvm.
 
 package m {
   @deriving(JsEncoder, JsDecoder)
@@ -143,6 +149,91 @@ package z {
 
 }
 
+package h {
+
+  final case class Value(text: String, value: Int)
+  final case class Elements(distance: Value, duration: Value, status: String)
+  final case class Rows(elements: IList[Elements])
+  final case class DistanceMatrix(
+    destination_addresses: IList[String],
+    origin_addresses: IList[String],
+    rows: IList[Rows],
+    status: String
+  )
+
+  object Value {
+    implicit val encoder: JsEncoder[Value] = a =>
+      JsObject(
+        "text"    -> a.text.toJson ::
+          "value" -> a.value.toJson ::
+          IList.empty
+      )
+    implicit val decoder: JsDecoder[Value] = JsDecoder.obj(2) { j =>
+      for {
+        text  <- j.getAs[String]("text")
+        value <- j.getAs[Int]("value")
+      } yield Value(text, value)
+    }
+  }
+  object Elements {
+    implicit val encoder: JsEncoder[Elements] = a =>
+      JsObject(
+        "distance"   -> a.distance.toJson ::
+          "duration" -> a.duration.toJson ::
+          "status"   -> a.status.toJson ::
+          IList.empty
+      )
+    implicit val decoder: JsDecoder[Elements] = JsDecoder.obj(3) { j =>
+      for {
+        distance <- j.getAs[Value]("distance")
+        duration <- j.getAs[Value]("duration")
+        status   <- j.getAs[String]("status")
+      } yield Elements(distance, duration, status)
+    }
+  }
+  object Rows {
+    private def list[A: JsEncoder](
+      field: String,
+      as: IList[A]
+    ): IList[(String, JsValue)] =
+      if (as.isEmpty) IList.empty
+      else field -> as.toJson :: IList.empty
+
+    implicit val encoder: JsEncoder[Rows] = a =>
+      JsObject(
+        list("elements", a.elements)
+      )
+    implicit val decoder: JsDecoder[Rows] = JsDecoder.obj(1) { j =>
+      j.getNullable[IList[Elements]]("elements").map(Rows(_))
+    }
+  }
+  object DistanceMatrix {
+    private def list[A: JsEncoder](
+      field: String,
+      as: IList[A]
+    ): IList[(String, JsValue)] =
+      if (as.isEmpty) IList.empty
+      else field -> as.toJson :: IList.empty
+
+    implicit val encoder: JsEncoder[DistanceMatrix] = a =>
+      JsObject(
+        list("destination_addresses", a.destination_addresses) :::
+          list("origin_addresses", a.origin_addresses) :::
+          list("rows", a.rows) :::
+          "status" -> a.status.toJson ::
+          IList.empty
+      )
+    implicit val decoder: JsDecoder[DistanceMatrix] = JsDecoder.obj(4) { j =>
+      for {
+        dest   <- j.getNullable[IList[String]]("destination_addresses")
+        origin <- j.getNullable[IList[String]]("origin_addresses")
+        rows   <- j.getNullable[IList[Rows]]("rows")
+        status <- j.getAs[String]("status")
+      } yield DistanceMatrix(dest, origin, rows, status)
+    }
+  }
+
+}
 @State(Scope.Benchmark)
 class GoogleMapsAPIBenchmarks {
   var jsonString: String                     = _
@@ -151,6 +242,7 @@ class GoogleMapsAPIBenchmarks {
   var objm, objm_, objm__ : m.DistanceMatrix = _
   var objs, objs_, objs__ : s.DistanceMatrix = _
   var objz, objz_, objz__ : z.DistanceMatrix = _
+  var objh, objh_, objh__ : h.DistanceMatrix = _
   var ast1, ast2: JsValue                    = _
 
   @Setup
@@ -170,6 +262,10 @@ class GoogleMapsAPIBenchmarks {
     objs = decodeShapelessSuccess().getOrElse(null)
     require(CompactPrinter(encodeShapeless()) == jsonString2)
     require(decodeShapelessError().isLeft)
+
+    objh = decodeManualSuccess().getOrElse(null)
+    require(CompactPrinter(encodeManual()) == jsonString2)
+    require(decodeManualError().isLeft)
 
     objz = decodeScalazSuccess().getOrElse(null)
     // not reusing the same objects to avoid instance identity
@@ -205,6 +301,17 @@ class GoogleMapsAPIBenchmarks {
 
   @Benchmark
   def encodeShapeless(): JsValue = objs.toJson
+
+  @Benchmark
+  def decodeManualSuccess(): \/[String, h.DistanceMatrix] =
+    ast1.as[h.DistanceMatrix]
+
+  @Benchmark
+  def decodeManualError(): \/[String, h.DistanceMatrix] =
+    ast2.as[h.DistanceMatrix]
+
+  @Benchmark
+  def encodeManual(): JsValue = objh.toJson
 
   @Benchmark
   def equalScalazTrue(): Boolean = objz === objz_

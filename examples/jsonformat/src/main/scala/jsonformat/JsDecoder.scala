@@ -5,6 +5,7 @@ package jsonformat
 
 import simulacrum._
 import scalaz._, Scalaz._
+import internal.StringyMap
 
 import JsDecoder.ops._
 
@@ -25,21 +26,42 @@ object JsDecoder
     with JsDecoderScalaz2
     with JsDecoderStdlib2 {
   object ops {
-    implicit class JsValueExtras(private val j: JsValue) extends AnyVal {
+    implicit final class JsValueExtras(private val j: JsValue) extends AnyVal {
       def as[A: JsDecoder]: String \/ A = JsDecoder[A].fromJson(j)
-      def asJsObject: String \/ JsObject = j match {
-        case obj @ JsObject(_) => obj.right
-        case other             => fail("JsObject", other)
-      }
-    }
-    implicit class JsObjectExtras(private val j: JsObject) extends AnyVal {
-      def get(key: String): String \/ JsValue =
-        j.fields.find(_._1 == key).map(_._2) \/> s"missing field '$key'"
-      def getAs[A: JsDecoder](key: String): String \/ A =
-        get(key).flatMap(_.as[A])
     }
   }
 
+  @inline final def obj[A](
+    size: Int
+  )(f: FastJsObject => String \/ A): JsDecoder[A] = {
+    case o: JsObject => f(FastJsObject(o, size))
+    case other       => fail("JsObject", other)
+  }
+
+  /** Wrapper around JsObject for fast field lookup */
+  final class FastJsObject private (
+    val orig: JsObject,
+    val lookup: StringyMap[JsValue]
+  ) {
+    def get(key: String): String \/ JsValue =
+      lookup.get(key) \/> s"missing field '$key'"
+    def getAs[A: JsDecoder](key: String): String \/ A =
+      get(key).flatMap(_.as[A])
+    def getNullable[A: JsDecoder](key: String): String \/ A =
+      lookup.get(key) match {
+        case Maybe.Empty() => JsNull.as[A]
+        case Maybe.Just(v) => v.as[A]
+      }
+    def getOption[A: JsDecoder](key: String): String \/ Option[A] =
+      lookup.get(key) match {
+        case Maybe.Empty() | Maybe.Just(JsNull) => \/-(None)
+        case Maybe.Just(v)                      => v.as[A].map(Some(_))
+      }
+  }
+  object FastJsObject {
+    def apply(j: JsObject, lookups: Int): FastJsObject =
+      new FastJsObject(j, StringyMap(j.fields, lookups))
+  }
   @inline final def instance[A](f: JsValue => String \/ A): JsDecoder[A] = f(_)
   private type Sig[a] = JsValue => String \/ a
   private val iso = Kleisli.iso(

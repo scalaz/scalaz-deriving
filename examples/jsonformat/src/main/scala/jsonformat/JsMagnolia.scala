@@ -3,10 +3,11 @@
 
 package jsonformat
 
-import scala.annotation.{ tailrec, Annotation }
+import scala.annotation.Annotation
 
 import magnolia._
 import scalaz._, Scalaz._
+import internal.StringyMap
 
 /**
  * Annotation for customising automatically derived instances of JsEncoder and
@@ -110,7 +111,6 @@ object JsMagnoliaEncoder {
 object JsMagnoliaDecoder {
   type Typeclass[A] = JsDecoder[A]
 
-  import JsDecoder.ops._
   import JsDecoder.fail
 
   def combine[A](ctx: CaseClass[JsDecoder, A]): JsDecoder[A] =
@@ -130,7 +130,7 @@ object JsMagnoliaDecoder {
       def fromJson(j: JsValue): String \/ A = j match {
         case obj @ JsObject(_) =>
           import mercator._
-          val lookup = StringyMap(obj.fields)
+          val lookup = StringyMap(obj.fields, fieldnames.length)
           ctx.constructMonadic { p =>
             val field = fieldnames(p.index)
             lookup
@@ -152,11 +152,14 @@ object JsMagnoliaDecoder {
 
   def dispatch[A](ctx: SealedTrait[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
-      private val subtype = ctx.subtypes.map { s =>
-        s.annotations.collectFirst {
-          case json.hint(name) => name
-        }.getOrElse(s.typeName.short) -> s
-      }.toMap
+      private val subtype = StringyMap(
+        ctx.subtypes.map { s =>
+          s.annotations.collectFirst {
+            case json.hint(name) => name
+          }.getOrElse(s.typeName.short) -> s
+        }.toList.toIList,
+        Int.MaxValue
+      )
       private val typehint = ctx.annotations.collectFirst {
         case json.field(name) => name
       }.getOrElse("type")
@@ -167,14 +170,15 @@ object JsMagnoliaDecoder {
       }.toArray
 
       def fromJson(j: JsValue): String \/ A = j match {
-        case obj @ JsObject(_) =>
-          obj.get(typehint) match {
-            case \/-(JsString(h)) =>
+        case obj @ JsObject(fields) =>
+          val lookup = StringyMap(fields, 2)
+          lookup.get(typehint) match {
+            case Maybe.Just(JsString(h)) =>
               subtype.get(h) match {
-                case None => fail(s"a valid '$h'", obj)
-                case Some(sub) =>
+                case Maybe.Empty() => fail(s"a valid '$h'", obj)
+                case Maybe.Just(sub) =>
                   val xvalue = xvalues(sub.index)
-                  val value  = obj.get(xvalue).getOrElse(obj)
+                  val value  = lookup.get(xvalue).getOrElse(obj)
                   sub.typeclass.fromJson(value)
               }
             case _ => fail(s"JsObject with '$typehint' field", obj)
@@ -185,53 +189,3 @@ object JsMagnoliaDecoder {
 
   def gen[A]: JsDecoder[A] = macro Magnolia.gen[A]
 }
-
-// scalafix:off
-//
-// Optimised String lookup. Performance testing has shown that the Java HashMap
-// is faster to create by about a factor of 5 than a Scala HashMap (and the gap
-// grows for larger collections).
-//
-// Java HashMap is faster to lookup than an IList, for all sizes (even 1 and 2
-// elements!).
-//
-// However, the scala HashMap is faster to lookup by about 20% than a Java
-// HashMap. so the usecase for this StringyMap is when everything needs to be
-// looked up approximately once, and then thrown away. For long lived stringy
-// map, prefer a scala HashMap.
-//
-// In other words, use toMap to cache subtype lookup, and StringyMap for field
-// lookup.
-private[jsonformat] abstract class StringyMap[A] {
-  def get(s: String): Maybe[A]
-}
-private[jsonformat] final class StringyHashMap[A](
-  private[this] val hashmap: java.util.HashMap[String, A]
-) extends StringyMap[A] {
-  def get(s: String) = Maybe.fromNullable(hashmap.get(s))
-}
-private[jsonformat] final class StringyEmptyMap[A] extends StringyMap[A] {
-  def get(s: String): Maybe[A] = Maybe.empty
-}
-private[jsonformat] final class StringySingleMap[A](k: String, a: A)
-    extends StringyMap[A] {
-  def get(s: String) = if (k == s) Maybe.just(a) else Maybe.empty
-}
-private[jsonformat] object StringyMap {
-  def apply[A >: Null](entries: IList[(String, A)]): StringyMap[A] =
-    entries match {
-      case INil()              => new StringyEmptyMap()
-      case ICons(head, INil()) => new StringySingleMap(head._1, head._2)
-      case _ =>
-        val hashmap = new java.util.HashMap[String, A]
-        @tailrec def visit(rem: IList[(String, A)]): Unit = rem match {
-          case _: INil[_] => ()
-          case c: ICons[_] =>
-            hashmap.put(c.head._1, c.head._2)
-            visit(c.tail)
-        }
-        visit(entries)
-        new StringyHashMap(hashmap)
-    }
-}
-// scalafix:on

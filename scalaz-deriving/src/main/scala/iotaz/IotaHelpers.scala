@@ -83,7 +83,7 @@ object Prods {
       }
       lst
     }
-    def zipmap2[B1, B2, C](
+    def zip2map[B1, B2, C](
       b1s: Backdoor[B1],
       b2s: Backdoor[B2]
     )(f: (A, B1, B2) => C): IList[C] = {
@@ -115,17 +115,21 @@ object Prods {
         val as = a.values
         val bs = b.values.asInstanceOf[Seq[H[Any]]]
 
-        (as, bs) match {
-          case (ap: Backdoor[_], bp: Backdoor[H[_]]) =>
-            ap.zipmap(bp)((a, h) => /~\[Id, H, Any](a, h))
-          case _ if as.length == 0 => IList.empty
-          case _ =>
-            val lst: List[Id /~\ H] = as
-              .zip(bs)
-              .map {
-                case (a, h) => /~\[Id, H, Any](a, h)
-              }(breakOut)
-            lst.toIList
+        if (as.isInstanceOf[Backdoor[_]] &&
+            bs.isInstanceOf[Backdoor[_]]) {
+          as.asInstanceOf[Backdoor[Any]]
+            .zipmap(
+              bs.asInstanceOf[Backdoor[H[Any]]]
+            )((a, h) => /~\[Id, H, Any](a, h))
+        } else if (as.isEmpty) {
+          IList.empty
+        } else {
+          val lst: List[Id /~\ H] = as
+            .zip(bs)
+            .map {
+              case (a, h) => /~\[Id, H, Any](a, h)
+            }(breakOut)
+          lst.toIList
         }
       }
 
@@ -184,29 +188,30 @@ object Prods {
       def zip[B <: TList, H[_]](b: Prod[B])(
         implicit ev: H ƒ A ↦ B
       ): IList[Pair /~\ H] = {
-        val _        = ev
-        val (a1, a2) = as
+        val _  = ev
+        val a1 = as._1.values
+        val a2 = as._2.values
+        val bs = b.values.asInstanceOf[Seq[H[Any]]]
 
-        val a1s = a1.values
-        val a2s = a2.values
-        val bs  = b.values.asInstanceOf[Seq[H[Any]]]
-
-        (a1s, a2s, bs) match {
-          case (p1: Backdoor[_], p2: Backdoor[_], p3: Backdoor[H[_]]) =>
-            p1.zipmap2(p2, p3)((a, b, h) => /~\[Pair, H, Any]((a, b), h))
-
-          case _ if as.length == 0 => IList.empty
-          case _ =>
-            val lst: List[Pair /~\ H] = a1.values
-              .zip(a2.values)
-              .zip(bs)
-              .map {
-                case (aa, h) => /~\[Pair, H, Any](aa, h)
-              }(breakOut)
-            lst.toIList
-
+        if (a1.isInstanceOf[Backdoor[_]] &&
+            a2.isInstanceOf[Backdoor[_]] &&
+            bs.isInstanceOf[Backdoor[_]]) {
+          a1.asInstanceOf[Backdoor[Any]]
+            .zip2map(
+              a2.asInstanceOf[Backdoor[Any]],
+              bs.asInstanceOf[Backdoor[H[Any]]]
+            )((a, b, h) => /~\[Pair, H, Any]((a, b), h))
+        } else if (a1.isEmpty) {
+          IList.empty
+        } else {
+          val lst: List[Pair /~\ H] = a1
+            .zip(a2)
+            .zip(bs)
+            .map {
+              case (aa, h) => /~\[Pair, H, Any](aa, h)
+            }(breakOut)
+          lst.toIList
         }
-
       }
     }
   }

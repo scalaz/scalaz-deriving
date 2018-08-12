@@ -6,8 +6,7 @@ package jsonformat
 import scalaz.{ Coproduct => _, :+: => _, _ }, Scalaz._
 import shapeless._, labelled._
 
-import JsDecoder.fail
-import JsDecoder.ops._
+import JsDecoder.{ fail, FastJsObject }
 
 sealed trait DerivedJsEncoder[A, R, J <: HList] {
   def toJsFields(r: R, anns: J): IList[(String, JsValue)]
@@ -219,7 +218,7 @@ private[jsonformat] trait DerivedJsEncoder2 {
 }
 
 sealed trait DerivedCoproductJsDecoder[A, R, J <: HList] {
-  def fromJsObject(j: JsObject, anns: J): String \/ R
+  def fromJsObject(j: FastJsObject, anns: J): String \/ R
 }
 object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
   def gen[A, R, J <: HList](
@@ -228,15 +227,17 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
     R: Cached[Strict[DerivedCoproductJsDecoder[A, R, J]]]
   ): JsDecoder[A] = new JsDecoder[A] {
     def fromJson(j: JsValue) = j match {
-      case o @ JsObject(_) => R.value.value.fromJsObject(o, J()).map(G.from)
-      case other           => fail("JsObject", other)
+      case o @ JsObject(_) =>
+        val fast = FastJsObject(o, 2)
+        R.value.value.fromJsObject(fast, J()).map(G.from)
+      case other => fail("JsObject", other)
     }
   }
 
   implicit def cnil[A]: DerivedCoproductJsDecoder[A, CNil, HNil] =
     new DerivedCoproductJsDecoder[A, CNil, HNil] {
-      def fromJsObject(j: JsObject, a: HNil) =
-        fail(s"JsObject with 'type' field", j)
+      def fromJsObject(j: FastJsObject, a: HNil) =
+        fail("JsObject with relevant typehint", j.orig)
     }
 
   implicit def cconsAnnotated[
@@ -254,18 +255,19 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
   ): DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, None.type :: J] =
     new DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, None.type :: J] {
       private val hintfield = A().field.getOrElse("type")
-      def fromJsObject(j: JsObject, anns: None.type :: J) = {
-        val hint = (hintfield -> JsString(K.value.name))
-        if (j.fields.element(hint)) {
-          j.get("xvalue")
-            .into {
-              case \/-(x) => H.value.fromJson(x)
-              case -\/(_) => H.value.fromJson(j)
-            }
-            .map(h => Inl(field[K](h)))
-        } else
-          T.fromJsObject(j, anns.tail).map(Inr(_))
-      }
+      private val hint      = K.value.name
+      def fromJsObject(j: FastJsObject, anns: None.type :: J) =
+        j.lookup.get(hintfield) match {
+          case Maybe.Just(JsString(`hint`)) =>
+            j.lookup
+              .get("xvalue")
+              .into {
+                case Maybe.Just(x) => H.value.fromJson(x)
+                case _             => H.value.fromJson(j.orig)
+              }
+              .map(h => Inl(field[K](h)))
+          case _ => T.fromJsObject(j, anns.tail).map(Inr(_))
+        }
     }
 
   implicit def cconsAnnotatedCustom[
@@ -283,19 +285,21 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
   ): DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] =
     new DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] {
       private val hintfield = A().field.getOrElse("type")
-      def fromJsObject(j: JsObject, anns: Some[json] :: J) = {
+      def fromJsObject(j: FastJsObject, anns: Some[json] :: J) = {
         val ann  = anns.head.get
-        val hint = (hintfield -> JsString(ann.hint.getOrElse(K.value.name)))
-        if (j.fields.element(hint)) {
-          val xvalue = ann.field.getOrElse("xvalue")
-          j.get(xvalue)
-            .into {
-              case \/-(x) => H.value.fromJson(x)
-              case -\/(_) => H.value.fromJson(j)
-            }
-            .map(h => Inl(field[K](h)))
-        } else
-          T.fromJsObject(j, anns.tail).map(Inr(_))
+        val hint = ann.hint.getOrElse(K.value.name)
+        j.lookup.get(hintfield) match {
+          case Maybe.Just(JsString(`hint`)) =>
+            val xvalue = ann.field.getOrElse("xvalue")
+            j.lookup
+              .get(xvalue)
+              .into {
+                case Maybe.Just(x) => H.value.fromJson(x)
+                case _             => H.value.fromJson(j.orig)
+              }
+              .map(h => Inl(field[K](h)))
+          case _ => T.fromJsObject(j, anns.tail).map(Inr(_))
+        }
       }
     }
 
@@ -308,17 +312,19 @@ private[jsonformat] trait DerivedCoproductJsDecoder1 {
     T: DerivedCoproductJsDecoder[A, T, J]
   ): DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, None.type :: J] =
     new DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, None.type :: J] {
-      private val hint = ("type" -> JsString(K.value.name))
-      def fromJsObject(j: JsObject, anns: None.type :: J) =
-        if (j.fields.element(hint)) {
-          j.get("xvalue")
-            .into {
-              case \/-(x) => H.value.fromJson(x)
-              case -\/(_) => H.value.fromJson(j)
-            }
-            .map(h => Inl(field[K](h)))
-        } else
-          T.fromJsObject(j, anns.tail).map(Inr(_))
+      private val hint = K.value.name
+      def fromJsObject(j: FastJsObject, anns: None.type :: J) =
+        j.lookup.get("type") match {
+          case Maybe.Just(JsString(`hint`)) =>
+            j.lookup
+              .get("xvalue")
+              .into {
+                case Maybe.Just(x) => H.value.fromJson(x)
+                case _             => H.value.fromJson(j.orig)
+              }
+              .map(h => Inl(field[K](h)))
+          case _ => T.fromJsObject(j, anns.tail).map(Inr(_))
+        }
     }
 
   implicit def cconsCustom[
@@ -334,43 +340,48 @@ private[jsonformat] trait DerivedCoproductJsDecoder1 {
     T: DerivedCoproductJsDecoder[A, T, J]
   ): DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] =
     new DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] {
-      def fromJsObject(j: JsObject, anns: Some[json] :: J) = {
+      def fromJsObject(j: FastJsObject, anns: Some[json] :: J) = {
         val ann  = anns.head.get
-        val hint = ("type" -> JsString(ann.hint.getOrElse(K.value.name)))
-        if (j.fields.element(hint)) {
-          val xvalue = ann.field.getOrElse("xvalue")
-          j.get(xvalue)
-            .into {
-              case \/-(x) => H.value.fromJson(x)
-              case -\/(_) => H.value.fromJson(j)
-            }
-            .map(h => Inl(field[K](h)))
-        } else
-          T.fromJsObject(j, anns.tail).map(Inr(_))
+        val hint = ann.hint.getOrElse(K.value.name)
+        j.lookup.get("type") match {
+          case Maybe.Just(JsString(`hint`)) =>
+            val xvalue = ann.field.getOrElse("xvalue")
+            j.lookup
+              .get(xvalue)
+              .into {
+                case Maybe.Just(x) => H.value.fromJson(x)
+                case _             => H.value.fromJson(j.orig)
+              }
+              .map(h => Inl(field[K](h)))
+          case _ => T.fromJsObject(j, anns.tail).map(Inr(_))
+        }
       }
     }
 }
 
 sealed trait DerivedProductJsDecoder[A, R, J <: HList, D <: HList] {
   private[jsonformat] def fromJsObject(
-    j: StringyMap[JsValue],
+    j: FastJsObject,
     anns: J,
     defaults: D
   ): String \/ R
 }
-object DerivedProductJsDecoder
-    extends DerivedProductJsDecoder1
-    with DerivedProductJsDecoder2 {
-  def gen[A, R, J <: HList, D <: HList](
+object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
+  import ops.hlist.Length
+  import ops.nat.ToInt
+
+  def gen[A, R, J <: HList, N <: Nat, D <: HList](
     implicit G: LabelledGeneric.Aux[A, R],
     J: Annotations.Aux[json, A, J],
+    @unused L: Length.Aux[J, N],
+    N: ToInt[N],
     D: Default.AsOptions.Aux[A, D],
     R: Cached[Strict[DerivedProductJsDecoder[A, R, J, D]]]
   ): JsDecoder[A] = new JsDecoder[A] {
     def fromJson(j: JsValue) = j match {
       case o @ JsObject(_) =>
-        val stringy = StringyMap(o.fields)
-        R.value.value.fromJsObject(stringy, J(), D()).map(G.from)
+        val fast = FastJsObject(o, N())
+        R.value.value.fromJsObject(fast, J(), D()).map(G.from)
       case other => fail("JsObject", other)
     }
   }
@@ -379,10 +390,9 @@ object DerivedProductJsDecoder
     new DerivedProductJsDecoder[A, HNil, HNil, HNil] {
       private val nil = HNil.right[String]
 
-      def fromJsObject(j: StringyMap[JsValue], a: HNil, defaults: HNil) = nil
+      def fromJsObject(j: FastJsObject, a: HNil, defaults: HNil) = nil
     }
-}
-private[jsonformat] trait DerivedProductJsDecoder1 {
+
   implicit def hcons[
     A,
     K <: Symbol,
@@ -404,12 +414,12 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
     ] {
       private val fieldname = K.value.name
       def fromJsObject(
-        j: StringyMap[JsValue],
+        j: FastJsObject,
         anns: None.type :: J,
         defaults: Option[H] :: D
       ) =
         for {
-          head <- j.get(fieldname) match {
+          head <- j.lookup.get(fieldname) match {
                    case Maybe.Just(v) => H.value.fromJson(v)
                    case _ =>
                      defaults.head match {
@@ -448,14 +458,14 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
       private val err = s"missing field '$field'".left[H]
 
       def fromJsObject(
-        j: StringyMap[JsValue],
+        j: FastJsObject,
         anns: Some[json] :: J,
         defaults: Option[H] :: D
       ) = {
         val ann       = anns.head.get
         val fieldname = ann.field.getOrElse(K.value.name)
         for {
-          head <- j.get(fieldname) match {
+          head <- j.lookup.get(fieldname) match {
                    case Maybe.Just(v) => H.value.fromJson(v)
                    case _ =>
                      defaults.head match {
@@ -469,7 +479,7 @@ private[jsonformat] trait DerivedProductJsDecoder1 {
       }
     }
 }
-private[jsonformat] trait DerivedProductJsDecoder2 {
+private[jsonformat] trait DerivedProductJsDecoder1 {
   this: DerivedProductJsDecoder.type =>
 
   implicit def hconsTagged[

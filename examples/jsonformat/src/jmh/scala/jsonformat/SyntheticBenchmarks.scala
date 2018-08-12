@@ -34,11 +34,15 @@ package h {
         )
       )
     }
-    implicit val decoder: JsDecoder[Nested] = { j =>
-      j.asJsObject.flatMap { obj =>
-        if (obj.fields.isEmpty) \/-(Nested(None))
-        else obj.getAs[Option[Nested]]("n").map(Nested(_))
-      }
+    import jsonformat.JsDecoder.fail
+    implicit val decoder: JsDecoder[Nested] = {
+      case JsObject(fields) =>
+        if (fields.isEmpty) \/-(Nested(None))
+        else
+          fields.collectFirst {
+            case ("n", v) => v.as[Nested]
+          }.getOrElse(fail("n", JsObject(fields)))
+      case other => fail("JsObject", other)
     }
   }
 }

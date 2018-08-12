@@ -6,10 +6,10 @@ package fommil
 import scalaz.Equal
 import shapeless._
 
+// lots of copypasta with DerivedOrder
+
 /**
- * Performance benchmarks show this to be much faster than Decidablez[Equal].
- * Users can opt in to this version by depending on this artefact, taking a
- * compiletime hit.
+ * Some performance benchmarks show this to be faster than Decidablez[Equal].
  */
 sealed trait DerivedEqual[A] extends Equal[A]
 object DerivedEqual {

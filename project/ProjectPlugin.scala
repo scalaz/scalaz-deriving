@@ -21,11 +21,7 @@ object ProjectKeys {
   def MonadicFor =
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
 
-  def SemanticDB =
-    addCompilerPlugin(
-      ("org.scalameta" % "semanticdb-scalac" % "4.0.0-M7")
-        .cross(CrossVersion.full)
-    )
+  def SemanticDB = addCompilerPlugin(scalafixSemanticdb)
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -86,6 +82,8 @@ object ProjectPlugin extends AutoPlugin {
         "-Xlog-reflective-calls",
         "-Yrangepos"
       ),
+      // WORKAROUND https://github.com/scalacenter/scalafix/issues/790
+      scalacOptions += "-P:semanticdb:failures:warning",
       scalacOptions := {
         // WORKAROUND https://github.com/propensive/magnolia/pull/132
         val old = scalacOptions.value

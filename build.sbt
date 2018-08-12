@@ -163,7 +163,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   )
 
 val jsonformat = (project in file("examples/jsonformat"))
-  .dependsOn(macros % "provided,test", deriving, scalacheck)
+  .dependsOn(macros % "provided,test", deriving, scalacheck, shapeless % "test")
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
@@ -173,8 +173,10 @@ val jsonformat = (project in file("examples/jsonformat"))
       "eu.timepit"           %% "refined"     % "0.9.2",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
-      "org.spire-math"       %% "jawn-parser" % "0.12.1"
+      "org.spire-math"       %% "jawn-parser" % "0.13.0"
     )
+    //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
+    //scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")
   )
   .enablePlugins(NeoJmhPlugin)
   .settings(headerSettings(Jmh))
