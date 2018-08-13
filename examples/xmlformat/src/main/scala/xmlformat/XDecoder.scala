@@ -29,6 +29,12 @@ object XDecoder
     }
     implicit class XTagDecoderOps(private val x: XTag) extends AnyVal {
       def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x.asChild)
+
+      // inefficient if there are more lookups than entries
+      def findAttr(name: String): Maybe[XAttr] =
+        x.attrs.find(_.name == name).toMaybe
+      def findChildren(name: String): IList[XTag] =
+        x.children.filter(_.name == name)
     }
   }
 
@@ -71,7 +77,8 @@ private[xmlformat] trait XDecoderScalaz1 {
   }
 
   implicit def ilistStr[A: XStrDecoder]: XDecoder[IList[A]] = { xs =>
-    xs.tree.traverse {
+    import internal.FastTraverse._
+    xs.tree.traverseDisjunction {
       case XTag(_, _, _, Maybe.Just(body)) =>
         XStrDecoder[A].fromXml(body)
       case other => fail(s"a single tag with a body", other.asChild)
@@ -79,7 +86,8 @@ private[xmlformat] trait XDecoderScalaz1 {
   }
 
   implicit def ilist[A: XDecoder]: XDecoder[IList[A]] = { xs =>
-    xs.tree.traverse(x => XDecoder[A].fromXml(x.asChild))
+    import internal.FastTraverse._
+    xs.tree.traverseDisjunction(x => XDecoder[A].fromXml(x.asChild))
   }
 
   implicit def nelStr[A: XStrDecoder]: XDecoder[NonEmptyList[A]] =

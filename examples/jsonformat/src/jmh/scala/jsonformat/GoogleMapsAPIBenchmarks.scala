@@ -43,9 +43,11 @@ import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
 // export ASYNC_PROFILER_DIR=$HOME/Projects/async-profiler
 // export FLAME_GRAPH_DIR=$HOME/Projects/FlameGraph
 //
+// http://malaw.ski/2017/12/10/automatic-flamegraph-generation-from-jmh-benchmarks-using-sbt-jmh-extras-plain-java-too/
 // (note you need to type `make` in the async-profiler directory)
 //
-// to use allocation profiling, you need debugging symbols in your jvm.
+// to use allocation profiling, you need debugging symbols in your jvm. e.g. use
+// the Zulu Java distribution.
 
 package m {
   @deriving(JsEncoder, JsDecoder)

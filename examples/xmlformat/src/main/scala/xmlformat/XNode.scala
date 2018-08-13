@@ -4,11 +4,15 @@
 package xmlformat
 
 import scalaz._, Scalaz._
+import org.scalacheck.Arbitrary
+import scalaz.scalacheck.ScalazArbitrary._
+import scalaz.scalacheck.ScalaCheckBinding._
 
 /**
  * ADT for XML, unaware of schemas, namespaces and comments (which are all
  * needlessly complicated and unnecessary for marshalling).
  */
+@deriving(Equal, Show, Arbitrary)
 sealed abstract class XNode
 
 /**
@@ -18,6 +22,7 @@ sealed abstract class XNode
  *
  * This is not an XNode, otherwise there is ambiguity with a one element list.
  */
+@deriving(Equal, Show, Arbitrary)
 final case class XTag(
   name: String,
   attrs: IList[XAttr],
@@ -38,17 +43,17 @@ object XTag {
  *
  * `name` must be a valid https://www.w3.org/TR/xml/#NT-AttValue (not enforced).
  */
+@deriving(Equal, Show, Arbitrary)
 final case class XAttr(name: String, value: XString)
-object XAttr {
-  implicit val equal: Equal[XAttr] =
-    Divide[Equal].deriving2(a => (a.name, a.value))
-}
 
 /**
  * A raw variant of children in an XTag.
  */
+@deriving(Show)
+@xderiving(Equal, Monoid, Arbitrary)
 final case class XChildren(tree: IList[XTag]) extends XNode
 
 /** String content for an XAttr value or XTag body. */
-@xderiving(Semigroup, Equal)
+@deriving(Show)
+@xderiving(Equal, Semigroup, Arbitrary)
 final case class XString(text: String) extends XNode

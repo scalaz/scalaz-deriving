@@ -6,6 +6,7 @@ package jsonformat
 import scala.util.control.NoStackTrace
 import jawn._
 import scalaz._, Scalaz._
+import internal.FastToIList._
 
 object JsParser extends SupportParser[JsValue] {
 
@@ -35,9 +36,8 @@ object JsParser extends SupportParser[JsValue] {
         )
       }
 
-      def jstring(s: CharSequence): JsString = JsString(s.toString)
-      def jarray(vs: List[JsValue]): JsArray = JsArray(vs.toIList)
-      def jobject(vs: Map[String, JsValue]): JsObject =
-        JsObject(vs.toList.toIList)
+      def jstring(s: CharSequence): JsString          = JsString(s.toString)
+      def jarray(vs: List[JsValue]): JsArray          = JsArray(vs.toIList)
+      def jobject(vs: Map[String, JsValue]): JsObject = JsObject(vs.asIList)
     }
 }

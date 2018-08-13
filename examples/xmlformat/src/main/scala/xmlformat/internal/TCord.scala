@@ -1,15 +1,14 @@
 // Copyright: 2017 - 2018 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-package xmlformat
-package cord
+package xmlformat.internal
 
 import scala.annotation.tailrec
 
 import scalaz._
 
 // backport of scalaz.Cord from 7.3
-sealed abstract class TCord {
+private[xmlformat] sealed abstract class TCord {
   override final def toString: String = shows
 
   final def reset: TCord = TCord.Leaf(shows)
@@ -24,12 +23,12 @@ sealed abstract class TCord {
   final def ::(o: TCord): TCord = TCord.Branch(o, this)
   final def ++(o: TCord): TCord = TCord.Branch(this, o)
 }
-object TCord {
+private[xmlformat] object TCord {
   def apply(s: String): TCord = Leaf.apply(s)
   def apply(): TCord          = Leaf.Empty
 
-  private[cord] final class Leaf private (val s: String) extends TCord
-  private[cord] object Leaf {
+  private[internal] final class Leaf private (val s: String) extends TCord
+  private[internal] object Leaf {
     val Empty: Leaf = new Leaf("")
     def apply(s: String): Leaf =
       if (s.isEmpty) Empty
@@ -37,12 +36,12 @@ object TCord {
     def unapply(l: Leaf): Some[String] = Some(l.s)
   }
 
-  private[cord] final class Branch private (
+  private[internal] final class Branch private (
     val leftDepth: Int,
     val left: TCord,
     val right: TCord
   ) extends TCord
-  private[cord] object Branch {
+  private[internal] object Branch {
     val max: Int = 100
     def apply(a: TCord, b: TCord): TCord =
       if (a.eq(Leaf.Empty)) b

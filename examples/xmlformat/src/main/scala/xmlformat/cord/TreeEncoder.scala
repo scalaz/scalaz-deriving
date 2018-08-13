@@ -5,6 +5,7 @@ package xmlformat
 package cord
 
 import scalaz._, Scalaz._
+import xmlformat.internal.TCord
 
 object TreeEncoder {
   def encode(t: XTag): String = toTCord(t).shows

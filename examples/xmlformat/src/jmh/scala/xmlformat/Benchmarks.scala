@@ -3,10 +3,6 @@
 
 package xmlformat
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.duration.Duration
-
 import org.openjdk.jmh.annotations.{ State => Input, _ }
 
 import scalaz._
@@ -15,47 +11,28 @@ import xmlformat.scalaxml._
 import xmlformat.cord._
 import xmlformat.stax._
 
-// xmlformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 .*Benchmarks
+// xmlformat/jmh:run -i 5 -wi 5 -f1 -t1 -w1 -r1 .*Benchmarks
 //
 // see org.openjdk.jmh.runner.options.CommandLineOptions
 class Benchmarks {
 
-  // the parser is more likely to run on multiple threads in the real scenario,
-  // so running perf tests in this wrapper should help us stress the GC
-  // behaviour more like reality.
-  @inline final def parallel[A](f: =>A): Boolean = {
-    Await.result(Future.sequence(List.fill(16)(Future(f))), Duration.Inf)
-  }.nonEmpty
+  @Benchmark
+  def parseScalaXml(data: Data) = data.parseScala
 
   @Benchmark
-  def parseScalaXml(data: Data): Boolean = parallel {
-    data.parseScala
-  }
+  def parseStax(data: Data) = data.parseStax
 
   @Benchmark
-  def parseStax(data: Data): Boolean = parallel {
-    data.parseStax
-  }
+  def printScalaXml(data: Data) = data.printScala
 
   @Benchmark
-  def printScalaXml(data: Data): Boolean = parallel {
-    data.printScala
-  }
+  def printStax(data: Data) = data.printStax
 
   @Benchmark
-  def printStax(data: Data): Boolean = parallel {
-    data.printStax
-  }
+  def printCord(data: Data) = data.printCord
 
   @Benchmark
-  def printCord(data: Data): Boolean = parallel {
-    data.printCord
-  }
-
-  @Benchmark
-  def printTree(data: Data): Boolean = parallel {
-    data.printTree
-  }
+  def printTree(data: Data) = data.printTree
 
 }
 

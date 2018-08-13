@@ -8,6 +8,7 @@ import scala.annotation.Annotation
 import magnolia._
 import scalaz._, Scalaz._
 import internal.StringyMap
+import internal.FastToIList._
 
 /**
  * Annotation for customising automatically derived instances of JsEncoder and
@@ -153,11 +154,11 @@ object JsMagnoliaDecoder {
   def dispatch[A](ctx: SealedTrait[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
       private val subtype = StringyMap(
-        ctx.subtypes.map { s =>
+        ctx.subtypes.mapToIList { s =>
           s.annotations.collectFirst {
             case json.hint(name) => name
           }.getOrElse(s.typeName.short) -> s
-        }.toList.toIList,
+        },
         Int.MaxValue
       )
       private val typehint = ctx.annotations.collectFirst {

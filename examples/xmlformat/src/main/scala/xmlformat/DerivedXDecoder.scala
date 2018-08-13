@@ -9,19 +9,13 @@ import shapeless._
 import shapeless.labelled._
 
 import XDecoder.fail
+import XDecoder.ops._
 import xmlformat.XAttr
-import xmlformat.internal.StringyMultiMap
 
-private[generic] final case class FastXTag(
-  x: XTag,
-  attrs: StringyMultiMap[XAttr],
-  children: StringyMultiMap[XTag]
-)
 sealed trait DerivedXDecoder[R, AS <: HList, BS <: HList] {
   private[generic] def from(x: XTag, as: AS, bs: BS): String \/ R
 }
 object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
-
   def gen[A, R, AS <: HList, BS <: HList](
     implicit
     G: LabelledGeneric.Aux[A, R],
@@ -42,23 +36,14 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
   }
 
   sealed trait PXDecoder[R, AS <: HList, BS <: HList]
-      extends DerivedXDecoder[R, AS, BS] {
-    private[generic] def from(x: FastXTag, as: AS, bs: BS): String \/ R
-
-    override final def from(x: XTag, as: AS, bs: BS): String \/ R = {
-      // we should get the length of the AS from shapeless here
-      val attrs    = StringyMultiMap(x.attrs, 1)(_.name)
-      val children = StringyMultiMap(x.children, 1)(_.name)
-      from(FastXTag(x, attrs, children), as, bs)
-    }
-  }
+      extends DerivedXDecoder[R, AS, BS]
   sealed trait CXDecoder[R, AS <: HList, BS <: HList]
       extends DerivedXDecoder[R, AS, BS]
 
   implicit val hnil: PXDecoder[HNil, HNil, HNil] =
     new PXDecoder[HNil, HNil, HNil] {
-      private val empty                                              = HNil.right[String]
-      def from(x: FastXTag, as: HNil, bs: HNil): String \/ HNil.type = empty
+      private val empty                                          = HNil.right[String]
+      def from(x: XTag, as: HNil, bs: HNil): String \/ HNil.type = empty
     }
 
   implicit def hconsAttr[K <: Symbol, H, T <: HList, AS <: HList, BS <: HList](
@@ -70,14 +55,14 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, H] :: T, Some[x.attr] :: AS, None.type :: BS] {
       private val key = K.value.name
       def from(
-        in: FastXTag,
+        in: XTag,
         as: Some[x.attr] :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, H] :: T) =
         for {
-          head <- in.attrs.find(key) match {
+          head <- in.findAttr(key) match {
                    case Maybe.Just(attr) => H.fromXml(attr.value)
-                   case _                => fail(s"attr '$key'", in.x.asChild)
+                   case _                => fail(s"attr '$key'", in.asChild)
                  }
           tail <- T.from(in, as.tail, bs.tail)
         } yield field[K](head) :: tail
@@ -99,12 +84,12 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       private val key   = K.value.name
       private val empty = Option.empty[H].right[String]
       def from(
-        in: FastXTag,
+        in: XTag,
         as: Some[x.attr] :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, Option[H]] :: T) =
         for {
-          head <- in.attrs.find(key) match {
+          head <- in.findAttr(key) match {
                    case Maybe.Just(attr) => H.fromXml(attr.value).map(Option(_))
                    case _                => empty
                  }
@@ -125,12 +110,12 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] {
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, H] :: T) =
         for {
-          body <- in.x.body \/> fail("a body", in.x.asChild).a
+          body <- in.body \/> fail("a body", in.asChild).a
           head <- H.fromXml(body)
           tail <- T.from(in, as.tail, bs.tail)
         } yield field[K](head) :: tail
@@ -150,12 +135,12 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, Option[H]] :: T, None.type :: AS, Some[x.body] :: BS] {
       private val empty = Option.empty[H].right[String]
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, Option[H]] :: T) =
         for {
-          head <- in.x.body.cata(H.fromXml(_).map(Option(_)), empty)
+          head <- in.body.cata(H.fromXml(_).map(Option(_)), empty)
           tail <- T.from(in, as.tail, bs.tail)
         } yield field[K](head) :: tail
     }
@@ -275,11 +260,11 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
       private val key = K.value.name
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, H] :: T) = {
-        val matching = XChildren(in.children.get(key))
+        val matching = XChildren(in.findChildren(key))
         for {
           head <- H.value.fromXml(matching)
           tail <- T.from(in, as.tail, bs.tail)
@@ -311,11 +296,11 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       private val key   = K.value.name
       private val empty = Option.empty[H].right[String]
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, Option[H]] :: T) = {
-        val matching = in.children.get(key)
+        val matching = in.findChildren(key)
         for {
           head <- if (matching.isEmpty) empty
                  else H.value.fromXml(XChildren(matching)).map(Some(_))
@@ -333,16 +318,16 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
       private val key = K.value.name
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, H] :: T) = {
-        val matching = in.children.get(key)
+        val matching = in.findChildren(key)
         for {
           head <- matching match {
                    case ICons(XTag(_, _, _, Maybe.Just(body)), INil()) =>
                      H.fromXml(body)
-                   case _ => fail(s"one '$key' with a body", in.x.asChild)
+                   case _ => fail(s"one '$key' with a body", in.asChild)
                  }
           tail <- T.from(in, as.tail, bs.tail)
         } yield field[K](head) :: tail
@@ -373,11 +358,11 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       private val key   = K.value.name
       private val empty = Option.empty[H].right[String]
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: None.type :: BS
       ): String \/ (FieldType[K, Option[H]] :: T) = {
-        val matching = in.children.get(key)
+        val matching = in.findChildren(key)
         for {
           head <- matching match {
                    case ICons(XTag(_, _, _, body), INil()) =>
@@ -387,7 +372,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
                      )
                    case INil() => empty
                    case _ =>
-                     fail(s"one or none '$key' with a body", in.x.asChild)
+                     fail(s"one or none '$key' with a body", in.asChild)
                  }
           tail <- T.from(in, as.tail, bs.tail)
         } yield (field[K](head) :: tail)
@@ -408,12 +393,12 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] {
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, H] :: T) = {
         // ignores errors, failure to decode anything gives Monoid.empty
-        val head = in.x.children
+        val head = in.children
           .flatMap(ts => H.value.fromXml(ts.asChild).toMaybe.toIList)
           .fold
         for {
@@ -441,13 +426,13 @@ trait LowPriorityDerivedXDecoder1 extends LowPriorityDerivedXDecoder2 {
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] {
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, H] :: T) =
         T.from(in, as.tail, bs.tail).flatMap { tail =>
           val (fails, goods) =
-            in.x.children.map(ts => H.value.fromXml(ts.asChild)).separate
+            in.children.map(ts => H.value.fromXml(ts.asChild)).separate
 
           goods.toNel match {
             case Some(head) =>
@@ -480,13 +465,13 @@ trait LowPriorityDerivedXDecoder2 {
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] {
       private val key = K.value.name
       def from(
-        in: FastXTag,
+        in: XTag,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, H] :: T) =
         T.from(in, as.tail, bs.tail).flatMap { tail =>
           val (fails, goods) =
-            in.x.children.map(ts => H.value.fromXml(ts.asChild)).separate
+            in.children.map(ts => H.value.fromXml(ts.asChild)).separate
 
           goods.into {
             case ICons(a, INil()) => (field[K](a) :: tail).right[String]
@@ -494,7 +479,7 @@ trait LowPriorityDerivedXDecoder2 {
               val messages = fails.intercalate("\n")
               s"$key:\n$messages".left
             case _ =>
-              fail(s"only one '${key}'", in.x.asChild)
+              fail(s"only one '${key}'", in.asChild)
           }
         }
     }

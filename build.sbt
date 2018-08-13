@@ -78,7 +78,6 @@ val base = (project in file("scalaz-deriving-base")).settings(
 
 val magnolia = project
   .dependsOn(
-    //magnolia_upstream,
     macros % "test"
   )
   .settings(ScalazDeriving)
@@ -105,22 +104,22 @@ val shapeless = project
 
 val scalacheck = project
   .dependsOn(
-    magnolia,
     macros % "test"
   )
   .settings(ScalazDeriving)
   .settings(
     name := "scalaz-deriving-scalacheck",
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
-      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
+      "com.propensive" %% "magnolia"                  % magnoliaVersion,
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
     )
   )
 
 val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
     base,
-    macros     % "provided",
+    macros,
     magnolia   % "test",
     scalacheck % "test"
   )
@@ -141,7 +140,7 @@ val deriving = (project in file("scalaz-deriving"))
   )
 
 val xmlformat = (project in file("examples/xmlformat"))
-  .dependsOn(macros % "provided", deriving)
+  .dependsOn(deriving, magnolia, scalacheck)
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
@@ -163,7 +162,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   )
 
 val jsonformat = (project in file("examples/jsonformat"))
-  .dependsOn(macros % "provided,test", deriving, scalacheck, shapeless % "test")
+  .dependsOn(deriving, magnolia, scalacheck, shapeless % "test")
   .settings(ScalazDeriving)
   .settings(
     KindProjector,
@@ -183,8 +182,7 @@ val jsonformat = (project in file("examples/jsonformat"))
   .settings(
     inConfig(Jmh)(
       org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
-    ),
-    libraryDependencies += "pl.project13.scala" % "sbt-jmh-extras" % "0.3.4" % "test,jmh"
+    )
   )
 
 // root project

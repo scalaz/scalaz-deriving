@@ -66,8 +66,10 @@ object Decoder {
     case u: xml.Unparsed => -\/(s"encountered unparsed xml: ${u.data}")
 
     case xml.Group(nodes) =>
-      nodes.toList.toIList
-        .traverse(xnode.fromScalaXml)
+      import internal.FastTraverse._
+      nodes
+        .foldRight(IList.empty[xml.NodeSeq])(_ :: _)
+        .traverseDisjunction(xnode.fromScalaXml)
         .map {
           case ICons(xs: XString, INil()) => xs
           case other =>
@@ -88,8 +90,8 @@ object Decoder {
         )
         .map { content =>
           val name = e.label
-          val attrs = e.attributes.asAttrMap.toList.toIList.map {
-            case (k, v) => XAttr(k, XString(v))
+          val attrs = e.attributes.asAttrMap.foldRight(IList.empty[XAttr]) {
+            case ((k, v), acc) => XAttr(k, XString(v)) :: acc
           }
 
           XTag(name, content).copy(attrs = attrs).asChild

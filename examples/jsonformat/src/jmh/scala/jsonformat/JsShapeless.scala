@@ -370,7 +370,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
   import ops.hlist.Length
   import ops.nat.ToInt
 
-  def gen[A, R, J <: HList, N <: Nat, D <: HList](
+  def gen[A, R, N <: Nat, J <: HList, D <: HList](
     implicit G: LabelledGeneric.Aux[A, R],
     J: Annotations.Aux[json, A, J],
     @unused L: Length.Aux[J, N],
