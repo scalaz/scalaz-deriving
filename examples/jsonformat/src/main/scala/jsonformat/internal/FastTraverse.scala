@@ -10,21 +10,14 @@ private[jsonformat] object FastTraverse {
 
   implicit final class IListExtras[A](private val self: IList[A])
       extends AnyVal {
-    def traverseDisjunction[E, B](f: A => E \/ B): E \/ IList[B] =
-      try {
-        val res = self.map { a =>
-          f(a) match {
-            case -\/(err) => throw new EarlyExit(err) // scalafix:ok
-            case \/-(j)   => j
-          }
+    def traverseDisjunction[E, B](f: A => E \/ B): E \/ IList[B] = {
+      val res = self.map { a =>
+        f(a) match {
+          case -\/(err) => return -\/(err) // scalafix:ok
+          case \/-(j)   => j
         }
-        \/-(res)
-      } catch {
-        case EarlyExit(msg) => -\/(msg.asInstanceOf[E])
       }
+      \/-(res)
+    }
   }
 }
-
-private[internal] final case class EarlyExit[E](msg: E)
-    extends Exception
-    with util.control.NoStackTrace
