@@ -3,7 +3,7 @@
 
 package fommil
 
-import magnolia._
+import magnolia._, mercator._
 import org.scalacheck._
 
 import scalaz._, Scalaz._
@@ -16,10 +16,14 @@ import scalaz.scalacheck.ScalaCheckBinding._
 object MagnoliaArbitrary {
   type Typeclass[A] = Arbitrary[A]
 
+  implicit val monadicGen: Monadic[Gen] = new Monadic[Gen] {
+    def flatMap[A, B](fa: Gen[A], f: A => Gen[B]): Gen[B] = fa.flatMap(f)
+    def map[A, B](fa: Gen[A], f: A => B): Gen[B]          = fa.map(f)
+    def point[A](a: A): Gen[A]                            = a.point[Gen]
+  }
+
   def combine[A](ctx: CaseClass[Arbitrary, A]): Arbitrary[A] = Arbitrary {
-    ctx.parameters.toList
-      .traverse(p => Gen.lzy(p.typeclass.arbitrary))
-      .map(ctx.rawConstruct)
+    ctx.constructMonadic(p => Gen.lzy(p.typeclass.arbitrary))
   }
 
   def dispatch[A](ctx: SealedTrait[Arbitrary, A]): Arbitrary[A] = Arbitrary {
