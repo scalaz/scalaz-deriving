@@ -77,7 +77,6 @@ private[xmlformat] trait XDecoderScalaz1 {
   }
 
   implicit def ilistStr[A: XStrDecoder]: XDecoder[IList[A]] = { xs =>
-    import internal.FastTraverse._
     xs.tree.traverseDisjunction {
       case XTag(_, _, _, Maybe.Just(body)) =>
         XStrDecoder[A].fromXml(body)
@@ -86,7 +85,6 @@ private[xmlformat] trait XDecoderScalaz1 {
   }
 
   implicit def ilist[A: XDecoder]: XDecoder[IList[A]] = { xs =>
-    import internal.FastTraverse._
     xs.tree.traverseDisjunction(x => XDecoder[A].fromXml(x.asChild))
   }
 

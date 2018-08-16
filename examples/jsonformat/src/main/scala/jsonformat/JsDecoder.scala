@@ -123,7 +123,6 @@ object JsDecoder
 private[jsonformat] trait JsDecoderScalaz1 {
   this: JsDecoder.type =>
 
-  import internal.FastTraverse._
   implicit def ilist[A: JsDecoder]: JsDecoder[IList[A]] = {
     case JsArray(js) =>
       val A = JsDecoder[A]
@@ -133,6 +132,14 @@ private[jsonformat] trait JsDecoderScalaz1 {
 
   implicit def nel[A: JsDecoder]: JsDecoder[NonEmptyList[A]] =
     ilist[A].emap(_.toNel \/> "empty list")
+
+  implicit def imap[A: JsDecoder]: JsDecoder[String ==>> A] = {
+    case JsObject(fields) =>
+      fields.traverse {
+        case (key, value) => value.as[A].strengthL(key)
+      }.map(IMap.fromFoldable(_))
+    case other => fail("JsObject", other)
+  }
 
   implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]] = {
     case JsNull => Maybe.empty.right

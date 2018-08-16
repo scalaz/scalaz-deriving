@@ -66,7 +66,6 @@ object Decoder {
     case u: xml.Unparsed => -\/(s"encountered unparsed xml: ${u.data}")
 
     case xml.Group(nodes) =>
-      import internal.FastTraverse._
       nodes
         .foldRight(IList.empty[xml.NodeSeq])(_ :: _)
         .traverseDisjunction(xnode.fromScalaXml)

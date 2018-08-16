@@ -52,6 +52,13 @@ private[jsonformat] trait JsEncoderScalaz1 {
   implicit def nel[A: JsEncoder]: JsEncoder[NonEmptyList[A]] =
     ilist[A].contramap(_.list)
 
+  implicit def imap[A: JsEncoder]: JsEncoder[String ==>> A] = { m =>
+    val fields = m.toList.map {
+      case (k, v) => k -> v.toJson
+    }
+    JsObject(fields.toIList)
+  }
+
   implicit def maybe[A: JsEncoder]: JsEncoder[Maybe[A]] = {
     case Maybe.Just(a) => a.toJson
     case Maybe.Empty() => JsNull
