@@ -5,10 +5,11 @@ package xmlformat
 package stax
 
 import java.io.StringWriter
+import java.util.regex.Pattern
+
 import javax.xml.stream.{ XMLOutputFactory, XMLStreamWriter }
 import scalaz._, Scalaz._
 
-import xmlformat.cord.CordEncoder
 import com.ctc.wstx.stax.WstxOutputFactory
 
 object StaxEncoder {
@@ -50,7 +51,7 @@ object StaxEncoder {
         x.writeCharacters("\n")
         x.writeCharacters(" " * 2 * (level + 1))
       }
-      if (!CordEncoder.containsXmlEntities(s.text))
+      if (!containsXmlEntities(s.text))
         x.writeCharacters(s.text)
       else {
         val clean =
@@ -67,5 +68,9 @@ object StaxEncoder {
 
     x.writeEndElement()
   }
+
+  private[this] val entities = Pattern.compile("""("|&|'|<|>)""")
+  def containsXmlEntities(input: String): Boolean =
+    entities.matcher(input).find()
 
 }

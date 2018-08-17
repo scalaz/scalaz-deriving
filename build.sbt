@@ -151,8 +151,7 @@ val xmlformat = (project in file("examples/xmlformat"))
       "eu.timepit"             %% "refined"      % "0.9.2",
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
-      "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion,
-      "org.scala-lang.modules" %% "scala-xml"    % "1.1.0"
+      "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
     )
   )
   .enablePlugins(NeoJmhPlugin)

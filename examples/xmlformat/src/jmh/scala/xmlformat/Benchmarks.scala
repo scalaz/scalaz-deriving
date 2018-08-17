@@ -7,8 +7,6 @@ import org.openjdk.jmh.annotations.{ State => Input, _ }
 
 import scalaz._
 
-import xmlformat.scalaxml._
-import xmlformat.cord._
 import xmlformat.stax._
 
 // xmlformat/jmh:run -i 5 -wi 5 -f1 -t1 -w1 -r1 .*Benchmarks
@@ -17,22 +15,10 @@ import xmlformat.stax._
 class Benchmarks {
 
   @Benchmark
-  def parseScalaXml(data: Data) = data.parseScala
-
-  @Benchmark
   def parseStax(data: Data) = data.parseStax
 
   @Benchmark
-  def printScalaXml(data: Data) = data.printScala
-
-  @Benchmark
   def printStax(data: Data) = data.printStax
-
-  @Benchmark
-  def printCord(data: Data) = data.printCord
-
-  @Benchmark
-  def printTree(data: Data) = data.printTree
 
 }
 
@@ -44,12 +30,6 @@ class Data {
     "numbering.xml" // docx content
   ).map(getResourceAsString(_))
 
-  def parseScala = strings.map { s =>
-    Decoder.parse(s) match {
-      case \/-(XChildren(ICons(t, INil()))) => t
-      case other                            => throw new IllegalArgumentException(other.toString)
-    }
-  }
   def parseStax = strings.map { s =>
     StaxDecoder.parse(s) match {
       case \/-(t) => t
@@ -57,12 +37,9 @@ class Data {
     }
   }
 
-  val parsed: List[XTag] = parseScala
+  val parsed: List[XTag] = parseStax
 
-  def printScala = parsed.map(t => Encoder.xnode.toScalaXml(t.asChild).toString)
-  def printCord  = parsed.map(t => CordEncoder.encode(t))
-  def printTree  = parsed.map(t => TreeEncoder.encode(t))
-  def printStax  = parsed.map(t => StaxEncoder.encode(t))
+  def printStax = parsed.map(t => StaxEncoder.encode(t))
 
   def getResourceAsString(res: String): String = {
     val is = getClass().getClassLoader().getResourceAsStream(res)
