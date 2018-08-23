@@ -398,9 +398,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
         bs: Some[x.body] :: BS
       ): String \/ (FieldType[K, H] :: T) = {
         // ignores errors, failure to decode anything gives Monoid.empty
-        val head = in.children
-          .flatMap(ts => H.value.fromXml(ts.asChild).toMaybe.toIList)
-          .fold
+        val head = in.children.map(ts => H.value.fromXml(ts.asChild)).unite.fold
         for {
           tail <- T.from(in, as.tail, bs.tail)
         } yield field[K](head) :: tail
