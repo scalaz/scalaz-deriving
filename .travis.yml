@@ -1,0 +1,23 @@
+language: scala
+jdk:
+  - openjdk8
+
+script:
+  - if $(git grep -qE "TODO|FIXME" *) ; then
+      echo "Please remove TODO or FIXME." ;
+      exit 1 ;
+    fi
+  - sbt ";+check ;+cpl ;lint ;+test"
+
+before_cache:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+cache:
+  directories:
+  - $HOME/.sbt
+  - $HOME/.ivy2
+  - $HOME/.coursier
+
+notifications:
+  email: false
