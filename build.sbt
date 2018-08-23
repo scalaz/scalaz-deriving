@@ -56,7 +56,7 @@ val macros = (project in file("deriving-macro"))
       "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-      "com.typesafe.play"    %% "play-json"     % "2.6.9"            % "test",
+      "com.typesafe.play"    %% "play-json"     % "2.6.10"           % "test",
       "io.estatico"          %% "newtype"       % "0.4.2"            % "test"
     )
   )
@@ -143,6 +143,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   .dependsOn(deriving, magnolia, scalacheck)
   .settings(ScalazDeriving)
   .settings(
+    name := "scalaz-deriving-xmlformat",
     KindProjector,
     MacroParadise,
     MonadicFor,
@@ -164,6 +165,7 @@ val jsonformat = (project in file("examples/jsonformat"))
   .dependsOn(deriving, magnolia, scalacheck, shapeless % "test")
   .settings(ScalazDeriving)
   .settings(
+    name := "scalaz-deriving-jsonformat",
     KindProjector,
     MacroParadise,
     MonadicFor,
