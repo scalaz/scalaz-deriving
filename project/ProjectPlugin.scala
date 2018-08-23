@@ -21,7 +21,12 @@ object ProjectKeys {
   def MonadicFor =
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4")
 
-  def SemanticDB = addCompilerPlugin(scalafixSemanticdb)
+  def SemanticDB =
+    //addCompilerPlugin(scalafixSemanticdb)
+    addCompilerPlugin(
+      ("org.scalameta" % "semanticdb-scalac" % "4.0.0-M9")
+        .cross(CrossVersion.full)
+    )
 
   def extraScalacOptions(scalaVersion: String) =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -57,10 +62,10 @@ object ProjectPlugin extends AutoPlugin {
 
   override def buildSettings =
     Seq(
-      organization := "com.fommil",
+      organization := "org.scalaz",
       crossScalaVersions := Seq("2.12.6", "2.11.12"),
       scalaVersion := crossScalaVersions.value.head,
-      sonatypeGithost := (Gitlab, "fommil", "scalaz-deriving"),
+      sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
       startYear := Some(2017),

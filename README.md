@@ -153,49 +153,24 @@ Learn by example in `scalaz-deriving/src/test/scala/examples` and a detailed tut
 val derivingVersion = "<version>"
 libraryDependencies ++= Seq(
   // the @deriving and @xderiving plugin and macro
-  "com.fommil" %% "deriving-macro" % derivingVersion,
-  compilerPlugin("com.fommil" %% "deriving-plugin" % derivingVersion),
+  "org.scalaz" %% "deriving-macro" % derivingVersion,
+  compilerPlugin("org.scalaz" %% "deriving-plugin" % derivingVersion),
 
   // the scalaz-deriving Altz / Decidablez / Deriving API and macros
-  "com.fommil" %% "scalaz-deriving" % derivingVersion,
+  "org.scalaz" %% "scalaz-deriving" % derivingVersion,
 
   // instances for Show and Arbitrary
-  "com.fommil" %% "scalaz-deriving-magnolia" % derivingVersion,
-  "com.fommil" %% "scalaz-deriving-scalacheck" % derivingVersion,
+  "org.scalaz" %% "scalaz-deriving-magnolia" % derivingVersion,
+  "org.scalaz" %% "scalaz-deriving-scalacheck" % derivingVersion,
 
   // shapeless alternatives to Deriving. See below for additional actions.
-  "com.fommil" %% "scalaz-deriving-shapeless" % derivingVersion
+  "org.scalaz" %% "scalaz-deriving-shapeless" % derivingVersion
 )
 ```
 
-where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:com.fommil%20a:scalaz-deriving_2.12).
+where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:org.scalaz%20a:scalaz-deriving_2.12).
 
 To use the opt-in shapeless alternatives, which can sometimes improve runtime performance (and sometimes slow it down), either manually call the `DerivingEqual.gen` etc from your companions, or create a `deriving.conf` containing the wirings following the instructions above. Recall that shapeless derivations require annotations on every element of an ADT, not just the top element.
-
-## Breaking Changes
-
-We provide some automated rules to migrate when we introduce breaking changes. You must have a recent version of [scalafix](https://scalacenter.github.io/scalafix/docs/users/installation) installed.
-
-### `deriving-macro`
-
-- 0.9.0
-  - `@stalactite.deriving` renamed to `@scalaz.deriving`
-    - `scalafix replace:stalactite.deriving/scalaz.deriving`
-- 0.10.0
-  - the default deriver was changed from `Foo.gen` to `scalaz.Deriving.gen`, add your typeclasses to `deriving.conf`
-  - the `-default.conf` derivations feature was removed
-- 0.11.0
-  - the `.Aux` derivation feature was removed
-  - `@scalaz.deriving` special casing for `extends AnyVal` was replaced with `@scalaz.xderiving`
-    - `scalafix https://gitlab.com/fommil/scalaz-deriving/raw/v0.14.0/scalafix/rules/src/main/scala/fix/Deriving_0_11_0.scala`
-  - the compiler plugin must be enabled
-- 0.12.0
-  - the `-Xmacro-settings:deriving` flag was removed, use `deriving.conf` in `resources`
-
-### `scalaz-deriving`
-
-- 1.0.0
-  - stabilised
 
 ## Caveats
 
