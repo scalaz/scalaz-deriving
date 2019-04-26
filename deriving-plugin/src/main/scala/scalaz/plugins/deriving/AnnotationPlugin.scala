@@ -179,6 +179,20 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       case _                                           => false
     }
 
+    private def getConstructor(clazz: ClassDef): Option[DefDef] =
+      clazz.impl.collect {
+        case d @ DefDef(_, nme.CONSTRUCTOR, _, _, _, _) => d
+      }.headOption
+
+    // A simple constructor is one with only one parameter group and no implicit parameters
+    private def hasSimpleConstructor(clazz: ClassDef): Boolean =
+      getConstructor(clazz) match {
+        case Some(DefDef(_, _, _, ps :: Nil, _, _))
+            if !ps.exists(_.mods.hasFlag(Flag.IMPLICIT)) =>
+          true
+        case _ => false
+      }
+
     /** generates a zero-functionality companion for a class */
     private def genCompanion(clazz: ClassDef): ModuleDef = {
       val mods =
@@ -198,6 +212,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       def sup =
         if (isCase &&
             clazz.tparams.isEmpty &&
+            hasSimpleConstructor(clazz) &&
             addSuperFunction(clazz) &&
             accessors.size <= 22) {
           AppliedTypeTree(
