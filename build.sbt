@@ -56,7 +56,7 @@ val macros = (project in file("deriving-macro"))
       "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-      "com.typesafe.play"    %% "play-json"     % "2.6.13"           % "test",
+      "com.typesafe.play"    %% "play-json"     % "2.7.4"            % "test",
       "io.estatico"          %% "newtype"       % "0.4.3"            % "test"
     )
   )
@@ -173,7 +173,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "eu.timepit"           %% "refined"     % "0.9.9",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
-      "org.spire-math"       %% "jawn-parser" % "0.13.0"
+      "org.typelevel"        %% "jawn-parser" % "0.14.2"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     //scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")

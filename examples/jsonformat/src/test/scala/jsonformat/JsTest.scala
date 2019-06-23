@@ -4,7 +4,7 @@
 package jsonformat
 
 import org.scalatest._
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import JsDecoder.ops._
 import JsEncoder.ops._
 import internal.FastToIList._
@@ -14,7 +14,7 @@ import scalaz._, Scalaz._
 abstract class JsTest
     extends FlatSpec
     with NonImplicitAssertions
-    with GeneratorDrivenPropertyChecks {
+    with ScalaCheckDrivenPropertyChecks {
   type Position  = org.scalactic.source.Position
   type Assertion = org.scalatest.Assertion
 

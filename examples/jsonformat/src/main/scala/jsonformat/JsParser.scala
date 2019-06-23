@@ -4,7 +4,7 @@
 package jsonformat
 
 import scala.util.control.NoStackTrace
-import jawn._
+import org.typelevel.jawn._
 import scalaz._, Scalaz._
 import internal.FastToIList._
 
