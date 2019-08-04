@@ -26,8 +26,8 @@ class Benchmarks {
 class Data {
   val strings: List[String] = List(
     "scala-compiler-2.12.6.pom", // maven
-    "Hannu_Rajaniemi", // wikipedia
-    "numbering.xml" // docx content
+    "Hannu_Rajaniemi",           // wikipedia
+    "numbering.xml"              // docx content
   ).map(getResourceAsString(_))
 
   def parseStax = strings.map { s =>

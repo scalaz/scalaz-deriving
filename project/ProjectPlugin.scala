@@ -69,7 +69,7 @@ object ProjectPlugin extends AutoPlugin {
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
       startYear := Some(2017),
-      scalafmtConfig := Some(file("project/scalafmt.conf")),
+      scalafmtConfig := file("project/scalafmt.conf"),
       scalafixConfig := Some(file("project/scalafix.conf"))
     )
 
