@@ -1,6 +1,6 @@
-val scalazVersion     = "7.2.26"
+val scalazVersion     = "7.2.28"
 val shapelessVersion  = "2.3.3"
-val simulacrumVersion = "0.13.0"
+val simulacrumVersion = "0.19.0"
 val magnoliaVersion   = "0.10.0"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
@@ -56,8 +56,8 @@ val macros = (project in file("deriving-macro"))
       "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-      "com.typesafe.play"    %% "play-json"     % "2.6.10"           % "test",
-      "io.estatico"          %% "newtype"       % "0.4.2"            % "test"
+      "com.typesafe.play"    %% "play-json"     % "2.6.13"           % "test",
+      "io.estatico"          %% "newtype"       % "0.4.3"            % "test"
     )
   )
 
@@ -132,7 +132,7 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "io.estatico"          %% "newtype"       % "0.4.2" % "test",
+      "io.estatico"          %% "newtype"       % "0.4.3" % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion % "test",
       "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
       "io.frees"             %% "iotaz-core"    % "0.3.10"
@@ -148,8 +148,8 @@ val xmlformat = (project in file("examples/xmlformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "com.fasterxml.woodstox" % "woodstox-core" % "5.1.0",
-      "eu.timepit"             %% "refined"      % "0.9.2",
+      "com.fasterxml.woodstox" % "woodstox-core" % "5.3.0",
+      "eu.timepit"             %% "refined"      % "0.9.9",
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
       "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
@@ -170,7 +170,7 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"           %% "refined"     % "0.9.2",
+      "eu.timepit"           %% "refined"     % "0.9.9",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
       "org.spire-math"       %% "jawn-parser" % "0.13.0"
