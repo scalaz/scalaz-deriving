@@ -5,6 +5,8 @@ jdk:
 matrix:
   include:
   - os: linux
+  - os: linux
+    jdk: openjdk11
   - os: osx
     env: JDK="adopt@1.8.0-222"
     language: bash
