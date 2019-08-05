@@ -111,8 +111,7 @@ val scalacheck = project
     name := "scalaz-deriving-scalacheck",
     libraryDependencies ++= Seq(
       "com.propensive" %% "magnolia"                  % magnoliaVersion,
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.13",
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14" % "test"
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14"
     )
   )
 
