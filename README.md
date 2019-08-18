@@ -37,7 +37,7 @@ General questions can be asked in https://gitter.im/scalaz/scalaz 💖 See the `
 The `@deriving` annotation simplifies the *semi-auto* pattern, whereby implicit evidence is explicitly added to data type companions, rather than being inferred at the point of use (known as *full-auto*). In short,
 
 ```scala
-@scalaz.deriving(Encoder, Decoder)
+@scalaz.annotation.deriving(Encoder, Decoder)
 case class Bar(s: String, b: Boolean)
 ```
 
@@ -94,7 +94,7 @@ and call with, e.g. `resourcesOnCompilerCp(Compile)`.
 A variant `@xderiving` works only on classes with one parameter (including those that extend `AnyVal`), making use of an `.xmap` that the typeclass may provide directly or via an instance of `scalaz.InvariantFunctor`, e.g.
 
 ```scala
-@scalaz.xderiving(Encoder, Decoder)
+@scalaz.annotation.xderiving(Encoder, Decoder)
 class Foo(val s: String)
 ```
 
