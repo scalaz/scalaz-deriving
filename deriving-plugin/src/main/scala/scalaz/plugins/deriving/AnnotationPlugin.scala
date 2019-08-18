@@ -8,7 +8,6 @@ package scalaz.plugins.deriving
 import scala.Predef.ArrowAssoc
 import scala.deprecated
 import scala.collection.immutable.Map
-import scala.collection.breakOut
 import scala.reflect.internal.util._
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
@@ -245,11 +244,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     def decepticons(trees: List[Tree]): List[Tree] = {
       val classes: Map[TypeName, ClassDef] = trees.collect {
         case c: ClassDef => c.name -> c
-      }(breakOut)
+      }.toMap
 
       val modules: Map[TermName, ModuleDef] = trees.collect {
         case m: ModuleDef => m.name -> m
-      }(breakOut)
+      }.toMap
 
       object ClassNoCompanion {
         def unapply(t: Tree): Option[ClassDef] = t match {

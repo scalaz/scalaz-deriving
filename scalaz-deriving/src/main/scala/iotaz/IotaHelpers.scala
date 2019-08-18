@@ -6,7 +6,6 @@ package iotaz
 import scala.{ Any, AnyVal, Int }
 import scala.annotation.switch
 import scala.collection.immutable.{ List, Seq }
-import scala.collection.breakOut
 
 import TList._
 import TList.Compute.{ Aux => ↦ }
@@ -128,7 +127,8 @@ object Prods {
             .zip(bs)
             .map {
               case (a, h) => /~\[Id, H, Any](a, h)
-            }(breakOut)
+            }
+            .toList
           lst.toIList
         }
       }
@@ -209,7 +209,8 @@ object Prods {
             .zip(bs)
             .map {
               case (aa, h) => /~\[Pair, H, Any](aa, h)
-            }(breakOut)
+            }
+            .toList
           lst.toIList
         }
       }
