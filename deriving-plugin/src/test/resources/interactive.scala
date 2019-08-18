@@ -1,7 +1,7 @@
 // Copyright: 2017 - 2019 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
-import scalaz.deriving
+import scalaz.annotation.deriving
 
 trait Format[A]
 object Format {

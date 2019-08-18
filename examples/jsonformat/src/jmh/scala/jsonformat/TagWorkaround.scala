@@ -3,7 +3,8 @@
 
 package jsonformat.benchmarks
 
-import scalaz.{ @@, deriving, Tags }
+import scalaz.{ @@, Tags }
+import scalaz.annotation.deriving
 import jsonformat._
 
 package s {

@@ -8,6 +8,7 @@ import java.lang.String
 import scala.{ Boolean, Double, Int, Long }
 
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
 import simulacrum.typeclass
 
 /**

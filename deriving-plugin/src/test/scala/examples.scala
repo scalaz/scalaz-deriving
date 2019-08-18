@@ -6,7 +6,7 @@ package testing
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
 
-import scalaz.{ deriving, xderiving }
+import scalaz.annotation.{ deriving, xderiving }
 
 package typeclasses {
   trait Cofoo[A]
@@ -55,7 +55,7 @@ final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
-@scalaz.deriving(json.Format)
+@scalaz.annotation.deriving(json.Format)
 final case class Gaz[T](t: T)
 
 @deriving(d.ValForwarder)

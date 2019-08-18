@@ -5,6 +5,7 @@ package jsonformat
 
 import JsDecoder.ops._
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
 
 class JsDecoderTest extends JsTest {
 

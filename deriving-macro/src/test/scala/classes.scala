@@ -5,7 +5,8 @@ package testing.classes
 
 import java.lang.String
 import scala.{ AnyVal, Either, Int }
-import scalaz.deriving
+import scalaz.annotation.deriving
+import scalaz.annotation.xderiving
 import testing.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
 import play.api.libs.json

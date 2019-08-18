@@ -11,6 +11,7 @@ import jsonformat.JsDecoder.ops._
 import jsonformat.JsDecoder.fail
 import jsonformat.JsEncoder.ops._
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
 import jsonformat.BenchmarkUtils.getResourceAsString
 import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
 

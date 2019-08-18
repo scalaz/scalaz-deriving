@@ -5,6 +5,8 @@ package examples
 
 import jsonformat._
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
+import scalaz.annotation.xderiving
 
 @xderiving(Equal, Show, JsEncoder, JsDecoder)
 final case class Optimal(thing: String) extends AnyVal

@@ -4,6 +4,8 @@
 package xmlformat
 
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
+import scalaz.annotation.xderiving
 import org.scalacheck.Arbitrary
 import scalaz.scalacheck.ScalazArbitrary._
 import scalaz.scalacheck.ScalaCheckBinding._

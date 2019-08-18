@@ -8,8 +8,10 @@ package scalaz {
   import scala.AnyRef
   import scala.annotation.Annotation
 
-  class deriving(val typeclasses: AnyRef*)  extends Annotation
-  class xderiving(val typeclasses: AnyRef*) extends Annotation
+  package annotation {
+    class deriving(val typeclasses: AnyRef*)  extends Annotation
+    class xderiving(val typeclasses: AnyRef*) extends Annotation
+  }
 
   package macros {
     object DerivingMacros {

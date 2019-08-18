@@ -9,6 +9,7 @@ import jsonformat._
 import jsonformat.JsDecoder.ops._
 import jsonformat.JsEncoder.ops._
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
 import org.openjdk.jmh.annotations.{ Scope, Setup, State }
 //import org.openjdk.jmh.annotations.Benchmark
 

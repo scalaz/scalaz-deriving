@@ -4,7 +4,7 @@
 package testing
 
 import testing.typeclasses.Cofoo
-import scalaz.deriving
+import scalaz.annotation.deriving
 
 // annotation is not on a top level entry
 object NotDerived {

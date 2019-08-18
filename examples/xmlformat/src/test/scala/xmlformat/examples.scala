@@ -4,6 +4,8 @@
 package xmlformat.examples
 
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
+import scalaz.annotation.xderiving
 import xmlformat._
 
 @xderiving(XStrEncoder, XStrDecoder)

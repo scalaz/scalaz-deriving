@@ -4,6 +4,7 @@
 package jsonformat
 
 import scalaz._, Scalaz._
+import scalaz.annotation.deriving
 import org.scalacheck.Arbitrary
 import scalaz.scalacheck.ScalazArbitrary.ilistArbitrary
 
