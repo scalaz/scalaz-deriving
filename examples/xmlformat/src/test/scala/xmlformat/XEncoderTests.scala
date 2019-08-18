@@ -47,7 +47,7 @@ class XEncoderTests extends FreeSpec {
     }
 
     "should support Symbols" in {
-      'foo.toXml.shouldBe(XString("foo"))
+      Symbol("foo").toXml.shouldBe(XString("foo"))
     }
 
     "should special-case Either" in {

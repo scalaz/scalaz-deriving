@@ -53,7 +53,7 @@ class XDecoderTests extends FreeSpec {
     }
 
     "should support Symbols" in {
-      XString("foo").as[Symbol].shouldEqual('foo)
+      XString("foo").as[Symbol].shouldEqual(Symbol("foo"))
     }
 
     "should special-case Either" in {

@@ -21,7 +21,7 @@ class JsEncoderTest extends JsTest {
     false.toJson.assert_===(JsBoolean(false))
     'c'.toJson.assert_===(JsString("c"))
     "Hello".toJson.assert_===(JsString("Hello"))
-    'Hello.toJson.assert_===(JsString("Hello"))
+    Symbol("Hello").toJson.assert_===(JsString("Hello"))
   }
 
   it should "encode Option" in {
