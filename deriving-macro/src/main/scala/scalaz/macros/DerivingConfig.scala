@@ -10,7 +10,7 @@ import scala.collection.immutable.{ List, Map }
 import scala.collection.JavaConverters._
 
 private[scalaz] final case class DerivingConfig(targets: Map[String, String])
-private[scalaz] object DerivingConfig extends DerivingBackCompat {
+private[scalaz] object DerivingConfig {
   private type Result[T] = Either[String, T]
   private type Stringy   = Map[String, String]
 

@@ -88,7 +88,7 @@ class XEncoderTests extends FreeSpec {
         )
     }
 
-    "should support Traversables of string content" in {
+    "should support Iterables of string content" in {
       val expected = XChildren(
         IList(
           XTag("value", XString("1")),

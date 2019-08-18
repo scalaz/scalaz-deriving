@@ -107,12 +107,12 @@ private[xmlformat] trait XEncoderStdlib1 {
 private[xmlformat] trait XEncoderStdlib2 {
   this: XEncoder.type =>
 
-  implicit def traversableStr[T[_], A: XStrEncoder](
-    implicit T: T[A] <:< Traversable[A]
+  implicit def iterableStr[T[_], A: XStrEncoder](
+    implicit T: T[A] <:< Iterable[A]
   ): XEncoder[T[A]] = listStr.contramap(_.toList)
 
-  implicit def traversable[T[_], A: XEncoder](
-    implicit T: T[A] <:< Traversable[A]
+  implicit def iterable[T[_], A: XEncoder](
+    implicit T: T[A] <:< Iterable[A]
   ): XEncoder[T[A]] = list[A].contramap(_.toList)
 
 }

@@ -109,6 +109,6 @@ private[jsonformat] trait JsEncoderScalaz2 {
 private[jsonformat] trait JsEncoderStdlib2 {
   this: JsEncoder.type =>
 
-  implicit def traversable[T[a] <: Traversable[a], A: JsEncoder]
-    : JsEncoder[T[A]] = list[A].contramap(_.toList)
+  implicit def iterable[T[a] <: Iterable[a], A: JsEncoder]: JsEncoder[T[A]] =
+    list[A].contramap(_.toList)
 }

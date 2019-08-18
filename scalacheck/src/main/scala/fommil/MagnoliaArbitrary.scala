@@ -17,8 +17,8 @@ object MagnoliaArbitrary {
   type Typeclass[A] = Arbitrary[A]
 
   implicit val monadicGen: Monadic[Gen] = new Monadic[Gen] {
-    def flatMap[A, B](fa: Gen[A], f: A => Gen[B]): Gen[B] = fa.flatMap(f)
-    def map[A, B](fa: Gen[A], f: A => B): Gen[B]          = fa.map(f)
+    def flatMap[A, B](fa: Gen[A])(f: A => Gen[B]): Gen[B] = fa.flatMap(f)
+    def map[A, B](fa: Gen[A])(f: A => B): Gen[B]          = fa.map(f)
     def point[A](a: A): Gen[A]                            = a.point[Gen]
   }
 

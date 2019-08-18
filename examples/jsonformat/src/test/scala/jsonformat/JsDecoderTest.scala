@@ -62,11 +62,10 @@ class JsDecoderTest extends JsTest {
     json.as[Map[String, Int]].assert_===(\/-(map))
   }
 
-  it should "decode stdlib CanBuildFromables" in {
+  it should "decode stdlib List" in {
     val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
     val list = List(1, 2, 3)
     json.as[List[Int]].assert_===(\/-(list))
-    json.as[Set[Int]].assert_===(\/-(Set(1, 2, 3)))
   }
 
   import examples._

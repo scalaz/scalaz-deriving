@@ -114,7 +114,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
       ambiguous.as[IntyTagged \/ StringyTagged].shouldBe(-\/(IntyTagged(13)))
     }
 
-    "should support Traversables" in {
+    "should support List" in {
       val xml = XChildren(
         IList(
           XTag("value", XString("1")),
@@ -124,8 +124,6 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
       )
 
       xml.as[List[Int]].shouldBe(List(1, 2, 3))
-      xml.as[Seq[Int]].shouldBe(Seq(1, 2, 3))
-      xml.as[Set[Int]].shouldBe(Set(1, 2, 3))
 
       // sometimes single element things come through like this
       XTag("value", XString("1")).as[List[Int]].shouldBe(List(1))

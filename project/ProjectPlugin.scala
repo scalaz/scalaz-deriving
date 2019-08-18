@@ -12,9 +12,19 @@ import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 
 object ProjectKeys {
   def MacroParadise =
-    addCompilerPlugin(
-      ("org.scalamacros" % "paradise" % "2.1.1").cross(CrossVersion.full)
-    )
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v <= 12 =>
+          Seq(
+            compilerPlugin(
+              ("org.scalamacros" % "paradise" % "2.1.1")
+                .cross(CrossVersion.full)
+            )
+          )
+        case _ =>
+          Nil
+      }
+    }
   def KindProjector =
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
 
@@ -28,27 +38,19 @@ object ProjectKeys {
         .cross(CrossVersion.full)
     )
 
-  def extraScalacOptions(scalaVersion: String) =
-    CrossVersion.partialVersion(scalaVersion) match {
-      case Some((2, 12)) =>
-        Seq(
-          "-Ywarn-extra-implicit",
-          "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
-          "-opt:l:method,inline",
-          "-opt-inline-from:scala.**",
-          "-opt-inline-from:scalaz.**",
-          "-opt-inline-from:fommil.**",
-          "-opt-inline-from:iotaz.**",
-          "-opt-inline-from:magnolia.**",
-          "-opt-inline-from:shapeless.**",
-          "-opt-inline-from:jsonformat.**",
-          "-opt-inline-from:xmlformat.**"
-        )
-      case _ =>
-        Seq(
-          "-Xexperimental"
-        )
-    }
+  def extraScalacOptions =
+    Seq(
+      "-Ywarn-extra-implicit",
+      "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
+      "-opt:l:method,inline",
+      "-opt-inline-from:scala.**",
+      "-opt-inline-from:scalaz.**",
+      "-opt-inline-from:fommil.**",
+      "-opt-inline-from:magnolia.**",
+      "-opt-inline-from:shapeless.**",
+      "-opt-inline-from:jsonformat.**",
+      "-opt-inline-from:xmlformat.**"
+    )
 }
 
 object ProjectPlugin extends AutoPlugin {
@@ -60,11 +62,13 @@ object ProjectPlugin extends AutoPlugin {
   val autoImport = ProjectKeys
   import autoImport._
 
+  val Scala213 = "2.13.0"
+
   override def buildSettings =
     Seq(
       organization := "org.scalaz",
-      crossScalaVersions := Seq("2.12.8", "2.11.12"),
-      scalaVersion := crossScalaVersions.value.head,
+      crossScalaVersions := Seq("2.12.8", Scala213),
+      scalaVersion := Scala213,
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
@@ -77,11 +81,39 @@ object ProjectPlugin extends AutoPlugin {
     Seq(
       SemanticDB,
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % Test,
+      scalacOptions --= Seq(
+        "-Xfatal-warnings"
+      ),
+      scalacOptions --= {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, v)) if v >= 13 =>
+            Seq(
+              "-Xfuture",
+              "-Yno-adapted-args",
+              "-Ywarn-nullary-unit",
+              "-Ywarn-nullary-override",
+              "-Ywarn-inaccessible"
+            )
+          case _ =>
+            Nil
+        }
+      },
+      scalacOptions ++= {
+        CrossVersion.partialVersion(scalaVersion.value) match {
+          case Some((2, n)) if n >= 13 =>
+            Seq(
+              "-Ymacro-annotations"
+            )
+          case Some((2, v)) if v <= 12 =>
+            Seq(
+              "-Ypartial-unification"
+            )
+        }
+      },
       scalacOptions ++= Seq(
         "-language:experimental.macros,higherKinds,implicitConversions",
         "-unchecked",
         "-explaintypes",
-        "-Ypartial-unification",
         "-Xlog-free-terms",
         "-Xlog-free-types",
         "-Xlog-reflective-calls",
@@ -89,14 +121,7 @@ object ProjectPlugin extends AutoPlugin {
       ),
       // WORKAROUND https://github.com/scalacenter/scalafix/issues/790
       scalacOptions += "-P:semanticdb:failures:warning",
-      scalacOptions := {
-        // WORKAROUND https://github.com/propensive/magnolia/pull/132
-        val old = scalacOptions.value
-        val bin = scalaBinaryVersion.value
-        if (bin == "2.11") old.filterNot(_ == "-Xfatal-warnings")
-        else old
-      },
-      scalacOptions ++= extraScalacOptions(scalaVersion.value),
+      scalacOptions ++= extraScalacOptions,
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Ywarn"))),

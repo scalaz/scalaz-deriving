@@ -103,8 +103,10 @@ object Deriving {
     )(
       implicit ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
-      (g(z1), g(z2)).zip(tcs).all {
-        case (a1, a2) /~\ fa => quick(a1, a2) || fa.value.equal(a1, a2)
+      (g(z1), g(z2)).zip(tcs).all { p =>
+        val (a1, a2) = p.a
+        val fa       = p.b
+        quick(a1, a2) || fa.value.equal(a1, a2)
       }
     }
 
@@ -116,8 +118,11 @@ object Deriving {
       (g(z1), g(z2))
         .zip(tcs)
         .into {
-          case -\/(_)               => false
-          case \/-((a1, a2) /~\ fa) => quick(a1, a2) || fa.value.equal(a1, a2)
+          case -\/(_) => false
+          case \/-(p) =>
+            val (a1, a2) = p.a
+            val fa       = p.b
+            quick(a1, a2) || fa.value.equal(a1, a2)
         }
     }
   }
@@ -137,14 +142,15 @@ object Deriving {
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
         def order(z1: Z, z2: Z): Ordering =
-          (g(z1), g(z2)).zip(tcs).foldRight(Ordering.EQ: Ordering) {
-            case ((a1, a2) /~\ fa, acc) =>
-              if (quick(a1, a2)) acc
-              else
-                fa.value.order(a1, a2) match {
-                  case Ordering.EQ => acc
-                  case ord         => ord
-                }
+          (g(z1), g(z2)).zip(tcs).foldRight(Ordering.EQ: Ordering) { (p, acc) =>
+            val (a1, a2) = p.a
+            val fa       = p.b
+            if (quick(a1, a2)) acc
+            else
+              fa.value.order(a1, a2) match {
+                case Ordering.EQ => acc
+                case ord         => ord
+              }
           }
       }
     }
@@ -160,7 +166,9 @@ object Deriving {
         def order(z1: Z, z2: Z): Ordering =
           (g(z1), g(z2)).zip(tcs).into {
             case -\/((i1, _, i2, _)) => Ordering.fromInt(i1 - i2)
-            case \/-((a1, a2) /~\ fa) =>
+            case \/-(p) =>
+              val (a1, a2) = p.a
+              val fa       = p.b
               if (quick(a1, a2)) Ordering.EQ
               else fa.value.order(a1, a2)
           }

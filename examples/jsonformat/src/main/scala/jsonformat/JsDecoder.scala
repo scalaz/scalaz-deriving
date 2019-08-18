@@ -194,9 +194,6 @@ private[jsonformat] trait JsDecoderScalaz2 {
 private[jsonformat] trait JsDecoderStdlib2 {
   this: JsDecoder.type =>
 
-  import scala.collection.generic.CanBuildFrom
-  implicit def cbf[T[_], A: JsDecoder](
-    implicit CBF: CanBuildFrom[Nothing, A, T[A]]
-  ): JsDecoder[T[A]] = ilist[A].map(_.toList.to[T])
+  implicit def list[A: JsDecoder]: JsDecoder[List[A]] = ilist[A].map(_.toList)
 
 }

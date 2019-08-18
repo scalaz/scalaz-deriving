@@ -160,12 +160,4 @@ private[xmlformat] trait XDecoderStdlib1 {
 private[xmlformat] trait XDecoderStdlib2 {
   this: XDecoder.type =>
 
-  implicit def cbfStr[T[_], A: XStrDecoder](
-    implicit CBF: collection.generic.CanBuildFrom[Nothing, A, T[A]]
-  ): XDecoder[T[A]] = listStr[A].map(_.to[T])
-
-  implicit def cbf[T[_], A: XDecoder](
-    implicit CBF: collection.generic.CanBuildFrom[Nothing, A, T[A]]
-  ): XDecoder[T[A]] = list[A].map(_.to[T])
-
 }

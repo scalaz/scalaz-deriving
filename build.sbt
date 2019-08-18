@@ -1,7 +1,7 @@
 val scalazVersion     = "7.2.28"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
-val magnoliaVersion   = "0.10.0"
+val magnoliaVersion   = "0.11.0"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -19,16 +19,11 @@ val plugin = (project in file("deriving-plugin")).settings(
   scalacOptions in Test += "-Yno-predef",
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "org.ensime"     %% "pcplod"        % "1.2.1"            % "test"
+    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   ),
   scalacOptions in Test ++= {
     val jar = (packageBin in Compile).value
     Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-  },
-  javaOptions in Test += {
-    val jar = (packageBin in Compile).value.getAbsolutePath
-    s"-Dpcplod.settings=-Ymacro-expand:discard,-Xplugin:$jar",
   }
 )
 
@@ -72,7 +67,9 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-imports",
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
-    "org.scalaz" %% "scalaz-core" % scalazVersion
+    "org.scala-lang"             % "scala-reflect"              % scalaVersion.value % "provided",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3" % "test",
+    "org.scalaz"                 %% "scalaz-core"               % scalazVersion
   )
 )
 
@@ -131,10 +128,9 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "io.estatico"          %% "newtype"       % "0.4.3" % "test",
-      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion % "test",
-      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
-      "io.frees"             %% "iotaz-core"    % "0.3.10"
+      "io.estatico"          %% "newtype"       % "0.4.3"            % "test",
+      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
+      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided"
     )
   )
 

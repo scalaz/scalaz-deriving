@@ -3,7 +3,7 @@
 
 package scalaz.macros
 
-import scala.Predef.genericArrayOps
+import scala.Predef._
 import scala.reflect.macros.blackbox
 
 final class DerivingMacrosImpl(val c: blackbox.Context) {

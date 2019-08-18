@@ -56,13 +56,13 @@ class JsEncoderTest extends JsTest {
     map.toJson.assert_===(json)
   }
 
-  it should "encode stdlib CanBuildFrom things" in {
-    val set  = Set(1, 2, 3)
-    val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
-    set.toJson.assert_===(json)
+  it should "encode stdlib List" in {
+    val list1 = List(1, 2, 3)
+    val json  = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
+    list1.toJson.assert_===(json)
 
-    val seq = collection.IndexedSeq(1, 2, 3)
-    seq.toJson.assert_===(json)
+    val list2 = scala.collection.IndexedSeq(1, 2, 3)
+    list2.toJson.assert_===(json)
   }
 
   import examples._
