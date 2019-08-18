@@ -103,10 +103,8 @@ object Deriving {
     )(
       implicit ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
-      (g(z1), g(z2)).zip(tcs).all { p =>
-        val (a1, a2) = p.a
-        val fa       = p.b
-        quick(a1, a2) || fa.value.equal(a1, a2)
+      (g(z1), g(z2)).zip(tcs).all {
+        case (a1, a2) /~\ fa => quick(a1, a2) || fa.value.equal(a1, a2)
       }
     }
 

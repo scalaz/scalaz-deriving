@@ -4,26 +4,12 @@ jdk:
 
 matrix:
   include:
-  - os: linux
-  - os: osx
-    env: JDK="adopt@1.8.212-04"
-    language: bash
-    before_script:
-    - wget "https://raw.githubusercontent.com/DanySK/Gravis-CI/e3f0fc509abd9b55/.install-jdk-travis.sh"
-    - source .install-jdk-travis.sh
-  - name: lint
-    script:
-    - if $(git grep -qE "TODO|FIXME" *) ; then
-        echo "Please remove TODO or FIXME." ;
-        exit 1 ;
-      fi
-    - sbt lint
-  allow_failures:
-  - name: lint # TODO fix all warnings
+  - scala: 2.12.8
+  - scala: 2.13.0
 
 script:
   - wget https://raw.githubusercontent.com/paulp/sbt-extras/53f1edc685d8f269ac5513/sbt && chmod +x ./sbt
-  - ./sbt ";+check ;+cpl ;+test"
+  - ./sbt "++${TRAVIS_SCALA_VERSION}" compile
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" | xargs rm
