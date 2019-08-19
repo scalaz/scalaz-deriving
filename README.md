@@ -63,7 +63,7 @@ expanding into
 ```scala
 @newtype
 case class Bar(s: String)
-object {
+object Bar {
   implicit val _deriving_encoder: Encoder[Bar] = deriving
   implicit val _deriving_decoder: Decoder[Bar] = deriving
 }
