@@ -18,6 +18,18 @@ val plugin = (project in file("deriving-plugin")).settings(
   scalafixTest in Compile := {},
   scalacOptions in Test += "-Yno-predef",
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
+  crossScalaVersions := Seq(
+    "2.12.8",
+    "2.12.9",
+    "2.12.10",
+    "2.13.0",
+    "2.13.1"
+  ),
+  crossVersion := CrossVersion.full,
+  crossTarget := {
+    // workaround for https://github.com/sbt/sbt/issues/5097
+    target.value / s"scala-${scalaVersion.value}"
+  },
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   ),

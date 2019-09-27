@@ -26,7 +26,9 @@ object ProjectKeys {
       }
     }
   def KindProjector =
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
+    addCompilerPlugin(
+      ("org.typelevel" %% "kind-projector" % "0.11.0").cross(CrossVersion.full)
+    )
 
   def MonadicFor =
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
@@ -62,12 +64,12 @@ object ProjectPlugin extends AutoPlugin {
   val autoImport = ProjectKeys
   import autoImport._
 
-  val Scala213 = "2.13.0"
+  val Scala213 = "2.13.1"
 
   override def buildSettings =
     Seq(
       organization := "org.scalaz",
-      crossScalaVersions := Seq("2.12.8", Scala213),
+      crossScalaVersions := Seq("2.12.10", Scala213),
       scalaVersion := Scala213,
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
