@@ -144,7 +144,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MonadicFor,
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "6.0.0",
-      "eu.timepit"             %% "refined"      % "0.9.9",
+      "eu.timepit"             %% "refined"      % "0.9.10",
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
       "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
@@ -165,7 +165,7 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"           %% "refined"     % "0.9.9",
+      "eu.timepit"           %% "refined"     % "0.9.10",
       "org.scalaz"           %% "scalaz-core" % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
       "org.typelevel"        %% "jawn-parser" % "0.14.2"
