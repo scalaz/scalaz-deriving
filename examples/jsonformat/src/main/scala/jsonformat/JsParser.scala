@@ -32,7 +32,7 @@ object JsParser extends SupportParser[JsValue] {
             s.parseDouble.map(JsDouble(_))
         n.getOrElse(
           throw new IllegalArgumentException(s"bad number $s")
-          with NoStackTrace // scalafix:ok
+            with NoStackTrace // scalafix:ok
         )
       }
 
