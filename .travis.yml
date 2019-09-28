@@ -6,7 +6,7 @@ matrix:
   include:
   - os: linux
   - os: osx
-    env: JDK="adopt@1.8.212-04"
+    env: JDK="adopt@1.8.0-222"
     language: bash
     before_script:
     - wget "https://raw.githubusercontent.com/DanySK/Gravis-CI/e3f0fc509abd9b55/.install-jdk-travis.sh"
