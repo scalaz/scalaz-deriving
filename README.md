@@ -156,7 +156,7 @@ val derivingVersion = "<version>"
 libraryDependencies ++= Seq(
   // the @deriving and @xderiving plugin and macro
   "org.scalaz" %% "deriving-macro" % derivingVersion,
-  compilerPlugin("org.scalaz" %% "deriving-plugin" % derivingVersion),
+  compilerPlugin("org.scalaz" %% "deriving-plugin" % derivingVersion cross CrossVersion.full),
 
   // the scalaz-deriving Altz / Decidablez / Deriving API and macros
   "org.scalaz" %% "scalaz-deriving" % derivingVersion,
