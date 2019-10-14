@@ -11,7 +11,7 @@ import JsDecoder.{ fail, FastJsObject }
 sealed trait DerivedJsEncoder[A, R, J <: HList] {
   def toJsFields(r: R, anns: J): IList[(String, JsValue)]
 }
-object DerivedJsEncoder extends DerivedJsEncoder1 with DerivedJsEncoder2 {
+object DerivedJsEncoder extends DerivedJsEncoder1 {
   def gen[A, R, J <: HList](
     implicit
     G: LabelledGeneric.Aux[A, R],
@@ -90,7 +90,9 @@ object DerivedJsEncoder extends DerivedJsEncoder1 with DerivedJsEncoder2 {
         }
     }
 }
-private[jsonformat] trait DerivedJsEncoder1 {
+private[jsonformat] trait DerivedJsEncoder1 extends DerivedJsEncoder2 {
+  this: DerivedJsEncoder.type =>
+
   implicit def hcons[A, K <: Symbol, H, T <: HList, J <: HList](
     implicit
     K: Witness.Aux[K],
