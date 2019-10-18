@@ -34,11 +34,19 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
       case m: MethodSymbol if m.isParamAccessor => m.asMethod
     }.toList match {
       case value :: Nil =>
-        val access = value.name
-        val U      = value.typeSignatureIn(A).resultType
-        q"""_root_.scala.Predef.implicitly[${F.typeSymbol}[$U]].xmap(
+        val hasXmap = F.decls.find(_.name.toString == "xmap").isDefined
+        val access  = value.name
+        val U       = value.typeSignatureIn(A).resultType
+        def invariant =
+          q"""_root_.scalaz.InvariantFunctor[${F.typeSymbol}].xmap(
+              _root_.scala.Predef.implicitly[${F.typeSymbol}[$U]],
               (u: $U) => new $A(u),
               (a: $A) => a.$access)"""
+        def xmap =
+          q"""_root_.scala.Predef.implicitly[${F.typeSymbol}[$U]].xmap(
+              (u: $U) => new $A(u),
+              (a: $A) => a.$access)"""
+        if (hasXmap) xmap else invariant
       case _ =>
         c.abort(c.enclosingPosition, "only supports classes with one parameter")
     }
