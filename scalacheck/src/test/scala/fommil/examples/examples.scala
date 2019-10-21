@@ -7,7 +7,6 @@ import java.lang.String
 import scala.{ AnyVal, Boolean, Int }
 
 import org.scalacheck.Arbitrary
-import scalaz._, Scalaz._
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
 import scalaz.scalacheck.ScalaCheckBinding._
