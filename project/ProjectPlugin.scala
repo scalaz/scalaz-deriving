@@ -9,6 +9,7 @@ import fommil.SonatypePlugin.autoImport._
 import sbtdynver.DynVerPlugin.autoImport._
 import org.scalafmt.sbt.ScalafmtPlugin, ScalafmtPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
+import xerial.sbt.Sonatype.autoImport._
 
 object ProjectKeys {
   def MacroParadise =
@@ -81,6 +82,7 @@ object ProjectPlugin extends AutoPlugin {
 
   override def projectSettings =
     Seq(
+      publishTo := sonatypePublishToBundle.value,
       SemanticDB,
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % Test,
       scalacOptions --= Seq(
