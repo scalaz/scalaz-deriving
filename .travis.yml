@@ -36,6 +36,3 @@ cache:
   - $HOME/.sbt
   - $HOME/.ivy2
   - $HOME/.coursier
-
-notifications:
-  email: false
