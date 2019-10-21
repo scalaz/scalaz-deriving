@@ -44,4 +44,8 @@ class XDerivingTest extends FlatSpec {
     (the[Cobar[Van]] should not).equal(null)
   }
 
+  it should "support orphan instances" in {
+    (the[OrphanCobar[Van]] should not).equal(null)
+  }
+
 }

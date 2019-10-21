@@ -10,8 +10,7 @@ import scalaz.annotation.xderiving
 import testing.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
 import play.api.libs.json
-import scalaz._
-import Scalaz._
+import OrphanCobarInstances._
 
 @deriving(Cofoo, B)
 sealed trait Baz
@@ -31,8 +30,8 @@ private[testing] final case class Par(s: String)
 @deriving(Cofoo, B)
 case object Car extends Baz
 
-@xderiving(Cofoo, B)
-final case class Van(v: String) extends Baz
+@xderiving(Cofoo, B, OrphanCobar)
+final case class Van private (v: String) extends Baz
 
 @xderiving(Cofoo, B)
 final case class Anyx(s: String) extends AnyVal

@@ -42,6 +42,21 @@ object Cobar {
 
   implicit val string: Cobar[String] = new Cobar[String] {}
 }
+
+@typeclass trait OrphanCobar[T] {}
+object OrphanCobarInstances {
+  implicit val invariant: scalaz.InvariantFunctor[OrphanCobar] =
+    new scalaz.InvariantFunctor[OrphanCobar] {
+      override def xmap[A, B](
+        ma: OrphanCobar[A],
+        f: A => B,
+        g: B => A
+      ): OrphanCobar[B] =
+        new OrphanCobar[B] {}
+    }
+
+  implicit val string: OrphanCobar[String] = new OrphanCobar[String] {}
+}
 object CustomCobar {
   def go[T, Repr](
     implicit @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
