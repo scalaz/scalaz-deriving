@@ -1,4 +1,4 @@
-// Copyright: 2017 - 2019 Sam Halliday
+// Copyright: 2017 - 2020 Sam Halliday
 // License: https://opensource.org/licenses/BSD-3-Clause
 
 package scalaz
