@@ -17,8 +17,10 @@ import examples.newtypes._
 import examples.adt._
 import examples.recadt._
 import examples.recgadt._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DecidablezSpec extends FlatSpec with NonImplicitAssertions {
+class DecidablezSpec extends AnyFlatSpec with NonImplicitAssertions {
   import Packed._
 
   "BadPack contramap" should "behave in a counterintuitive way" in {

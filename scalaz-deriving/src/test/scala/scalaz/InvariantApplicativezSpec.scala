@@ -6,8 +6,10 @@ package scalaz
 import Scalaz._
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class InvariantApplicativesSpec extends FlatSpec with NonImplicitAssertions {
+class InvariantApplicativesSpec extends AnyFlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "anyvals" should "behave as expected" in {

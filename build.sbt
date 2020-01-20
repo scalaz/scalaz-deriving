@@ -177,10 +177,11 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"           %% "refined"     % "0.9.10",
-      "org.scalaz"           %% "scalaz-core" % scalazVersion,
-      "com.github.mpilquist" %% "simulacrum"  % simulacrumVersion,
-      "org.typelevel"        %% "jawn-parser" % "0.14.3"
+      "eu.timepit"           %% "refined"         % "0.9.10",
+      "org.scalaz"           %% "scalaz-core"     % scalazVersion,
+      "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
+      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.0.1",
+      "org.typelevel"        %% "jawn-parser"     % "0.14.3"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     //scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")

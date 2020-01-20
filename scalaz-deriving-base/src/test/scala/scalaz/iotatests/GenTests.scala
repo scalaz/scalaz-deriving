@@ -11,8 +11,8 @@ import scala.Int
 import iotaz._
 import TList._
 
-import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
 
 object GenTests {
   final case class Foo(s: String, ɩ: Int)
@@ -39,7 +39,7 @@ object GenTests {
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 }
 
-class GenTests extends FlatSpec {
+class GenTests extends AnyFlatSpec {
   import GenTests._
 
   "Prod.gen" should "support case classes" in {

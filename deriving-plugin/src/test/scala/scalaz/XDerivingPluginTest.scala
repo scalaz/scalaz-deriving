@@ -7,12 +7,12 @@ import java.lang.String
 
 import scala.Predef.implicitly
 
-import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import testing._
 import testing.typeclasses._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class XDerivingTest extends FlatSpec {
+class XDerivingTest extends AnyFlatSpec {
   // scalafix:off DisableSyntax.keywords.null
 
   "@xderiving" should "support AnyVal" in {

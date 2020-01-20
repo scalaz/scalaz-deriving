@@ -12,8 +12,9 @@ import examples.recadt._
 import examples.recgadt._
 
 import Scalaz._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class DecidableSpec extends FlatSpec with NonImplicitAssertions {
+class DecidableSpec extends AnyFlatSpec with NonImplicitAssertions {
 
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz
