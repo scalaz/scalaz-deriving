@@ -4,8 +4,8 @@
 package xmlformat
 package stax
 
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class StaxEncoderTests extends FlatSpec with EncoderTestsParent {
+class StaxEncoderTests extends AnyFlatSpec with EncoderTestsParent {
   override def encode(t: XTag): String = StaxEncoder.encode(t)
 }

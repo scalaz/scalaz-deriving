@@ -5,8 +5,8 @@ package fommil
 
 import java.lang.String
 
-import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.NonImplicitAssertions
 
 import examples.anyvals._
 import examples.adt._
@@ -14,8 +14,9 @@ import examples.recadt._
 import examples.recgadt._
 
 import scalaz._, Scalaz._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class ShowSpec extends FlatSpec with NonImplicitAssertions {
+class ShowSpec extends AnyFlatSpec with NonImplicitAssertions {
 
   "anyvals" should "behave as expected" in {
     Thing("greetings").shows should equal("\"greetings\"")

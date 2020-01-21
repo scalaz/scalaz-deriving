@@ -10,10 +10,10 @@ import scala.concurrent.duration._
 import eu.timepit.refined
 import scalaz._, Scalaz._
 
-import org.scalatest.{ Tag => _, _ }
-import Matchers._
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.should.Matchers._
 
-class XEncoderTests extends FreeSpec {
+class XEncoderTests extends AnyFreeSpec {
   import XEncoder.ops._
   import XStrEncoder.ops._
 

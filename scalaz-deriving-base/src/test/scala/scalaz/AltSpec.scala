@@ -10,8 +10,10 @@ import org.scalatest._
 import examples.adt._
 import examples.recadt._
 import examples.recgadt._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class AltSpec extends FlatSpec with NonImplicitAssertions {
+class AltSpec extends AnyFlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "products" should "behave as expected" in {

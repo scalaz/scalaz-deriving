@@ -3,13 +3,12 @@
 
 package xmlformat
 
-import org.scalatest.{ Tag => _, _ }
-import org.scalatest.Matchers._
-
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.flatspec.AnyFlatSpecLike
 import scalaz._, Scalaz._
 
 trait EncoderTestsParent {
-  this: FlatSpecLike =>
+  this: AnyFlatSpecLike =>
 
   implicit class StringHelper(x: XTag) {
     def print: String = encode(x)

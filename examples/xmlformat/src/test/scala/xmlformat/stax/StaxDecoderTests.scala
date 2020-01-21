@@ -4,13 +4,13 @@
 package xmlformat
 package stax
 
-import org.scalatest.{ Tag => _, _ }
+import org.scalatest.matchers.should.Matchers._
 import org.scalactic.source.Position
-import org.scalatest.Matchers._
 
 import scalaz._, Scalaz._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class StaxDecoderTests extends FlatSpec {
+class StaxDecoderTests extends AnyFlatSpec {
   import XTestUtils._
 
   implicit class StringHelper(txt: String) {

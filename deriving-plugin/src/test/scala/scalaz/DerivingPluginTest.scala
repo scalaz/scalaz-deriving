@@ -6,13 +6,13 @@ package scalaz
 import java.lang.String
 import scala.Predef.implicitly
 
-import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 
 import testing._
 import testing.typeclasses._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class DerivingPluginTest extends FlatSpec {
+class DerivingPluginTest extends AnyFlatSpec {
 
   "@deriving" should "support case classes" in {
     implicitly[Cofoo[Foo]].shouldBe(Foo._deriving_cofoo)

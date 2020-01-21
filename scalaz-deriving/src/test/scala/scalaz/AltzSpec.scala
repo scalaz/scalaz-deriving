@@ -10,8 +10,10 @@ import Scalaz._
 import org.scalatest._
 
 import examples.{ Defaultz, Defaultzy }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class AltzSpec extends FlatSpec with NonImplicitAssertions {
+class AltzSpec extends AnyFlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "anyvals" should "behave as expected" in {

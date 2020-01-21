@@ -4,8 +4,7 @@
 package tests
 
 import java.lang.String
-import org.scalatest._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import play.api.libs.json
 import play.api.libs.json.{ JsArray, JsString }
 import scala.collection.immutable.List
@@ -13,8 +12,9 @@ import shapeless.the
 import testing.classes._
 import testing.typeclasses._
 import Cofoo.ops._
+import org.scalatest.flatspec.AnyFlatSpec
 
-class DerivingTest extends FlatSpec {
+class DerivingTest extends AnyFlatSpec {
   // scalafix:off DisableSyntax.keywords.null
 
   "@deriving" should "support case classes" in {

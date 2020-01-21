@@ -5,7 +5,7 @@ package xmlformat
 
 import scalaz._
 
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import org.scalactic.source.Position
 
 object XTestUtils {

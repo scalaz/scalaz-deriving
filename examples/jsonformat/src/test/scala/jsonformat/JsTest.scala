@@ -10,9 +10,10 @@ import JsEncoder.ops._
 import internal.FastToIList._
 
 import scalaz._, Scalaz._
+import org.scalatest.flatspec.AnyFlatSpec
 
 abstract class JsTest
-    extends FlatSpec
+    extends AnyFlatSpec
     with NonImplicitAssertions
     with ScalaCheckDrivenPropertyChecks {
   type Position  = org.scalactic.source.Position

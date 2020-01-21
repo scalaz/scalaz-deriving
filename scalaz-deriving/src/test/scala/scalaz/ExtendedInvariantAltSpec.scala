@@ -15,8 +15,10 @@ import examples.recadt._
 import examples.recgadt._
 import examples.{ Default, Same }
 import examples.Same.ops._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ExtendedInvariantAltSpec extends FlatSpec with NonImplicitAssertions {
+class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
   import Matchers._
 
   "Alt anyvals" should "behave as expected" in {
