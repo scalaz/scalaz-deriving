@@ -30,8 +30,8 @@ package h {
   object Nested {
     implicit val encoder: JsEncoder[Nested] = { o =>
       JsObject(
-        o.n.fold(IList.empty[(String, JsValue)])(
-          n => IList.single("n" -> n.toJson)
+        o.n.fold(IList.empty[(String, JsValue)])(n =>
+          IList.single("n" -> n.toJson)
         )
       )
     }

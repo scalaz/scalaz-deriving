@@ -156,7 +156,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MonadicFor,
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "6.0.3",
-      "eu.timepit"             %% "refined"      % "0.9.10",
+      "eu.timepit"             %% "refined"      % "0.9.12",
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
       "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
@@ -177,11 +177,11 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"           %% "refined"         % "0.9.10",
+      "eu.timepit"           %% "refined"         % "0.9.12",
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
       "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.0.1",
-      "org.typelevel"        %% "jawn-parser"     % "0.14.3"
+      "org.typelevel"        %% "jawn-parser"     % "1.0.0"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     //scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")

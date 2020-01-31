@@ -89,12 +89,11 @@ private[iotaz] final class ProductMacros(val c: Context) {
             s"Expected ${algebras.length} arguments but received ${argTypes.length}"
           )
       _ <- Traverse[List]
-            .traverse(argTypes.zip(algebras))(
-              tpes =>
-                require(
-                  tpes._1 <:< tpes._2,
-                  s"Expected ${tpes._1} <:< ${tpes._2}"
-                ).toAvowal
+            .traverse(argTypes.zip(algebras))(tpes =>
+              require(
+                tpes._1 <:< tpes._2,
+                s"Expected ${tpes._1} <:< ${tpes._2}"
+              ).toAvowal
             )
             .toEither
       seq = if (argTypes.length == 0) q"_root_.scala.collection.immutable.Nil"

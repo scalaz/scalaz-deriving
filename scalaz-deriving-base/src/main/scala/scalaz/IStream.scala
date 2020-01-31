@@ -143,8 +143,8 @@ object IStream {
       def traverseImpl[G[_], A, B](
         fa: IStream[A]
       )(f: A => G[B])(implicit G: Applicative[G]): G[IStream[B]] =
-        fa.foldRightByName(G.point(empty[B]))(
-          (x, ys) => G.apply2(f(x), ys)(_ !: _)
+        fa.foldRightByName(G.point(empty[B]))((x, ys) =>
+          G.apply2(f(x), ys)(_ !: _)
         )
 
       // wtf is traversal all about?

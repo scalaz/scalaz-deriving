@@ -640,14 +640,13 @@ package h {
           "indices"      -> a.indices.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[Urls] = JsDecoder.obj(4)(
-      j =>
-        for {
-          url          <- j.getAs[String]("url")
-          expanded_url <- j.getAs[String]("expanded_url")
-          display_url  <- j.getAs[String]("display_url")
-          indices      <- j.getAs[IList[Int]]("indices")
-        } yield Urls(url, expanded_url, display_url, indices)
+    implicit val decoder: JsDecoder[Urls] = JsDecoder.obj(4)(j =>
+      for {
+        url          <- j.getAs[String]("url")
+        expanded_url <- j.getAs[String]("expanded_url")
+        display_url  <- j.getAs[String]("display_url")
+        indices      <- j.getAs[IList[Int]]("indices")
+      } yield Urls(url, expanded_url, display_url, indices)
     )
 
     implicit val equal: Equal[Urls] = (a1, a2) =>
@@ -661,11 +660,10 @@ package h {
         "urls" -> a.urls.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[Url] = JsDecoder.obj(1)(
-      j =>
-        for {
-          urls <- j.getAs[IList[Urls]]("urls")
-        } yield Url(urls)
+    implicit val decoder: JsDecoder[Url] = JsDecoder.obj(1)(j =>
+      for {
+        urls <- j.getAs[IList[Urls]]("urls")
+      } yield Url(urls)
     )
     implicit val equal: Equal[Url] = (a1, a2) => a1.urls === a2.urls
   }
@@ -676,12 +674,11 @@ package h {
           "description" -> a.description.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[UserEntities] = JsDecoder.obj(2)(
-      j =>
-        for {
-          url         <- j.getAs[Url]("url")
-          description <- j.getAs[Url]("description")
-        } yield UserEntities(url, description)
+    implicit val decoder: JsDecoder[UserEntities] = JsDecoder.obj(2)(j =>
+      for {
+        url         <- j.getAs[Url]("url")
+        description <- j.getAs[Url]("description")
+      } yield UserEntities(url, description)
     )
     implicit val equal: Equal[UserEntities] = (a1, a2) =>
       a1.url === a2.url &&
@@ -697,15 +694,14 @@ package h {
           "indices"   -> a.indices.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[UserMentions] = JsDecoder.obj(5)(
-      j =>
-        for {
-          screen_name <- j.getAs[String]("screen_name")
-          name        <- j.getAs[String]("name")
-          id          <- j.getAs[Long]("id")
-          id_str      <- j.getAs[String]("id_str")
-          indices     <- j.getAs[IList[Int]]("indices")
-        } yield UserMentions(screen_name, name, id, id_str, indices)
+    implicit val decoder: JsDecoder[UserMentions] = JsDecoder.obj(5)(j =>
+      for {
+        screen_name <- j.getAs[String]("screen_name")
+        name        <- j.getAs[String]("name")
+        id          <- j.getAs[Long]("id")
+        id_str      <- j.getAs[String]("id_str")
+        indices     <- j.getAs[IList[Int]]("indices")
+      } yield UserMentions(screen_name, name, id, id_str, indices)
     )
     implicit val equal: Equal[UserMentions] = (a1, a2) =>
       a1.screen_name === a2.screen_name &&
@@ -762,107 +758,106 @@ package h {
           "translator_type"                    -> a.translator_type.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[User] = JsDecoder.obj(41)(
-      j =>
-        for {
-          id                     <- j.getAs[Long]("id")
-          id_str                 <- j.getAs[String]("id_str")
-          name                   <- j.getAs[String]("name")
-          screen_name            <- j.getAs[String]("screen_name")
-          location               <- j.getAs[String]("location")
-          description            <- j.getAs[String]("description")
-          url                    <- j.getAs[String]("url")
-          entities               <- j.getAs[UserEntities]("entities")
-          protected_             <- j.getAs[Boolean]("protected")
-          followers_count        <- j.getAs[Int]("followers_count")
-          friends_count          <- j.getAs[Int]("friends_count")
-          listed_count           <- j.getAs[Int]("listed_count")
-          created_at             <- j.getAs[String]("created_at")
-          favourites_count       <- j.getAs[Int]("favourites_count")
-          utc_offset             <- j.getAs[Int]("utc_offset")
-          time_zone              <- j.getAs[String]("time_zone")
-          geo_enabled            <- j.getAs[Boolean]("geo_enabled")
-          verified               <- j.getAs[Boolean]("verified")
-          statuses_count         <- j.getAs[Int]("statuses_count")
-          lang                   <- j.getAs[String]("lang")
-          contributors_enabled   <- j.getAs[Boolean]("contributors_enabled")
-          is_translator          <- j.getAs[Boolean]("is_translator")
-          is_translation_enabled <- j.getAs[Boolean]("is_translation_enabled")
-          profile_background_color <- j.getAs[String](
-                                       "profile_background_color"
-                                     )
-          profile_background_image_url <- j.getAs[String](
-                                           "profile_background_image_url"
-                                         )
-          profile_background_image_url_https <- j.getAs[String](
-                                                 "profile_background_image_url_https"
-                                               )
-          profile_background_tile <- j.getAs[Boolean]("profile_background_tile")
-          profile_image_url       <- j.getAs[String]("profile_image_url")
-          profile_image_url_https <- j.getAs[String]("profile_image_url_https")
-          profile_banner_url      <- j.getAs[String]("profile_banner_url")
-          profile_link_color      <- j.getAs[String]("profile_link_color")
-          profile_sidebar_border_color <- j.getAs[String](
-                                           "profile_sidebar_border_color"
-                                         )
-          profile_sidebar_fill_color <- j.getAs[String](
-                                         "profile_sidebar_fill_color"
+    implicit val decoder: JsDecoder[User] = JsDecoder.obj(41)(j =>
+      for {
+        id                     <- j.getAs[Long]("id")
+        id_str                 <- j.getAs[String]("id_str")
+        name                   <- j.getAs[String]("name")
+        screen_name            <- j.getAs[String]("screen_name")
+        location               <- j.getAs[String]("location")
+        description            <- j.getAs[String]("description")
+        url                    <- j.getAs[String]("url")
+        entities               <- j.getAs[UserEntities]("entities")
+        protected_             <- j.getAs[Boolean]("protected")
+        followers_count        <- j.getAs[Int]("followers_count")
+        friends_count          <- j.getAs[Int]("friends_count")
+        listed_count           <- j.getAs[Int]("listed_count")
+        created_at             <- j.getAs[String]("created_at")
+        favourites_count       <- j.getAs[Int]("favourites_count")
+        utc_offset             <- j.getAs[Int]("utc_offset")
+        time_zone              <- j.getAs[String]("time_zone")
+        geo_enabled            <- j.getAs[Boolean]("geo_enabled")
+        verified               <- j.getAs[Boolean]("verified")
+        statuses_count         <- j.getAs[Int]("statuses_count")
+        lang                   <- j.getAs[String]("lang")
+        contributors_enabled   <- j.getAs[Boolean]("contributors_enabled")
+        is_translator          <- j.getAs[Boolean]("is_translator")
+        is_translation_enabled <- j.getAs[Boolean]("is_translation_enabled")
+        profile_background_color <- j.getAs[String](
+                                     "profile_background_color"
+                                   )
+        profile_background_image_url <- j.getAs[String](
+                                         "profile_background_image_url"
                                        )
-          profile_text_color <- j.getAs[String]("profile_text_color")
-          profile_use_background_image <- j.getAs[Boolean](
-                                           "profile_use_background_image"
-                                         )
-          has_extended_profile  <- j.getAs[Boolean]("has_extended_profile")
-          default_profile       <- j.getAs[Boolean]("default_profile")
-          default_profile_image <- j.getAs[Boolean]("default_profile_image")
-          following             <- j.getAs[Boolean]("following")
-          follow_request_sent   <- j.getAs[Boolean]("follow_request_sent")
-          notifications         <- j.getAs[Boolean]("notifications")
-          translator_type       <- j.getAs[String]("translator_type")
-        } yield User(
-          id,
-          id_str,
-          name,
-          screen_name,
-          location,
-          description,
-          url,
-          entities,
-          protected_,
-          followers_count,
-          friends_count,
-          listed_count,
-          created_at,
-          favourites_count,
-          utc_offset,
-          time_zone,
-          geo_enabled,
-          verified,
-          statuses_count,
-          lang,
-          contributors_enabled,
-          is_translator,
-          is_translation_enabled,
-          profile_background_color,
-          profile_background_image_url,
-          profile_background_image_url_https,
-          profile_background_tile,
-          profile_image_url,
-          profile_image_url_https,
-          profile_banner_url,
-          profile_link_color,
-          profile_sidebar_border_color,
-          profile_sidebar_fill_color,
-          profile_text_color,
-          profile_use_background_image,
-          has_extended_profile,
-          default_profile,
-          default_profile_image,
-          following,
-          follow_request_sent,
-          notifications,
-          translator_type
-        )
+        profile_background_image_url_https <- j.getAs[String](
+                                               "profile_background_image_url_https"
+                                             )
+        profile_background_tile <- j.getAs[Boolean]("profile_background_tile")
+        profile_image_url       <- j.getAs[String]("profile_image_url")
+        profile_image_url_https <- j.getAs[String]("profile_image_url_https")
+        profile_banner_url      <- j.getAs[String]("profile_banner_url")
+        profile_link_color      <- j.getAs[String]("profile_link_color")
+        profile_sidebar_border_color <- j.getAs[String](
+                                         "profile_sidebar_border_color"
+                                       )
+        profile_sidebar_fill_color <- j.getAs[String](
+                                       "profile_sidebar_fill_color"
+                                     )
+        profile_text_color <- j.getAs[String]("profile_text_color")
+        profile_use_background_image <- j.getAs[Boolean](
+                                         "profile_use_background_image"
+                                       )
+        has_extended_profile  <- j.getAs[Boolean]("has_extended_profile")
+        default_profile       <- j.getAs[Boolean]("default_profile")
+        default_profile_image <- j.getAs[Boolean]("default_profile_image")
+        following             <- j.getAs[Boolean]("following")
+        follow_request_sent   <- j.getAs[Boolean]("follow_request_sent")
+        notifications         <- j.getAs[Boolean]("notifications")
+        translator_type       <- j.getAs[String]("translator_type")
+      } yield User(
+        id,
+        id_str,
+        name,
+        screen_name,
+        location,
+        description,
+        url,
+        entities,
+        protected_,
+        followers_count,
+        friends_count,
+        listed_count,
+        created_at,
+        favourites_count,
+        utc_offset,
+        time_zone,
+        geo_enabled,
+        verified,
+        statuses_count,
+        lang,
+        contributors_enabled,
+        is_translator,
+        is_translation_enabled,
+        profile_background_color,
+        profile_background_image_url,
+        profile_background_image_url_https,
+        profile_background_tile,
+        profile_image_url,
+        profile_image_url_https,
+        profile_banner_url,
+        profile_link_color,
+        profile_sidebar_border_color,
+        profile_sidebar_fill_color,
+        profile_text_color,
+        profile_use_background_image,
+        has_extended_profile,
+        default_profile,
+        default_profile_image,
+        following,
+        follow_request_sent,
+        notifications,
+        translator_type
+      )
     )
     implicit val equal: Equal[User] = (a1, a2) =>
       a1.id === a2.id &&
@@ -917,14 +912,13 @@ package h {
           "urls"          -> a.urls.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[Entities] = JsDecoder.obj(4)(
-      j =>
-        for {
-          hashtags      <- j.getAs[IList[String]]("hashtags")
-          symbols       <- j.getAs[IList[String]]("symbols")
-          user_mentions <- j.getAs[IList[UserMentions]]("user_mentions")
-          urls          <- j.getAs[IList[Urls]]("urls")
-        } yield Entities(hashtags, symbols, user_mentions, urls)
+    implicit val decoder: JsDecoder[Entities] = JsDecoder.obj(4)(j =>
+      for {
+        hashtags      <- j.getAs[IList[String]]("hashtags")
+        symbols       <- j.getAs[IList[String]]("symbols")
+        user_mentions <- j.getAs[IList[UserMentions]]("user_mentions")
+        urls          <- j.getAs[IList[Urls]]("urls")
+      } yield Entities(hashtags, symbols, user_mentions, urls)
     )
     implicit val equal: Equal[Entities] = (a1, a2) =>
       a1.hashtags === a2.hashtags &&
@@ -969,68 +963,67 @@ package h {
           "lang"               -> a.lang.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[RetweetedStatus] = JsDecoder.obj(25)(
-      j =>
-        for {
-          created_at <- j.getAs[String]("created_at")
-          id         <- j.getAs[Long]("id")
-          id_str     <- j.getAs[String]("id_str")
-          text       <- j.getAs[String]("text")
-          truncated  <- j.getAs[Boolean]("truncated")
-          entities   <- j.getAs[Entities]("entities")
-          source     <- j.getAs[String]("source")
-          in_reply_to_status_id <- j.getOption[String](
-                                    "in_reply_to_status_id"
+    implicit val decoder: JsDecoder[RetweetedStatus] = JsDecoder.obj(25)(j =>
+      for {
+        created_at <- j.getAs[String]("created_at")
+        id         <- j.getAs[Long]("id")
+        id_str     <- j.getAs[String]("id_str")
+        text       <- j.getAs[String]("text")
+        truncated  <- j.getAs[Boolean]("truncated")
+        entities   <- j.getAs[Entities]("entities")
+        source     <- j.getAs[String]("source")
+        in_reply_to_status_id <- j.getOption[String](
+                                  "in_reply_to_status_id"
+                                )
+        in_reply_to_status_id_str <- j.getOption[String](
+                                      "in_reply_to_status_id_str"
+                                    )
+        in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
+        in_reply_to_user_id_str <- j.getOption[String](
+                                    "in_reply_to_user_id_str"
                                   )
-          in_reply_to_status_id_str <- j.getOption[String](
-                                        "in_reply_to_status_id_str"
-                                      )
-          in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
-          in_reply_to_user_id_str <- j.getOption[String](
-                                      "in_reply_to_user_id_str"
-                                    )
-          in_reply_to_screen_name <- j.getOption[String](
-                                      "in_reply_to_screen_name"
-                                    )
-          user               <- j.getAs[User]("user")
-          geo                <- j.getOption[String]("geo")
-          coordinates        <- j.getOption[String]("coordinates")
-          place              <- j.getOption[String]("place")
-          contributors       <- j.getOption[String]("contributors")
-          is_quote_status    <- j.getAs[Boolean]("is_quote_status")
-          retweet_count      <- j.getAs[Int]("retweet_count")
-          favorite_count     <- j.getAs[Int]("favorite_count")
-          favorited          <- j.getAs[Boolean]("favorited")
-          retweeted          <- j.getAs[Boolean]("retweeted")
-          possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
-          lang               <- j.getAs[String]("lang")
+        in_reply_to_screen_name <- j.getOption[String](
+                                    "in_reply_to_screen_name"
+                                  )
+        user               <- j.getAs[User]("user")
+        geo                <- j.getOption[String]("geo")
+        coordinates        <- j.getOption[String]("coordinates")
+        place              <- j.getOption[String]("place")
+        contributors       <- j.getOption[String]("contributors")
+        is_quote_status    <- j.getAs[Boolean]("is_quote_status")
+        retweet_count      <- j.getAs[Int]("retweet_count")
+        favorite_count     <- j.getAs[Int]("favorite_count")
+        favorited          <- j.getAs[Boolean]("favorited")
+        retweeted          <- j.getAs[Boolean]("retweeted")
+        possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
+        lang               <- j.getAs[String]("lang")
 
-        } yield RetweetedStatus(
-          created_at,
-          id,
-          id_str,
-          text,
-          truncated,
-          entities,
-          source,
-          in_reply_to_status_id,
-          in_reply_to_status_id_str,
-          in_reply_to_user_id,
-          in_reply_to_user_id_str,
-          in_reply_to_screen_name,
-          user,
-          geo,
-          coordinates,
-          place,
-          contributors,
-          is_quote_status,
-          retweet_count,
-          favorite_count,
-          favorited,
-          retweeted,
-          possibly_sensitive,
-          lang
-        )
+      } yield RetweetedStatus(
+        created_at,
+        id,
+        id_str,
+        text,
+        truncated,
+        entities,
+        source,
+        in_reply_to_status_id,
+        in_reply_to_status_id_str,
+        in_reply_to_user_id,
+        in_reply_to_user_id_str,
+        in_reply_to_screen_name,
+        user,
+        geo,
+        coordinates,
+        place,
+        contributors,
+        is_quote_status,
+        retweet_count,
+        favorite_count,
+        favorited,
+        retweeted,
+        possibly_sensitive,
+        lang
+      )
     )
     implicit val equal: Equal[RetweetedStatus] = (a1, a2) =>
       a1.created_at === a2.created_at &&
@@ -1097,70 +1090,69 @@ package h {
           "lang"               -> a.lang.toJson ::
           IList.empty
       )
-    implicit val decoder: JsDecoder[Tweet] = JsDecoder.obj(25)(
-      j =>
-        for {
-          created_at <- j.getAs[String]("created_at")
-          id         <- j.getAs[Long]("id")
-          id_str     <- j.getAs[String]("id_str")
-          text       <- j.getAs[String]("text")
-          truncated  <- j.getAs[Boolean]("truncated")
-          entities   <- j.getAs[Entities]("entities")
-          source     <- j.getAs[String]("source")
-          in_reply_to_status_id <- j.getOption[String](
-                                    "in_reply_to_status_id"
+    implicit val decoder: JsDecoder[Tweet] = JsDecoder.obj(25)(j =>
+      for {
+        created_at <- j.getAs[String]("created_at")
+        id         <- j.getAs[Long]("id")
+        id_str     <- j.getAs[String]("id_str")
+        text       <- j.getAs[String]("text")
+        truncated  <- j.getAs[Boolean]("truncated")
+        entities   <- j.getAs[Entities]("entities")
+        source     <- j.getAs[String]("source")
+        in_reply_to_status_id <- j.getOption[String](
+                                  "in_reply_to_status_id"
+                                )
+        in_reply_to_status_id_str <- j.getOption[String](
+                                      "in_reply_to_status_id_str"
+                                    )
+        in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
+        in_reply_to_user_id_str <- j.getOption[String](
+                                    "in_reply_to_user_id_str"
                                   )
-          in_reply_to_status_id_str <- j.getOption[String](
-                                        "in_reply_to_status_id_str"
-                                      )
-          in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
-          in_reply_to_user_id_str <- j.getOption[String](
-                                      "in_reply_to_user_id_str"
-                                    )
-          in_reply_to_screen_name <- j.getOption[String](
-                                      "in_reply_to_screen_name"
-                                    )
-          user               <- j.getAs[User]("user")
-          geo                <- j.getOption[String]("geo")
-          coordinates        <- j.getOption[String]("coordinates")
-          place              <- j.getOption[String]("place")
-          contributors       <- j.getOption[String]("contributors")
-          retweeted_status   <- j.getAs[RetweetedStatus]("retweeted_status")
-          is_quote_status    <- j.getAs[Boolean]("is_quote_status")
-          retweet_count      <- j.getAs[Int]("retweet_count")
-          favorite_count     <- j.getAs[Int]("favorite_count")
-          favorited          <- j.getAs[Boolean]("favorited")
-          retweeted          <- j.getAs[Boolean]("retweeted")
-          possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
-          lang               <- j.getAs[String]("lang")
+        in_reply_to_screen_name <- j.getOption[String](
+                                    "in_reply_to_screen_name"
+                                  )
+        user               <- j.getAs[User]("user")
+        geo                <- j.getOption[String]("geo")
+        coordinates        <- j.getOption[String]("coordinates")
+        place              <- j.getOption[String]("place")
+        contributors       <- j.getOption[String]("contributors")
+        retweeted_status   <- j.getAs[RetweetedStatus]("retweeted_status")
+        is_quote_status    <- j.getAs[Boolean]("is_quote_status")
+        retweet_count      <- j.getAs[Int]("retweet_count")
+        favorite_count     <- j.getAs[Int]("favorite_count")
+        favorited          <- j.getAs[Boolean]("favorited")
+        retweeted          <- j.getAs[Boolean]("retweeted")
+        possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
+        lang               <- j.getAs[String]("lang")
 
-        } yield Tweet(
-          created_at,
-          id,
-          id_str,
-          text,
-          truncated,
-          entities,
-          source,
-          in_reply_to_status_id,
-          in_reply_to_status_id_str,
-          in_reply_to_user_id,
-          in_reply_to_user_id_str,
-          in_reply_to_screen_name,
-          user,
-          geo,
-          coordinates,
-          place,
-          contributors,
-          retweeted_status,
-          is_quote_status,
-          retweet_count,
-          favorite_count,
-          favorited,
-          retweeted,
-          possibly_sensitive,
-          lang
-        )
+      } yield Tweet(
+        created_at,
+        id,
+        id_str,
+        text,
+        truncated,
+        entities,
+        source,
+        in_reply_to_status_id,
+        in_reply_to_status_id_str,
+        in_reply_to_user_id,
+        in_reply_to_user_id_str,
+        in_reply_to_screen_name,
+        user,
+        geo,
+        coordinates,
+        place,
+        contributors,
+        retweeted_status,
+        is_quote_status,
+        retweet_count,
+        favorite_count,
+        favorited,
+        retweeted,
+        possibly_sensitive,
+        lang
+      )
     )
     implicit val equal: Equal[Tweet] = (a1, a2) =>
       a1.created_at === a2.created_at &&

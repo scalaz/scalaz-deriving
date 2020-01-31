@@ -277,8 +277,8 @@ private[internal] sealed trait TypeListBuilders {
     }
 
     tpes =>
-      tpes.foldRight(nilTpe)(
-        (tpe, acc) => internal.typeRef(consPrefix, consSym, tpe :: acc :: Nil)
+      tpes.foldRight(nilTpe)((tpe, acc) =>
+        internal.typeRef(consPrefix, consSym, tpe :: acc :: Nil)
       )
   }
 }

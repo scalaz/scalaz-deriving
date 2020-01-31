@@ -48,19 +48,17 @@ final class CopKFunctionKMacros(val c: Context) {
       tpes <- tb.memoizedTListKTypes(copK.L).left.map(NonEmptyList.one(_))
 
       unorderedPairs <- Traverse[List]
-                         .traverse(args.toList)(
-                           arg =>
-                             destructFunctionKInput(arg.tree.tpe, G)
-                               .map((_, arg.tree))
+                         .traverse(args.toList)(arg =>
+                           destructFunctionKInput(arg.tree.tpe, G)
+                             .map((_, arg.tree))
                          )
                          .toEither
       arrs <- Traverse[List]
-               .traverse(tpes)(
-                 tpe =>
-                   unorderedPairs.collectFirst {
-                     case (t, arr) if t =:= tpe => arr
-                   }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
-                     .toAvowalNel
+               .traverse(tpes)(tpe =>
+                 unorderedPairs.collectFirst {
+                   case (t, arr) if t =:= tpe => arr
+                 }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
+                   .toAvowalNel
                )
                .toEither
     } yield makeInterpreter(F, copK.L, G, arrs))
