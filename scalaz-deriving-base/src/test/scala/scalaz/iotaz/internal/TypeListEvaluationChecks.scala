@@ -16,7 +16,9 @@ import catryoshka._
 
 object TypeListEvaluationChecks extends Properties("TypeListEvaluators") {
 
-  val checks = new TypeListEvaluationChecks(IotaReflectiveToolbelt())
+  val checks: TypeListEvaluationChecks = new TypeListEvaluationChecks(
+    IotaReflectiveToolbelt()
+  )
 
   checks.evalChecks.foreach {
     case (in, out) =>

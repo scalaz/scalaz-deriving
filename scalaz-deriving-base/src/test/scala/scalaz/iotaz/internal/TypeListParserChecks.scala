@@ -17,7 +17,9 @@ import catryoshka._
 
 object TypeListParserChecks extends Properties("TypeListParsers") {
 
-  val checks = new TypeListParserChecks(IotaReflectiveToolbelt())
+  val checks: TypeListParserChecks = new TypeListParserChecks(
+    IotaReflectiveToolbelt()
+  )
 
   checks.tlists.foreach {
     case (in, out) =>
