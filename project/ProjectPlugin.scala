@@ -75,8 +75,7 @@ object ProjectPlugin extends AutoPlugin {
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
       startYear := Some(2017),
-      scalafmtConfig := file("project/scalafmt.conf"),
-      scalafixConfig := Some(file("project/scalafix.conf"))
+      scalafmtConfig := file("project/scalafmt.conf")
     )
 
   override def projectSettings =
@@ -121,8 +120,6 @@ object ProjectPlugin extends AutoPlugin {
         "-Xlog-reflective-calls",
         "-Yrangepos"
       ),
-      // WORKAROUND https://github.com/scalacenter/scalafix/issues/790
-      scalacOptions += "-P:semanticdb:failures:warning",
       scalacOptions ++= extraScalacOptions,
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
       scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),

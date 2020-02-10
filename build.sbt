@@ -9,13 +9,14 @@ addCommandAlias(
   "check",
   "all headerCheck test:headerCheck jmh:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck jmh:scalafmtCheck"
 )
-addCommandAlias("lint", "all compile:scalafixTest test:scalafixTest")
-addCommandAlias("fix", "all compile:scalafixCli test:scalafixCli")
+addCommandAlias(
+  "lint",
+  ";++ 2.12.10;compile:scalafix --check;test:scalafix --check"
+)
+addCommandAlias("fix", ";++ 2.12.10;all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
-  scalafixCli in Compile := {}, // scala-compiler code quality is too low
-  scalafixTest in Compile := {},
   scalacOptions in Test += "-Yno-predef",
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
   crossScalaVersions := Seq(
@@ -51,8 +52,6 @@ val macros = (project in file("deriving-macro"))
   .settings(ScalazDeriving)
   .settings(
     name := "deriving-macro",
-    scalafixCli in Compile := {}, // scala-compiler code quality is too low
-    scalafixTest in Compile := {},
     MacroParadise,
     resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",
@@ -80,7 +79,7 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
     "org.scala-lang"             % "scala-reflect"              % scalaVersion.value % "provided",
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.3" % "test",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.4" % "test",
     "org.scalaz"                 %% "scalaz-core"               % scalazVersion
   )
 )
