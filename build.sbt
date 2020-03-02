@@ -1,7 +1,7 @@
 val scalazVersion     = "7.2.30"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
-val magnoliaVersion   = "0.12.6"
+val magnoliaVersion   = "0.12.7"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -154,7 +154,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "com.fasterxml.woodstox" % "woodstox-core" % "6.0.3",
+      "com.fasterxml.woodstox" % "woodstox-core" % "6.1.1",
       "eu.timepit"             %% "refined"      % "0.9.12",
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
@@ -179,7 +179,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "eu.timepit"           %% "refined"         % "0.9.12",
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
-      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.0.1",
+      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.1.1",
       "org.typelevel"        %% "jawn-parser"     % "1.0.0"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
