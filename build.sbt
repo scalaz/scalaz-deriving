@@ -1,7 +1,8 @@
 val scalazVersion     = "7.2.30"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
-val magnoliaVersion   = "0.12.7"
+val magnoliaVersion   = "0.12.8"
+val refinedVersion    = "0.9.13"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -79,7 +80,7 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
     "org.scala-lang"             % "scala-reflect"              % scalaVersion.value % "provided",
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.4" % "test",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % "test",
     "org.scalaz"                 %% "scalaz-core"               % scalazVersion
   )
 )
@@ -155,7 +156,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MonadicFor,
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "6.1.1",
-      "eu.timepit"             %% "refined"      % "0.9.12",
+      "eu.timepit"             %% "refined"      % refinedVersion,
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
       "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
@@ -176,7 +177,7 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"           %% "refined"         % "0.9.12",
+      "eu.timepit"           %% "refined"         % refinedVersion,
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
       "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.1.1",
