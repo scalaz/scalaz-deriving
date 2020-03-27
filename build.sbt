@@ -12,9 +12,9 @@ addCommandAlias(
 )
 addCommandAlias(
   "lint",
-  ";++ 2.12.10;compile:scalafix --check;test:scalafix --check"
+  ";++ 2.12.11;compile:scalafix --check;test:scalafix --check"
 )
-addCommandAlias("fix", ";++ 2.12.10;all compile:scalafix test:scalafix")
+addCommandAlias("fix", ";++ 2.12.11;all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
@@ -24,6 +24,7 @@ val plugin = (project in file("deriving-plugin")).settings(
     "2.12.8",
     "2.12.9",
     "2.12.10",
+    "2.12.11",
     "2.13.0",
     "2.13.1"
   ),
