@@ -69,7 +69,7 @@ object ProjectPlugin extends AutoPlugin {
   override def buildSettings =
     Seq(
       organization := "org.scalaz",
-      crossScalaVersions := Seq("2.12.10", Scala213),
+      crossScalaVersions := Seq("2.12.11", Scala213),
       scalaVersion := Scala213,
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
