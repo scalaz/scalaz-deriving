@@ -36,7 +36,7 @@ object ProjectKeys {
   def SemanticDB =
     //addCompilerPlugin(scalafixSemanticdb)
     addCompilerPlugin(
-      ("org.scalameta" % "semanticdb-scalac" % "4.3.7")
+      ("org.scalameta" % "semanticdb-scalac" % "4.3.10")
         .cross(CrossVersion.full)
     )
 
@@ -64,7 +64,7 @@ object ProjectPlugin extends AutoPlugin {
   val autoImport = ProjectKeys
   import autoImport._
 
-  val Scala213 = "2.13.1"
+  val Scala213 = "2.13.2"
 
   override def buildSettings =
     Seq(

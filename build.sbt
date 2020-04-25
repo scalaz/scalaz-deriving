@@ -2,7 +2,7 @@ val scalazVersion     = "7.2.30"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
 val magnoliaVersion   = "0.12.8"
-val refinedVersion    = "0.9.13"
+val refinedVersion    = "0.9.14"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -26,7 +26,8 @@ val plugin = (project in file("deriving-plugin")).settings(
     "2.12.10",
     "2.12.11",
     "2.13.0",
-    "2.13.1"
+    "2.13.1",
+    "2.13.2"
   ),
   crossVersion := CrossVersion.full,
   crossTarget := {
