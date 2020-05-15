@@ -3,6 +3,7 @@ val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
 val magnoliaVersion   = "0.12.8"
 val refinedVersion    = "0.9.14"
+val newtypeVersion    = "0.4.4"
 
 addCommandAlias("cpl", "all compile test:compile jmh:compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
@@ -66,7 +67,7 @@ val macros = (project in file("deriving-macro"))
       "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
       "com.typesafe.play"    %% "play-json"     % "2.8.1"            % "test",
-      "io.estatico"          %% "newtype"       % "0.4.3"            % "test"
+      "io.estatico"          %% "newtype"       % newtypeVersion     % "test"
     )
   )
 
@@ -142,7 +143,7 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "io.estatico"          %% "newtype"       % "0.4.3"            % "test",
+      "io.estatico"          %% "newtype"       % newtypeVersion     % "test",
       "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
       "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided"
     )
@@ -157,7 +158,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "com.fasterxml.woodstox" % "woodstox-core" % "6.1.1",
+      "com.fasterxml.woodstox" % "woodstox-core" % "6.2.1",
       "eu.timepit"             %% "refined"      % refinedVersion,
       "org.scalaz"             %% "scalaz-core"  % scalazVersion,
       "com.chuusai"            %% "shapeless"    % shapelessVersion,
@@ -182,7 +183,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "eu.timepit"           %% "refined"         % refinedVersion,
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
       "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
-      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.1.1",
+      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.2.0",
       "org.typelevel"        %% "jawn-parser"     % "1.0.0"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),

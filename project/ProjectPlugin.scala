@@ -81,7 +81,7 @@ object ProjectPlugin extends AutoPlugin {
   override def projectSettings =
     Seq(
       SemanticDB,
-      libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.2" % Test,
       scalacOptions --= Seq(
         "-Xfatal-warnings"
       ),
