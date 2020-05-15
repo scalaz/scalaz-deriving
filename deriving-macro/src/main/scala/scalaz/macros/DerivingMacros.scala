@@ -9,8 +9,7 @@ import scala.reflect.macros.blackbox
 final class DerivingMacrosImpl(val c: blackbox.Context) {
   import c.universe._
 
-  def deriving[F[_], A](
-    implicit
+  def deriving[F[_], A](implicit
     evF: c.WeakTypeTag[F[_]],
     evA: c.WeakTypeTag[A]
   ): Tree = {
@@ -23,8 +22,7 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
     }
   }
 
-  def xderiving[F[_], A](
-    implicit
+  def xderiving[F[_], A](implicit
     evF: c.WeakTypeTag[F[_]],
     evA: c.WeakTypeTag[A]
   ): Tree = {
@@ -34,20 +32,20 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
       case m: MethodSymbol if m.isParamAccessor => m.asMethod
     }.toList match {
       case value :: Nil =>
-        val hasXmap = F.decls.find(_.name.toString == "xmap").isDefined
-        val access  = value.name
-        val U       = value.typeSignatureIn(A).resultType
+        val hasXmap   = F.decls.find(_.name.toString == "xmap").isDefined
+        val access    = value.name
+        val U         = value.typeSignatureIn(A).resultType
         def invariant =
           q"""_root_.scalaz.InvariantFunctor[${F.typeSymbol}].xmap(
               _root_.scala.Predef.implicitly[${F.typeSymbol}[$U]],
               (u: $U) => new $A(u),
               (a: $A) => a.$access)"""
-        def xmap =
+        def xmap      =
           q"""_root_.scala.Predef.implicitly[${F.typeSymbol}[$U]].xmap(
               (u: $U) => new $A(u),
               (a: $A) => a.$access)"""
         if (hasXmap) xmap else invariant
-      case _ =>
+      case _            =>
         c.abort(c.enclosingPosition, "only supports classes with one parameter")
     }
   }
@@ -63,10 +61,11 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
       )
 
   private def parseTerm(s: String): Tree = {
-    def toSelect(parts: List[TermName]): Tree = parts match {
-      case Nil          => Ident(termNames.ROOTPKG)
-      case head :: tail => Select(toSelect(tail), head)
-    }
+    def toSelect(parts: List[TermName]): Tree =
+      parts match {
+        case Nil          => Ident(termNames.ROOTPKG)
+        case head :: tail => Select(toSelect(tail), head)
+      }
     toSelect(s.split("[.]").toList.map(TermName(_)).reverse)
   }
 

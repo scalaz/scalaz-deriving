@@ -9,7 +9,7 @@ import scalaz._, Scalaz._
 trait XNodeDecoder[A] {
   def fromXml(x: XNode): String \/ A
 }
-object XNodeDecoder {
+object XNodeDecoder   {
   implicit def fromTags[A](implicit X: XDecoder[A]): XNodeDecoder[A] = {
     case c @ XChildren(_) => X.fromXml(c)
     case other            => -\/(s"expected tag data but got $other")

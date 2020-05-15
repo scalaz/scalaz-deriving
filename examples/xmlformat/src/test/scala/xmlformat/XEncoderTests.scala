@@ -421,7 +421,10 @@ class XEncoderTests extends AnyFreeSpec {
       import examples._
 
       TaggyCoproduct(TaggyA()).toXml.shouldBe(
-        XTag("TaggyCoproduct", XTag("TaggyA", XChildren(IList.empty)).asChild).asChild
+        XTag(
+          "TaggyCoproduct",
+          XTag("TaggyA", XChildren(IList.empty)).asChild
+        ).asChild
       )
 
       TaggyCoproduct(TaggyB("hello")).toXml.shouldBe(

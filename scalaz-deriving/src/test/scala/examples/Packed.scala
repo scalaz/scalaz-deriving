@@ -21,7 +21,7 @@ import simulacrum.typeclass
 sealed abstract class Packed {
   def widen: Packed = this
 }
-object Packed {
+object Packed                {
   final case class Real(double: Double)               extends Packed
   final case class Rational(long: Long)               extends Packed
   final case class Characters(chars: String)          extends Packed
@@ -41,7 +41,7 @@ import Packed._
 @typeclass trait BadPack[A] {
   def encode(a: A): Packed
 }
-object BadPack {
+object BadPack              {
   implicit val long: BadPack[Long]     = i => Rational(i).widen
   implicit val string: BadPack[String] = i => Characters(i).widen
 

@@ -56,7 +56,11 @@ class JsParserTest extends JsTest {
   )
   it should "parse a simple JsArray" in (
     JsParser("""[null, 1.23 ,{"key":true } ] """).assert_===(
-      JsArray(JsNull, JsDouble(1.23), JsObject("key" -> JsBoolean(true))).widen.right
+      JsArray(
+        JsNull,
+        JsDouble(1.23),
+        JsObject("key" -> JsBoolean(true))
+      ).widen.right
     )
   )
   it should "be reentrant" in {

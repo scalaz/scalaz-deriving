@@ -20,10 +20,12 @@ final class CopH[LL <: TListH, F[_]] private (
 ) extends Serializable {
   type L = LL
 
-  override def equals(anyOther: Any): Boolean = anyOther match {
-    case other: CopH[LL, F] => (index == other.index) && (value == other.value)
-    case _                  => false
-  }
+  override def equals(anyOther: Any): Boolean =
+    anyOther match {
+      case other: CopH[LL, F] =>
+        (index == other.index) && (value == other.value)
+      case _                  => false
+    }
 
   override def hashCode(): Int =
     41 * index + value.##
@@ -48,21 +50,22 @@ object CopH {
   }
 
   object Inject {
-    def apply[H[_[_]], J[F[_]] <: CopH[_, F]](
-      implicit ev: Inject[H, J]
+    def apply[H[_[_]], J[F[_]] <: CopH[_, F]](implicit
+      ev: Inject[H, J]
     ): Inject[H, J] = ev
 
-    implicit def injectFromInjectL[H[_[_]], L <: TListH](
-      implicit ev: InjectL[H, L]
-    ): Inject[H, CopH[L, ?[_]]] = new Inject[H, CopH[L, ?[_]]] {
-      def inj[F[_]](hf: H[F]): CopH[L, F]         = ev.inj(hf)
-      def prj[F[_]](jf: CopH[L, F]): Option[H[F]] = ev.proj(jf)
-    }
+    implicit def injectFromInjectL[H[_[_]], L <: TListH](implicit
+      ev: InjectL[H, L]
+    ): Inject[H, CopH[L, ?[_]]] =
+      new Inject[H, CopH[L, ?[_]]] {
+        def inj[F[_]](hf: H[F]): CopH[L, F]         = ev.inj(hf)
+        def prj[F[_]](jf: CopH[L, F]): Option[H[F]] = ev.proj(jf)
+      }
   }
 
   final class InjectL[H[_[_]], L <: TListH] private[InjectL] (index: Int) {
-    def inj[F[_]](hf: H[F]): CopH[L, F] = new CopH[L, F](index, hf)
-    def proj[F[_]](cf: CopH[L, F]): Option[H[F]] =
+    def inj[F[_]](hf: H[F]): CopH[L, F]             = new CopH[L, F](index, hf)
+    def proj[F[_]](cf: CopH[L, F]): Option[H[F]]    =
       if (cf.index == index) Some(cf.value.asInstanceOf[H[F]])
       else None
     def apply[F[_]](hf: H[F]): CopH[L, F]           = inj(hf)
@@ -72,9 +75,9 @@ object CopH {
   object InjectL {
     def apply[H[_[_]], L <: TListH](implicit ev: InjectL[H, L]): InjectL[H, L] =
       ev
-    implicit def makeInjectL[H[_[_]], L <: TListH](
-      implicit ev: TListH.Pos[L, H]
-    ): InjectL[H, L] =
+    implicit def makeInjectL[H[_[_]], L <: TListH](implicit
+      ev: TListH.Pos[L, H]
+    ): InjectL[H, L]                                                           =
       new InjectL[H, L](ev.index)
   }
 
@@ -92,9 +95,9 @@ object CopH {
   object RemoveL {
     def apply[H[_[_]], L <: TListH](implicit ev: RemoveL[H, L]): RemoveL[H, L] =
       ev
-    implicit def makeRemoveL[H[_[_]], L <: TListH](
-      implicit ev: TListH.Pos[L, H]
-    ): RemoveL[H, L] =
+    implicit def makeRemoveL[H[_[_]], L <: TListH](implicit
+      ev: TListH.Pos[L, H]
+    ): RemoveL[H, L]                                                           =
       new RemoveL[H, L](ev.index)
   }
 

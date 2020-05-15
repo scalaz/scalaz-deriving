@@ -21,7 +21,7 @@ object ProjectKeys {
                 .cross(CrossVersion.full)
             )
           )
-        case _ =>
+        case _                       =>
           Nil
       }
     }
@@ -59,7 +59,7 @@ object ProjectPlugin extends AutoPlugin {
 
   override def requires =
     fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin && ScalafixPlugin
-  override def trigger = allRequirements
+  override def trigger  = allRequirements
 
   val autoImport = ProjectKeys
   import autoImport._
@@ -95,7 +95,7 @@ object ProjectPlugin extends AutoPlugin {
               "-Ywarn-nullary-override",
               "-Ywarn-inaccessible"
             )
-          case _ =>
+          case _                       =>
             Nil
         }
       },

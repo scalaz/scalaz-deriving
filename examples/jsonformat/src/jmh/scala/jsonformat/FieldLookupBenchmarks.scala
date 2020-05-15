@@ -60,9 +60,9 @@ class FieldLookupBenchmarks {
   def elementAccessXl(): String = user.productElement(41).asInstanceOf[String]
 
   @Benchmark
-  def indirectionAccessValXl(): String = translator_type_val(user)
+  def indirectionAccessValXl(): String    = translator_type_val(user)
   @Benchmark
-  def indirectionAccessDefXl(): String = translator_type_def(user)
+  def indirectionAccessDefXl(): String    = translator_type_def(user)
   @Benchmark
   def indirectionAccessDefValXl(): String =
     translator_type_abstract(user, translator_type_val)

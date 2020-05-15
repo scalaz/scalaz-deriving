@@ -84,223 +84,233 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     }
   }
 
-  private def phase = new PluginComponent with TypingTransformers {
-    override val phaseName: String = AnnotationPlugin.this.name
-    override val global: AnnotationPlugin.this.global.type =
-      AnnotationPlugin.this.global
-    override final def newPhase(prev: Phase): Phase = new StdPhase(prev) {
-      override def apply(unit: CompilationUnit): Unit =
-        newTransformer(unit).transformUnit(unit)
-    }
-    override val runsAfter: List[String]  = "parser" :: Nil
-    override val runsBefore: List[String] = "namer" :: Nil
+  private def phase =
+    new PluginComponent with TypingTransformers {
+      override val phaseName: String                         = AnnotationPlugin.this.name
+      override val global: AnnotationPlugin.this.global.type =
+        AnnotationPlugin.this.global
+      override final def newPhase(prev: Phase): Phase        =
+        new StdPhase(prev) {
+          override def apply(unit: CompilationUnit): Unit =
+            newTransformer(unit).transformUnit(unit)
+        }
+      override val runsAfter: List[String]                   = "parser" :: Nil
+      override val runsBefore: List[String]                  = "namer" :: Nil
 
-    private def newTransformer(unit: CompilationUnit) =
-      new TypingTransformer(unit) {
-        override def transform(tree: Tree): Tree =
-          autobots(super.transform(tree))
+      private def newTransformer(unit: CompilationUnit) =
+        new TypingTransformer(unit) {
+          override def transform(tree: Tree): Tree =
+            autobots(super.transform(tree))
+        }
+
+      val Triggers: List[TypeName]             = triggers.map(newTypeName)
+      private def hasTrigger(t: Tree): Boolean =
+        t.exists {
+          case c: ClassDef if hasTrigger(c.mods)  => true
+          case m: ModuleDef if hasTrigger(m.mods) => true
+          case _                                  => false
+        }
+
+      private def hasTrigger(mods: Modifiers): Boolean =
+        Triggers.exists(mods.hasAnnotationNamed)
+
+      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
+        val trigger = getTriggers(c.mods.annotations)
+        //val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
+        // if we remove the annotation, like a macro annotation, we end up with a
+        // compiler warning saying that the annotation is unused. Perhaps we could
+        // remove it after such warnings are emitted.
+        //val update = treeCopy.ClassDef(c, mods, c.name, c.tparams, c.impl)
+        val update  = c
+        (update, trigger)
+      }
+      private def extractTrigger(m: ModuleDef): (ModuleDef, List[Tree]) = {
+        val trigger = getTriggers(m.mods.annotations)
+        //val mods = m.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
+        //val update = treeCopy.ModuleDef(m, mods, m.name, m.impl)
+        val update  = m
+        (update, trigger)
       }
 
-    val Triggers: List[TypeName] = triggers.map(newTypeName)
-    private def hasTrigger(t: Tree): Boolean = t.exists {
-      case c: ClassDef if hasTrigger(c.mods)  => true
-      case m: ModuleDef if hasTrigger(m.mods) => true
-      case _                                  => false
-    }
+      private def getTriggers(anns: List[Tree]): List[Tree] =
+        anns.filter(a => Triggers.exists(isNamed(a, _)))
 
-    private def hasTrigger(mods: Modifiers): Boolean =
-      Triggers.exists(mods.hasAnnotationNamed)
+      private def isNamed(t: Tree, name: TypeName) =
+        t match {
+          case Apply(Select(New(Ident(`name`)), _), _)     => true
+          case Apply(Select(New(Select(_, `name`)), _), _) => true
+          case _                                           => false
+        }
 
-    private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
-      val trigger = getTriggers(c.mods.annotations)
-      //val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
-      // if we remove the annotation, like a macro annotation, we end up with a
-      // compiler warning saying that the annotation is unused. Perhaps we could
-      // remove it after such warnings are emitted.
-      //val update = treeCopy.ClassDef(c, mods, c.name, c.tparams, c.impl)
-      val update = c
-      (update, trigger)
-    }
-    private def extractTrigger(m: ModuleDef): (ModuleDef, List[Tree]) = {
-      val trigger = getTriggers(m.mods.annotations)
-      //val mods = m.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
-      //val update = treeCopy.ModuleDef(m, mods, m.name, m.impl)
-      val update = m
-      (update, trigger)
-    }
+      /** generates a zero-functionality companion for a class */
+      private def genCompanion(clazz: ClassDef): ModuleDef = {
+        val mods =
+          if (clazz.mods.hasFlag(Flag.PRIVATE))
+            Modifiers(Flag.PRIVATE, clazz.mods.privateWithin)
+          else if (clazz.mods.hasFlag(Flag.PROTECTED))
+            Modifiers(Flag.PROTECTED, clazz.mods.privateWithin)
+          else NoMods
 
-    private def getTriggers(anns: List[Tree]): List[Tree] =
-      anns.filter(a => Triggers.exists(isNamed(a, _)))
+        val isCase = clazz.mods.hasFlag(Flag.CASE)
 
-    private def isNamed(t: Tree, name: TypeName) = t match {
-      case Apply(Select(New(Ident(`name`)), _), _)     => true
-      case Apply(Select(New(Select(_, `name`)), _), _) => true
-      case _                                           => false
-    }
+        lazy val accessors = clazz.impl.collect {
+          case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
+            tpt.duplicate
+        }
 
-    /** generates a zero-functionality companion for a class */
-    private def genCompanion(clazz: ClassDef): ModuleDef = {
-      val mods =
-        if (clazz.mods.hasFlag(Flag.PRIVATE))
-          Modifiers(Flag.PRIVATE, clazz.mods.privateWithin)
-        else if (clazz.mods.hasFlag(Flag.PROTECTED))
-          Modifiers(Flag.PROTECTED, clazz.mods.privateWithin)
-        else NoMods
-
-      val isCase = clazz.mods.hasFlag(Flag.CASE)
-
-      lazy val accessors = clazz.impl.collect {
-        case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
-          tpt.duplicate
-      }
-
-      def sup =
-        if (isCase &&
+        def sup =
+          if (
+            isCase &&
             clazz.tparams.isEmpty &&
             addSuperFunction(clazz) &&
-            accessors.size <= 22) {
-          AppliedTypeTree(
-            Select(
-              Select(Ident(nme.ROOTPKG), nme.scala_),
-              TypeName(s"Function${accessors.size}")
-            ),
-            accessors ::: List(Ident(clazz.name))
+            accessors.size <= 22
           )
-        } else
-          Select(Ident(nme.scala_), nme.AnyRef.toTypeName)
+            AppliedTypeTree(
+              Select(
+                Select(Ident(nme.ROOTPKG), nme.scala_),
+                TypeName(s"Function${accessors.size}")
+              ),
+              accessors ::: List(Ident(clazz.name))
+            )
+          else
+            Select(Ident(nme.scala_), nme.AnyRef.toTypeName)
 
-      def toString_ =
-        DefDef(
-          Modifiers(Flag.OVERRIDE | Flag.SYNTHETIC),
-          nme.toString_,
+        def toString_ =
+          DefDef(
+            Modifiers(Flag.OVERRIDE | Flag.SYNTHETIC),
+            nme.toString_,
+            Nil,
+            Nil,
+            Select(Select(Ident(nme.java), nme.lang), nme.String.toTypeName),
+            Literal(Constant(clazz.name.companionName.decode))
+          )
+
+        val cons = DefDef(
+          Modifiers(Flag.SYNTHETIC),
+          nme.CONSTRUCTOR,
           Nil,
-          Nil,
-          Select(Select(Ident(nme.java), nme.lang), nme.String.toTypeName),
-          Literal(Constant(clazz.name.companionName.decode))
+          List(Nil),
+          TypeTree(),
+          Block(List(pendingSuperCall), Literal(Constant(())))
         )
 
-      val cons = DefDef(
-        Modifiers(Flag.SYNTHETIC),
-        nme.CONSTRUCTOR,
-        Nil,
-        List(Nil),
-        TypeTree(),
-        Block(List(pendingSuperCall), Literal(Constant(())))
-      )
-
-      ModuleDef(
-        mods | Flag.SYNTHETIC,
-        clazz.name.companionName,
-        Template(
-          List(sup),
-          noSelfType,
-          cons :: (if (isCase) List(toString_) else Nil)
+        ModuleDef(
+          mods | Flag.SYNTHETIC,
+          clazz.name.companionName,
+          Template(
+            List(sup),
+            noSelfType,
+            cons :: (if (isCase) List(toString_) else Nil)
+          )
         )
-      )
-    }
-
-    // responds to visiting all the parts of the tree and passes to decepticons
-    // to do the rewrites
-    def autobots(tree: Tree): Tree = tree match {
-      case t: PackageDef if hasTrigger(t) =>
-        val updated = decepticons(t.stats)
-        treeCopy.PackageDef(t, t.pid, updated)
-
-      case t: ModuleDef if hasTrigger(t.impl) =>
-        val update = treeCopy.Template(
-          t.impl,
-          t.impl.parents,
-          t.impl.self,
-          decepticons(t.impl.body)
-        )
-        treeCopy.ModuleDef(
-          t,
-          t.mods,
-          t.name,
-          update
-        )
-
-      case t: ClassDef if hasTrigger(t.impl) =>
-        // yuck, this finds classes and modules defined inside other classes.
-        // added for completeness.
-        val update = treeCopy.Template(
-          t.impl,
-          t.impl.parents,
-          t.impl.self,
-          decepticons(t.impl.body)
-        )
-        treeCopy.ClassDef(
-          t,
-          t.mods,
-          t.name,
-          t.tparams,
-          update
-        )
-
-      case t => t
-    }
-
-    // does not recurse, let the autobots handle that
-    def decepticons(trees: List[Tree]): List[Tree] = {
-      val classes: Map[TypeName, ClassDef] = trees.collect {
-        case c: ClassDef => c.name -> c
-      }.toMap
-
-      val modules: Map[TermName, ModuleDef] = trees.collect {
-        case m: ModuleDef => m.name -> m
-      }.toMap
-
-      object ClassNoCompanion {
-        def unapply(t: Tree): Option[ClassDef] = t match {
-          case c: ClassDef if !modules.contains(c.name.companionName) =>
-            Some(c)
-          case _ => None
-        }
       }
 
-      object ClassHasCompanion {
-        def unapply(t: Tree): Option[ClassDef] = t match {
-          case c: ClassDef if modules.contains(c.name.companionName) =>
-            Some(c)
-          case _ => None
-        }
-      }
+      // responds to visiting all the parts of the tree and passes to decepticons
+      // to do the rewrites
+      def autobots(tree: Tree): Tree =
+        tree match {
+          case t: PackageDef if hasTrigger(t)     =>
+            val updated = decepticons(t.stats)
+            treeCopy.PackageDef(t, t.pid, updated)
 
-      object CompanionAndClass {
-        def unapply(t: Tree): Option[(ModuleDef, ClassDef)] = t match {
-          case m: ModuleDef =>
-            classes.get(m.name.companionName).map { c =>
-              (m, c)
+          case t: ModuleDef if hasTrigger(t.impl) =>
+            val update = treeCopy.Template(
+              t.impl,
+              t.impl.parents,
+              t.impl.self,
+              decepticons(t.impl.body)
+            )
+            treeCopy.ModuleDef(
+              t,
+              t.mods,
+              t.name,
+              update
+            )
+
+          case t: ClassDef if hasTrigger(t.impl)  =>
+            // yuck, this finds classes and modules defined inside other classes.
+            // added for completeness.
+            val update = treeCopy.Template(
+              t.impl,
+              t.impl.parents,
+              t.impl.self,
+              decepticons(t.impl.body)
+            )
+            treeCopy.ClassDef(
+              t,
+              t.mods,
+              t.name,
+              t.tparams,
+              update
+            )
+
+          case t                                  => t
+        }
+
+      // does not recurse, let the autobots handle that
+      def decepticons(trees: List[Tree]): List[Tree] = {
+        val classes: Map[TypeName, ClassDef] = trees.collect {
+          case c: ClassDef => c.name -> c
+        }.toMap
+
+        val modules: Map[TermName, ModuleDef] = trees.collect {
+          case m: ModuleDef => m.name -> m
+        }.toMap
+
+        object ClassNoCompanion {
+          def unapply(t: Tree): Option[ClassDef] =
+            t match {
+              case c: ClassDef if !modules.contains(c.name.companionName) =>
+                Some(c)
+              case _                                                      => None
             }
-          case _ => None
+        }
+
+        object ClassHasCompanion {
+          def unapply(t: Tree): Option[ClassDef] =
+            t match {
+              case c: ClassDef if modules.contains(c.name.companionName) =>
+                Some(c)
+              case _                                                     => None
+            }
+        }
+
+        object CompanionAndClass {
+          def unapply(t: Tree): Option[(ModuleDef, ClassDef)] =
+            t match {
+              case m: ModuleDef =>
+                classes.get(m.name.companionName).map { c =>
+                  (m, c)
+                }
+              case _            => None
+            }
+        }
+
+        trees.flatMap {
+          case ClassNoCompanion(c) if hasTrigger(c.mods)             =>
+            val companion        = genCompanion(c).withAllPos(c.pos)
+            val (cleaned, ann)   = extractTrigger(c)
+            val updatedCompanion = updateCompanion(ann, cleaned, companion)
+            List(updateClass(ann, cleaned), updatedCompanion)
+
+          case ClassHasCompanion(c) if hasTrigger(c.mods)            =>
+            val (cleaned, ann) = extractTrigger(c)
+            List(updateClass(ann, cleaned))
+
+          case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
+            val (cleaned, ann) = extractTrigger(c)
+            List(updateCompanion(ann, cleaned, companion))
+
+          case m: ModuleDef if hasTrigger(m.mods)                    =>
+            val (cleaned, ann) = extractTrigger(m)
+            List(updateModule(ann, cleaned))
+
+          case tr                                                    =>
+            List(tr)
         }
       }
 
-      trees.flatMap {
-        case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-          val companion        = genCompanion(c).withAllPos(c.pos)
-          val (cleaned, ann)   = extractTrigger(c)
-          val updatedCompanion = updateCompanion(ann, cleaned, companion)
-          List(updateClass(ann, cleaned), updatedCompanion)
-
-        case ClassHasCompanion(c) if hasTrigger(c.mods) =>
-          val (cleaned, ann) = extractTrigger(c)
-          List(updateClass(ann, cleaned))
-
-        case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
-          val (cleaned, ann) = extractTrigger(c)
-          List(updateCompanion(ann, cleaned, companion))
-
-        case m: ModuleDef if hasTrigger(m.mods) =>
-          val (cleaned, ann) = extractTrigger(m)
-          List(updateModule(ann, cleaned))
-
-        case tr =>
-          List(tr)
-      }
     }
-
-  }
 
   override lazy val components: List[PluginComponent] = List(phase)
 

@@ -56,7 +56,7 @@ class JsDecoderTest extends JsTest {
   }
 
   it should "decode stringy maps" in {
-    val map = Map("a" -> 1, "b" -> 2, "c" -> 3)
+    val map  = Map("a" -> 1, "b" -> 2, "c" -> 3)
     val json =
       JsObject("a" -> JsInteger(1), "b" -> JsInteger(2), "c" -> JsInteger(3))
     json.as[Map[String, Int]].assert_===(\/-(map))
@@ -154,7 +154,7 @@ class JsDecoderTest extends JsTest {
     val fa: JsDecoder[Comp]                              = JsDecoder[Comp]
     val fab: JsDecoder[Comp => (String, Int)]            = A.point(c => (c.a, c.b))
     val fbc: JsDecoder[((String, Int)) => (Int, String)] = A.point(_.swap)
-    val E: Equal[JsDecoder[(Int, String)]] =
+    val E: Equal[JsDecoder[(Int, String)]]               =
       (p1, p2) => p1.fromJson(j) === p2.fromJson(j)
     assert(A.applyLaw.composition(fbc, fab, fa)(E))
   }

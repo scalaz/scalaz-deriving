@@ -50,11 +50,11 @@ trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
 
   final def choosing2[Z, A1, A2](
     f: Z => A1 \/ A2
-  )(implicit fa1: F[A1], fa2: F[A2]): F[Z] =
+  )(implicit fa1: F[A1], fa2: F[A2]): F[Z]                         =
     choose2(fa1, fa2)(f)
   final def choosing3[Z, A1, A2, A3](
     f: Z => A1 \/ (A2 \/ A3)
-  )(implicit fa1: F[A1], fa2: F[A2], fa3: F[A3]): F[Z] =
+  )(implicit fa1: F[A1], fa2: F[A2], fa3: F[A3]): F[Z]             =
     choose3(fa1, fa2, fa3)(f)
   final def choosing4[Z, A1, A2, A3, A4](
     f: Z => A1 \/ (A2 \/ (A3 \/ A4))
@@ -89,17 +89,17 @@ trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
   ): F[Z] = choose4(a1, a2, a3, a4)(g)
 
   // from 7.3's Divide
-  override def xproduct0[Z](z: =>Z): F[Z] = conquer
+  override def xproduct0[Z](z: =>Z): F[Z]                                  = conquer
   override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
     xmap(a1, f, g)
   override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z,
     g: Z => (A1, A2)
-  ): F[Z] = divide2(a1, a2)(g)
+  ): F[Z]                                                                  = divide2(a1, a2)(g)
   override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  ): F[Z] = divide3(a1, a2, a3)(g)
+  ): F[Z]                                                                  = divide3(a1, a2, a3)(g)
   override def xproduct4[Z, A1, A2, A3, A4](
     a1: =>F[A1],
     a2: =>F[A2],
@@ -108,7 +108,7 @@ trait Decidable[F[_]] extends Divisible[F] with InvariantAlt[F] { self =>
   )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
-  ): F[Z] = divide4(a1, a2, a3, a4)(g)
+  ): F[Z]                                                                  = divide4(a1, a2, a3, a4)(g)
 
   trait DecidableLaw extends DivisibleLaw {
     // distribution law blocked on https://github.com/ekmett/contravariant/issues/53

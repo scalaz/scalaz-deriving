@@ -12,11 +12,12 @@ import scalaz._, Scalaz._
 trait Defaultzy[A] {
   def default: Maybe[A]
 }
-object Defaultzy {
+object Defaultzy   {
   @inline def apply[A](implicit i: Defaultzy[A]): Defaultzy[A] = i
-  @inline def instance[A](ma: =>Maybe[A]): Defaultzy[A] = new Defaultzy[A] {
-    override def default: Maybe[A] = ma
-  }
+  @inline def instance[A](ma: =>Maybe[A]): Defaultzy[A]        =
+    new Defaultzy[A] {
+      override def default: Maybe[A] = ma
+    }
 
   implicit val int: Defaultzy[Int]         = instance(0.just)
   implicit val string: Defaultzy[String]   = instance("".just)
@@ -26,17 +27,19 @@ object Defaultzy {
     private val extract = λ[NameF ~> Maybe](a => a.value.default)
     def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Prod[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z] = instance {
-      tcs.traverse[A, NameF, Maybe](extract).map(f)
-    }
+    ): Defaultzy[Z]     =
+      instance {
+        tcs.traverse[A, NameF, Maybe](extract).map(f)
+      }
 
     private val always =
       λ[NameF ~> Maybe](a => a.value.default)
     def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z] = instance {
-      tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
-    }
+    ): Defaultzy[Z]    =
+      instance {
+        tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
+      }
   }
 
 }

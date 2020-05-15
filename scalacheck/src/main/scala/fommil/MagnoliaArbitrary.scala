@@ -22,15 +22,17 @@ object MagnoliaArbitrary {
     def point[A](a: A): Gen[A]                            = a.point[Gen]
   }
 
-  def combine[A](ctx: CaseClass[Arbitrary, A]): Arbitrary[A] = Arbitrary {
-    ctx.constructMonadic(p => Gen.lzy(p.typeclass.arbitrary))
-  }
+  def combine[A](ctx: CaseClass[Arbitrary, A]): Arbitrary[A] =
+    Arbitrary {
+      ctx.constructMonadic(p => Gen.lzy(p.typeclass.arbitrary))
+    }
 
-  def dispatch[A](ctx: SealedTrait[Arbitrary, A]): Arbitrary[A] = Arbitrary {
-    Gen.frequency(
-      ctx.subtypes.map(s => 1 -> Gen.lzy(s.typeclass.arbitrary)): _*
-    )
-  }
+  def dispatch[A](ctx: SealedTrait[Arbitrary, A]): Arbitrary[A] =
+    Arbitrary {
+      Gen.frequency(
+        ctx.subtypes.map(s => 1 -> Gen.lzy(s.typeclass.arbitrary)): _*
+      )
+    }
 
   def gen[A]: Arbitrary[A] = macro Magnolia.gen[A]
 }

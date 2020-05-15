@@ -21,10 +21,11 @@ final class Cop[LL <: TList] private (
 ) extends Serializable {
   type L = LL
 
-  override def equals(anyOther: Any): Boolean = anyOther match {
-    case other: Cop[LL] => (index == other.index) && (value == other.value)
-    case _              => false
-  }
+  override def equals(anyOther: Any): Boolean =
+    anyOther match {
+      case other: Cop[LL] => (index == other.index) && (value == other.value)
+      case _              => false
+    }
 
   override def hashCode(): Int =
     41 * index + value.##
@@ -54,20 +55,21 @@ object Cop {
   object Inject {
     def apply[A, B <: Cop[_]](implicit ev: Inject[A, B]): Inject[A, B] = ev
 
-    implicit def injectFromInjectL[A, L <: TList](
-      implicit ev: InjectL[A, L]
-    ): Inject[A, Cop[L]] = new Inject[A, Cop[L]] {
-      val inj: A => Cop[L]         = ev.inj(_)
-      val prj: Cop[L] => Option[A] = ev.proj(_)
-    }
+    implicit def injectFromInjectL[A, L <: TList](implicit
+      ev: InjectL[A, L]
+    ): Inject[A, Cop[L]] =
+      new Inject[A, Cop[L]] {
+        val inj: A => Cop[L]         = ev.inj(_)
+        val prj: Cop[L] => Option[A] = ev.proj(_)
+      }
   }
 
   /** A type class witnessing the ability to inject type `A` into a
    * coproduct of types for [[TList]] type `L`
    */
   final class InjectL[A, L <: TList] private[InjectL] (index: Int) {
-    def inj(a: A): Cop[L] = new Cop[L](index, a)
-    def proj(c: Cop[L]): Option[A] =
+    def inj(a: A): Cop[L]             = new Cop[L](index, a)
+    def proj(c: Cop[L]): Option[A]    =
       if (c.index == index) Some(c.value.asInstanceOf[A])
       else None
     def apply(a: A): Cop[L]           = inj(a)
@@ -76,9 +78,9 @@ object Cop {
 
   object InjectL {
     def apply[A, L <: TList](implicit ev: InjectL[A, L]): InjectL[A, L] = ev
-    implicit def makeInjectL[A, L <: TList](
-      implicit ev: TList.Pos[L, A]
-    ): InjectL[A, L] =
+    implicit def makeInjectL[A, L <: TList](implicit
+      ev: TList.Pos[L, A]
+    ): InjectL[A, L]                                                    =
       new InjectL[A, L](ev.index)
   }
 
@@ -93,9 +95,9 @@ object Cop {
 
   object RemoveL {
     def apply[A, L <: TList](implicit ev: RemoveL[A, L]): RemoveL[A, L] = ev
-    implicit def makeRemoveL[A, L <: TList](
-      implicit ev: TList.Pos[L, A]
-    ): RemoveL[A, L] =
+    implicit def makeRemoveL[A, L <: TList](implicit
+      ev: TList.Pos[L, A]
+    ): RemoveL[A, L]                                                    =
       new RemoveL[A, L](ev.index)
   }
 

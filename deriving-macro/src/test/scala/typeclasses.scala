@@ -20,20 +20,20 @@ import simulacrum.typeclass
       override def toFoo(b: B): String = "exercised the xmap codepath"
     }
 }
-object Cofoo {
-  implicit val string: Cofoo[String] = new Cofoo[String] {}
+object Cofoo              {
+  implicit val string: Cofoo[String]                           = new Cofoo[String] {}
   implicit def either[L: Cofoo, R: Cofoo]: Cofoo[Either[L, R]] =
     new Cofoo[Either[L, R]] {}
 }
 trait DerivedCofoo[T] extends Cofoo[T]
-object DerivedCofoo {
-  def gen[T, Repr](
-    implicit @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
+object DerivedCofoo       {
+  def gen[T, Repr](implicit
+    @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
   ): DerivedCofoo[T] = new DerivedCofoo[T] {}
 }
 
 @typeclass trait Cobar[T] {}
-object Cobar {
+object Cobar              {
   implicit val invariant: scalaz.InvariantFunctor[Cobar] =
     new scalaz.InvariantFunctor[Cobar] {
       override def xmap[A, B](ma: Cobar[A], f: A => B, g: B => A): Cobar[B] =
@@ -44,7 +44,7 @@ object Cobar {
 }
 
 @typeclass trait OrphanCobar[T] {}
-object OrphanCobarInstances {
+object OrphanCobarInstances     {
   implicit val invariant: scalaz.InvariantFunctor[OrphanCobar] =
     new scalaz.InvariantFunctor[OrphanCobar] {
       override def xmap[A, B](
@@ -57,24 +57,24 @@ object OrphanCobarInstances {
 
   implicit val string: OrphanCobar[String] = new OrphanCobar[String] {}
 }
-object CustomCobar {
-  def go[T, Repr](
-    implicit @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
+object CustomCobar              {
+  def go[T, Repr](implicit
+    @unused G: shapeless.LabelledGeneric.Aux[T, Repr]
   ): Cobar[T] = new Cobar[T] {}
 }
 
 @typeclass trait CustomGen[T] {}
-object CustomGen {
+object CustomGen              {
   def gen[T]: CustomGen[T] = new CustomGen[T] {}
 }
 
 package a {
   @typeclass trait Cobaz[T[_]] {}
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}
-  object DerivedCobaz {
-    def gen[T[_]](
-      implicit @unused G: shapeless.Generic1[T, DerivedCobaz]
-    ): DerivedCobaz[T] =
+  object DerivedCobaz          {
+    def gen[T[_]](implicit
+      @unused G: shapeless.Generic1[T, DerivedCobaz]
+    ): DerivedCobaz[T]                        =
       new DerivedCobaz[T] {}
 
     implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */
@@ -84,9 +84,9 @@ package b {
   @typeclass trait Cobaz[T[_]] {}
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}
   object DerivedCobaz {
-    def gen[T[_]](
-      implicit @unused G: shapeless.Generic1[T, DerivedCobaz]
-    ): DerivedCobaz[T] =
+    def gen[T[_]](implicit
+      @unused G: shapeless.Generic1[T, DerivedCobaz]
+    ): DerivedCobaz[T]                        =
       new DerivedCobaz[T] {}
 
     implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */

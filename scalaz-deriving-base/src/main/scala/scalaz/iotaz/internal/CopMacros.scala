@@ -21,8 +21,7 @@ import scala.reflect.macros.blackbox.Context
 private[iotaz] final class CopMacros(val c: Context) {
   import c.universe._
 
-  def copGen[A, R <: TList](
-    implicit
+  def copGen[A, R <: TList](implicit
     evA: c.WeakTypeTag[A],
     evR: c.WeakTypeTag[R]
   ): Tree = {

@@ -74,7 +74,7 @@ class XDecoderTests extends AnyFreeSpec {
     "should special-case Either for objects" in {
       import examples._
 
-      val stringy = XTag(
+      val stringy   = XTag(
         "StringyTagged",
         XTag("value", XString("hello")).asChild
       ).asChild
@@ -490,7 +490,10 @@ SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTr
             XTag("Foo", XTag("s", XString("hello")).asChild),
             XTag("Bar", XTag("s", XString("goodbye")).asChild),
             XTag("Foo", XTag("o", XString("invisible")).asChild),
-            XTag("Baz", XTag("s", XString("oops")).asChild) // note different tag name!
+            XTag(
+              "Baz",
+              XTag("s", XString("oops")).asChild
+            ) // note different tag name!
           )
         )
       ).asChild
@@ -506,7 +509,10 @@ SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTr
             XTag("Foo", XTag("a", XString("hello")).asChild),
             XTag("Bar", XTag("b", XString("goodbye")).asChild),
             XTag("Foo", XTag("c", XString("invisible")).asChild),
-            XTag("Baz", XTag("d", XString("oops")).asChild) // note different tag name!
+            XTag(
+              "Baz",
+              XTag("d", XString("oops")).asChild
+            ) // note different tag name!
           )
         )
       ).asChild

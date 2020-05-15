@@ -21,8 +21,8 @@ sealed abstract class IStream[A] { self =>
   import IStream._
 
   /** Strict concatenation */
-  final def !:(a: A): IStream[A]     = Cons(Value(a), Value(self))
-  final def :!(other: A): IStream[A] = !!(Strict(other))
+  final def !:(a: A): IStream[A]              = Cons(Value(a), Value(self))
+  final def :!(other: A): IStream[A]          = !!(Strict(other))
   final def !!(other: IStream[A]): IStream[A] =
     instances.foldRight(self, other)((a, as) => Strict.cons(a, as))
 
@@ -32,27 +32,30 @@ sealed abstract class IStream[A] { self =>
   // not stack safe. We could have an infinite stream so would we want to
   // sacrifice stack safety for non-terminating programs instead? That's what
   // foldLeft is for. Life is meaningless, etc, etc.
-  final def foldRightByName[B](z: =>B)(f: (=>A, =>B) => B): B = self match {
-    case _: Nil[_]        => z
-    case Cons(head, tail) => f(head.value, tail.value.foldRightByName(z)(f))
-  }
+  final def foldRightByName[B](z: =>B)(f: (=>A, =>B) => B): B =
+    self match {
+      case _: Nil[_]        => z
+      case Cons(head, tail) => f(head.value, tail.value.foldRightByName(z)(f))
+    }
 
   // Stack safe, but can't exit early. You may never escape.
   final def foldLeftByName[B](z: B)(f: (=>B, =>A) => B): B = {
-    @tailrec def loop(t: IStream[A], acc: B): B = t match {
-      case _: Nil[_]        => acc
-      case Cons(head, tail) => loop(tail.value, f(acc, head.value))
-    }
+    @tailrec def loop(t: IStream[A], acc: B): B =
+      t match {
+        case _: Nil[_]        => acc
+        case Cons(head, tail) => loop(tail.value, f(acc, head.value))
+      }
     loop(self, z)
   }
 
   def reverse: IStream[A] =
     foldLeftByName(empty[A])((xs, x) => Lazy.cons(x, xs))
 
-  def headMaybe: Maybe[A] = self match {
-    case IStream.Nil()         => Maybe.empty
-    case IStream.Cons(head, _) => Maybe.just(head.value)
-  }
+  def headMaybe: Maybe[A] =
+    self match {
+      case IStream.Nil()         => Maybe.empty
+      case IStream.Cons(head, _) => Maybe.just(head.value)
+    }
 
 }
 object IStream {
@@ -69,31 +72,33 @@ object IStream {
   private[this] final val _empty = Nil[Nothing]()
 
   object ByName {
-    def apply[A](a: =>A): IStream[A] = Cons(Name(a), nil[A])
+    def apply[A](a: =>A): IStream[A]                       = Cons(Name(a), nil[A])
     def cons[A](head: =>A, tail: =>IStream[A]): IStream[A] =
       Cons(Name(head), Name(tail))
-    def infinite[A](el: A): IStream[A] = cons(el, infinite(el))
+    def infinite[A](el: A): IStream[A]                     = cons(el, infinite(el))
   }
-  object Lazy {
-    def apply[A](a: =>A): IStream[A] = Cons(Need(a), nil[A])
+  object Lazy   {
+    def apply[A](a: =>A): IStream[A]                       = Cons(Need(a), nil[A])
     def cons[A](head: =>A, tail: =>IStream[A]): IStream[A] =
       Cons(Need(head), Need(tail))
-    def infinite[A](el: A): IStream[A] = cons(el, infinite(el))
+    def infinite[A](el: A): IStream[A]                     = cons(el, infinite(el))
   }
   object Strict {
     def apply[A](a: A): IStream[A]                     = Cons(Value(a), nil[A])
     def cons[A](head: A, tail: IStream[A]): IStream[A] = head !: tail
   }
 
-  def fromStream[A](sa: Stream[A]): IStream[A] = sa match {
-    case Stream() => empty[A]
-    case h #:: t  => Lazy.cons(h, fromStream(t))
-  }
+  def fromStream[A](sa: Stream[A]): IStream[A] =
+    sa match {
+      case Stream() => empty[A]
+      case h #:: t  => Lazy.cons(h, fromStream(t))
+    }
 
-  def fromMaybe[A](ma: Maybe[A]): IStream[A] = ma match {
-    case Maybe.Just(a) => Strict(a)
-    case Maybe.Empty() => empty[A]
-  }
+  def fromMaybe[A](ma: Maybe[A]): IStream[A] =
+    ma match {
+      case Maybe.Just(a) => Strict(a)
+      case Maybe.Empty() => empty[A]
+    }
 
   def fromFoldable[F[_]: Foldable, A](fa: F[A]): IStream[A] =
     Foldable[F].foldRight(fa, empty[A])((h, t) => Lazy.cons(h, t))
@@ -109,13 +114,13 @@ object IStream {
       override def map[A, B](fa: IStream[A])(f: A => B): IStream[B] =
         fa.foldRightByName(empty[B])((h, t) => Lazy.cons(f(h), t))
 
-      def point[A](a: =>A): IStream[A] = Lazy(a)
+      def point[A](a: =>A): IStream[A]                               = Lazy(a)
       def bind[A, B](fa: IStream[A])(f: A => IStream[B]): IStream[B] =
         foldRight(fa, empty[B])((h, t) => plus(f(h), t))
 
       def plus[A](a: IStream[A], b: =>IStream[A]): IStream[A] =
         a.foldRightByName(b)(Lazy.cons)
-      def empty[A]: IStream[A] = IStream.empty[A]
+      def empty[A]: IStream[A]                                = IStream.empty[A]
 
       def isEmpty[A](fa: IStream[A]): Boolean = fa.isInstanceOf[Nil[_]]
 
@@ -133,10 +138,11 @@ object IStream {
         }
 
       override def foldLeft[A, B](fa: IStream[A], z: B)(f: (B, A) => B): B = {
-        @tailrec def loop(t: IStream[A], acc: B): B = t match {
-          case _: Nil[_]        => acc
-          case Cons(head, tail) => loop(tail.value, f(acc, head.value))
-        }
+        @tailrec def loop(t: IStream[A], acc: B): B =
+          t match {
+            case _: Nil[_]        => acc
+            case Cons(head, tail) => loop(tail.value, f(acc, head.value))
+          }
         loop(fa, z)
       }
 

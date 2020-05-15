@@ -50,15 +50,15 @@ trait InvariantAlt[F[_]] extends InvariantApplicative[F] { self =>
   final def xcoderiving1[Z, A1](
     f: A1 => Z,
     g: Z => A1
-  )(implicit a1: F[A1]): F[Z] = xcoproduct1(a1)(f, g)
+  )(implicit a1: F[A1]): F[Z]                                  = xcoproduct1(a1)(f, g)
   final def xcoderiving2[Z, A1, A2](
     f: (A1 \/ A2) => Z,
     g: Z => (A1 \/ A2)
-  )(implicit a1: F[A1], a2: F[A2]): F[Z] = xcoproduct2(a1, a2)(f, g)
+  )(implicit a1: F[A1], a2: F[A2]): F[Z]                       = xcoproduct2(a1, a2)(f, g)
   final def xcoderiving3[Z, A1, A2, A3](
     f: (A1 \/ (A2 \/ A3)) => Z,
     g: Z => (A1 \/ (A2 \/ A3))
-  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z]            =
     xcoproduct3(a1, a2, a3)(f, g)
   final def xcoderiving4[Z, A1, A2, A3, A4](
     f: (A1 \/ (A2 \/ (A3 \/ A4))) => Z,

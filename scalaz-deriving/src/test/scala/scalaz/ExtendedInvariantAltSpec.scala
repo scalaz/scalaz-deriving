@@ -172,12 +172,11 @@ class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
     for {
       i <- 0 |-> (biglys.length - 1)
       j <- 0 |-> (biglys.length - 1)
-    } yield {
+    } yield
       if (i == j)
         assert(biglys(i).same(biglys(j)))
       else
         assert(biglys(i).different(biglys(j)))
-    }
   }
 
 }

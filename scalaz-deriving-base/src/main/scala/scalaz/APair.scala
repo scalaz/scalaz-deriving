@@ -22,7 +22,7 @@ sealed abstract class /~\[A[_], B[_]] {
   def a: A[T]
   def b: B[T]
 }
-object /~\ {
+object /~\                            {
   type APair[A[_], B[_]]  = A /~\ B
   type Aux[A[_], B[_], Z] = /~\[A, B] { type T = Z }
 

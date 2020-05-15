@@ -14,8 +14,8 @@ import Cops._
  */
 trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
 
-  def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
-    implicit ev: A PairedWith FA
+  def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(implicit
+    ev: A PairedWith FA
   ): F[Z]
 
   // derived combinators
@@ -24,14 +24,15 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
   )(
     f: Cop[A] => Z,
     @unused g: Z => Cop[A]
-  )(
-    implicit ev: A PairedWith FA
+  )(implicit
+    ev: A PairedWith FA
   ): F[Z] = altlyz(tcs)(f)
 
-  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] = altly2(a1, a2) {
-    case -\/(a) => a
-    case \/-(a) => a
-  }
+  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] =
+    altly2(a1, a2) {
+      case -\/(a) => a
+      case \/-(a) => a
+    }
   override def altly1[Z, A1](a1: =>F[A1])(f: A1 => Z): F[Z] = {
     type L = A1 :: TNil
     altlyz(LazyProd(a1))((c: Cop[L]) => f(to1(c)))

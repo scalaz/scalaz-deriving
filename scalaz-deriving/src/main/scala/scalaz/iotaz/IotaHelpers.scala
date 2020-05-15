@@ -16,21 +16,21 @@ import scalaz._, Scalaz._
 
 // unintentional joke about the state of northern irish politics...
 object LazyProd {
-  def apply[A1](a1: =>A1): Prod[Name[A1] :: TNil] = Prod(Need(a1))
+  def apply[A1](a1: =>A1): Prod[Name[A1] :: TNil]                           = Prod(Need(a1))
   def apply[A1, A2](a1: =>A1, a2: =>A2): Prod[Name[A1] :: Name[A2] :: TNil] =
     Prod(Need(a1), Need(a2))
   def apply[A1, A2, A3](
     a1: =>A1,
     a2: =>A2,
     a3: =>A3
-  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil] =
+  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil]                         =
     Prod(Need(a1), Need(a2), Need(a3))
   def apply[A1, A2, A3, A4](
     a1: =>A1,
     a2: =>A2,
     a3: =>A3,
     a4: =>A4
-  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil] =
+  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil]             =
     Prod(Need(a1), Need(a2), Need(a3), Need(a4))
 }
 
@@ -38,36 +38,39 @@ object Prods {
   import scala.Array
   import internal.ArraySeq
 
-  val empty: Prod[TNil] = Prod()
-  def from1T[A1](e: A1): Prod[A1 :: TNil] =
+  val empty: Prod[TNil]                                                 = Prod()
+  def from1T[A1](e: A1): Prod[A1 :: TNil]                               =
     Prod.unsafeApply(new ArraySeq(Array(e)))
-  def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil] =
+  def from2T[A1, A2](e: (A1, A2)): Prod[A1 :: A2 :: TNil]               =
     Prod.unsafeApply(new ArraySeq(Array(e._1, e._2)))
   def from3T[A1, A2, A3](e: (A1, A2, A3)): Prod[A1 :: A2 :: A3 :: TNil] =
     Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3)))
   def from4T[A1, A2, A3, A4](
     e: (A1, A2, A3, A4)
-  ): Prod[A1 :: A2 :: A3 :: A4 :: TNil] =
+  ): Prod[A1 :: A2 :: A3 :: A4 :: TNil]                                 =
     Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3, e._4)))
 
-  def to1T[A1](a: Prod[A1 :: TNil]): A1 = a.values(0).asInstanceOf[A1]
-  def to2T[A1, A2](a: Prod[A1 :: A2 :: TNil]): (A1, A2) = (
-    a.values(0).asInstanceOf[A1],
-    a.values(1).asInstanceOf[A2]
-  )
-  def to3T[A1, A2, A3](a: Prod[A1 :: A2 :: A3 :: TNil]): (A1, A2, A3) = (
-    a.values(0).asInstanceOf[A1],
-    a.values(1).asInstanceOf[A2],
-    a.values(2).asInstanceOf[A3]
-  )
+  def to1T[A1](a: Prod[A1 :: TNil]): A1                               = a.values(0).asInstanceOf[A1]
+  def to2T[A1, A2](a: Prod[A1 :: A2 :: TNil]): (A1, A2)               =
+    (
+      a.values(0).asInstanceOf[A1],
+      a.values(1).asInstanceOf[A2]
+    )
+  def to3T[A1, A2, A3](a: Prod[A1 :: A2 :: A3 :: TNil]): (A1, A2, A3) =
+    (
+      a.values(0).asInstanceOf[A1],
+      a.values(1).asInstanceOf[A2],
+      a.values(2).asInstanceOf[A3]
+    )
   def to4T[A1, A2, A3, A4](
     a: Prod[A1 :: A2 :: A3 :: A4 :: TNil]
-  ): (A1, A2, A3, A4) = (
-    a.values(0).asInstanceOf[A1],
-    a.values(1).asInstanceOf[A2],
-    a.values(2).asInstanceOf[A3],
-    a.values(3).asInstanceOf[A4]
-  )
+  ): (A1, A2, A3, A4)                                                 =
+    (
+      a.values(0).asInstanceOf[A1],
+      a.values(1).asInstanceOf[A2],
+      a.values(2).asInstanceOf[A3],
+      a.values(3).asInstanceOf[A4]
+    )
 
   import iotaz.internal.{ OptimisedIndexedSeq => Backdoor }
 
@@ -108,22 +111,24 @@ object Prods {
 
     implicit final class ProdOps[A <: TList](private val a: Prod[A])
         extends AnyVal {
-      def zip[B <: TList, H[_]](b: Prod[B])(
-        implicit ev: H ƒ A ↦ B
+      def zip[B <: TList, H[_]](b: Prod[B])(implicit
+        ev: H ƒ A ↦ B
       ): IList[Id /~\ H] = {
         val _  = ev
         val as = a.values
         val bs = b.values.asInstanceOf[Seq[H[Any]]]
 
-        if (as.isInstanceOf[Backdoor[_]] &&
-            bs.isInstanceOf[Backdoor[_]]) {
+        if (
+          as.isInstanceOf[Backdoor[_]] &&
+          bs.isInstanceOf[Backdoor[_]]
+        )
           as.asInstanceOf[Backdoor[Any]]
             .zipmap(
               bs.asInstanceOf[Backdoor[H[Any]]]
             )((a, h) => /~\[Id, H, Any](a, h))
-        } else if (as.isEmpty) {
+        else if (as.isEmpty)
           IList.empty
-        } else {
+        else {
           val lst: List[Id /~\ H] = as
             .zip(bs)
             .map {
@@ -134,8 +139,8 @@ object Prods {
         }
       }
 
-      def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(
-        implicit ev: F ƒ B ↦ A
+      def traverse[B <: TList, F[_], G[_]: Applicative](f: F ~> G)(implicit
+        ev: F ƒ B ↦ A
       ): G[Prod[B]] = {
         val _ = ev
         a.values
@@ -149,8 +154,8 @@ object Prods {
         b1: Prod[B],
         b2: Prod[B],
         f: λ[α => (Pair[α], F[α])] ~> G
-      )(
-        implicit ev: F ƒ B ↦ A
+      )(implicit
+        ev: F ƒ B ↦ A
       ): G[Prod[C]] = {
         val _ = ev
         b1.values
@@ -163,8 +168,8 @@ object Prods {
 
       def coptraverse[B <: TList, F[_], G[_]: Applicative](
         f: F ~> λ[α => Maybe[G[α]]]
-      )(
-        implicit ev: F ƒ B ↦ A
+      )(implicit
+        ev: F ƒ B ↦ A
       ): IStream[G[Cop[B]]] = {
         val _ = ev
         IStream
@@ -186,25 +191,27 @@ object Prods {
     implicit final class ProdOps2[A <: TList](
       private val as: (Prod[A], Prod[A])
     ) extends AnyVal {
-      def zip[B <: TList, H[_]](b: Prod[B])(
-        implicit ev: H ƒ A ↦ B
+      def zip[B <: TList, H[_]](b: Prod[B])(implicit
+        ev: H ƒ A ↦ B
       ): IList[Pair /~\ H] = {
         val _  = ev
         val a1 = as._1.values
         val a2 = as._2.values
         val bs = b.values.asInstanceOf[Seq[H[Any]]]
 
-        if (a1.isInstanceOf[Backdoor[_]] &&
-            a2.isInstanceOf[Backdoor[_]] &&
-            bs.isInstanceOf[Backdoor[_]]) {
+        if (
+          a1.isInstanceOf[Backdoor[_]] &&
+          a2.isInstanceOf[Backdoor[_]] &&
+          bs.isInstanceOf[Backdoor[_]]
+        )
           a1.asInstanceOf[Backdoor[Any]]
             .zip2map(
               a2.asInstanceOf[Backdoor[Any]],
               bs.asInstanceOf[Backdoor[H[Any]]]
             )((a, b, h) => /~\[Pair, H, Any]((a, b), h))
-        } else if (a1.isEmpty) {
+        else if (a1.isEmpty)
           IList.empty
-        } else {
+        else {
           val lst: List[Pair /~\ H] = a1
             .zip(a2)
             .zip(bs)
@@ -221,11 +228,12 @@ object Prods {
 }
 
 object Cops {
-  def from1[A1](e: A1): Cop[A1 :: TNil] = Cop.unsafeApply(0, e)
-  def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil] = e match {
-    case -\/(a) => Cop.unsafeApply(0, a)
-    case \/-(b) => Cop.unsafeApply(1, b)
-  }
+  def from1[A1](e: A1): Cop[A1 :: TNil]                                   = Cop.unsafeApply(0, e)
+  def from2[A1, A2](e: A1 \/ A2): Cop[A1 :: A2 :: TNil]                   =
+    e match {
+      case -\/(a) => Cop.unsafeApply(0, a)
+      case \/-(b) => Cop.unsafeApply(1, b)
+    }
   def from3[A1, A2, A3](e: A1 \/ (A2 \/ A3)): Cop[A1 :: A2 :: A3 :: TNil] =
     e match {
       case -\/(a)      => Cop.unsafeApply(0, a)
@@ -234,7 +242,7 @@ object Cops {
     }
   def from4[A1, A2, A3, A4](
     e: A1 \/ (A2 \/ (A3 \/ A4))
-  ): Cop[A1 :: A2 :: A3 :: A4 :: TNil] =
+  ): Cop[A1 :: A2 :: A3 :: A4 :: TNil]                                    =
     e match {
       case -\/(a)           => Cop.unsafeApply(0, a)
       case \/-(-\/(b))      => Cop.unsafeApply(1, b)
@@ -242,8 +250,8 @@ object Cops {
       case \/-(\/-(\/-(d))) => Cop.unsafeApply(3, d)
     }
 
-  def to1[A1](c: Cop[A1 :: TNil]): A1 = c.value.asInstanceOf[A1]
-  def to2[A1, A2](c: Cop[A1 :: A2 :: TNil]): A1 \/ A2 =
+  def to1[A1](c: Cop[A1 :: TNil]): A1                                   = c.value.asInstanceOf[A1]
+  def to2[A1, A2](c: Cop[A1 :: A2 :: TNil]): A1 \/ A2                   =
     (c.index: @switch) match {
       case 0 => -\/(c.value.asInstanceOf[A1])
       case 1 => \/-(c.value.asInstanceOf[A2])
@@ -256,12 +264,13 @@ object Cops {
     }
   def to4[A1, A2, A3, A4](
     c: Cop[A1 :: A2 :: A3 :: A4 :: TNil]
-  ): A1 \/ (A2 \/ (A3 \/ A4)) = (c.index: @switch) match {
-    case 0 => -\/(c.value.asInstanceOf[A1])
-    case 1 => \/-(-\/(c.value.asInstanceOf[A2]))
-    case 2 => \/-(\/-(-\/(c.value.asInstanceOf[A3])))
-    case 3 => \/-(\/-(\/-(c.value.asInstanceOf[A4])))
-  }
+  ): A1 \/ (A2 \/ (A3 \/ A4))                                           =
+    (c.index: @switch) match {
+      case 0 => -\/(c.value.asInstanceOf[A1])
+      case 1 => \/-(-\/(c.value.asInstanceOf[A2]))
+      case 2 => \/-(\/-(-\/(c.value.asInstanceOf[A3])))
+      case 3 => \/-(\/-(\/-(c.value.asInstanceOf[A4])))
+    }
 
   object ops {
     final implicit class UnsafeCops[T <: TList](
@@ -282,8 +291,8 @@ object Cops {
     implicit final class CopOps[A <: TList](private val a: Cop[A])
         extends AnyVal {
 
-      def zip[B <: TList, H[_]](b: Prod[B])(
-        implicit ev: H ƒ A ↦ B
+      def zip[B <: TList, H[_]](b: Prod[B])(implicit
+        ev: H ƒ A ↦ B
       ): Id /~\ H = {
         val _ = ev
         /~\[Id, H, Any](
@@ -297,8 +306,8 @@ object Cops {
     type Pair[a] = (a, a)
     implicit final class CopOps2[A <: TList](private val as: (Cop[A], Cop[A]))
         extends AnyVal {
-      def zip[B <: TList, H[_]](b: Prod[B])(
-        implicit ev: H ƒ A ↦ B
+      def zip[B <: TList, H[_]](b: Prod[B])(implicit
+        ev: H ƒ A ↦ B
       ): (Int, Id /~\ H, Int, Id /~\ H) \/ (Pair /~\ H) = {
         val _        = ev
         val (a1, a2) = as

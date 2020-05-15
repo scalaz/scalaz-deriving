@@ -21,10 +21,11 @@ final class Prod[LL <: TList] private (
 ) {
   type L = LL
 
-  override def equals(anyOther: Any): Boolean = anyOther match {
-    case other: Prod[LL] => values == other.values
-    case _               => false
-  }
+  override def equals(anyOther: Any): Boolean =
+    anyOther match {
+      case other: Prod[LL] => values == other.values
+      case _               => false
+    }
 
   override def hashCode(): Int =
     values.hashCode()

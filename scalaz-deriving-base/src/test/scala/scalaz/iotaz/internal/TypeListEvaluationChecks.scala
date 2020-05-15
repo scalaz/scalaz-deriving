@@ -34,13 +34,13 @@ class TypeListEvaluationChecks(
   import tb.u.Type
 
   val evalChecks: List[(Node, List[Type])] = List(
-    nnil               -> (Nil),
-    reverse(nnil)      -> (Nil),
-    concat(nnil)       -> (Nil),
-    concat(nnil, nnil) -> (Nil),
-    cons[Int]()        -> (t[Int] :: Nil),
-    cons[String]()     -> (t[String] :: Nil),
-    cons[Double]()     -> (t[Double] :: Nil),
+    nnil                                                    -> (Nil),
+    reverse(nnil)                                           -> (Nil),
+    concat(nnil)                                            -> (Nil),
+    concat(nnil, nnil)                                      -> (Nil),
+    cons[Int]()                                             -> (t[Int] :: Nil),
+    cons[String]()                                          -> (t[String] :: Nil),
+    cons[Double]()                                          -> (t[Double] :: Nil),
     cons[Double](cons[String](cons[Int]()))
       -> (t[Double] :: t[String] :: t[Int] :: Nil),
     reverse(cons[Double](cons[String](cons[Int]())))
@@ -48,37 +48,43 @@ class TypeListEvaluationChecks(
     concat(
       cons[Double](cons[String](cons[Int]())),
       cons[Double](cons[String](cons[Int]()))
-    ) -> (t[Double] :: t[String] :: t[Int] :: t[Double] :: t[String] :: t[Int] :: Nil),
+    )                                                       -> (t[Double] :: t[String] :: t[Int] :: t[Double] :: t[String] :: t[
+      Int
+    ] :: Nil),
     concat(
       cons[Double](cons[String](cons[Int]())),
       nnil,
       cons[Double](cons[String](cons[Int]()))
-    ) -> (t[Double] :: t[String] :: t[Int] :: t[Double] :: t[String] :: t[Int] :: Nil),
+    )                                                       -> (t[Double] :: t[String] :: t[Int] :: t[Double] :: t[String] :: t[
+      Int
+    ] :: Nil),
     concat(
       cons[Double](cons[String](cons[Int]())),
       reverse(cons[Double](cons[String](cons[Int]())))
-    )                                     -> (t[Double] :: t[String] :: t[Int] :: t[Int] :: t[String] :: t[Double] :: Nil),
-    take(0, cons[Double]())               -> (Nil),
-    take(1, cons[Double]())               -> (t[Double] :: Nil),
-    take(2, cons[Double]())               -> (t[Double] :: Nil),
-    take(0, cons[String](cons[Double]())) -> (Nil),
-    take(1, cons[String](cons[Double]())) -> (t[String] :: Nil),
-    take(2, cons[String](cons[Double]())) -> (t[String] :: t[Double] :: Nil),
-    take(3, cons[String](cons[Double]())) -> (t[String] :: t[Double] :: Nil),
-    drop(0, cons[Double]())               -> (t[Double] :: Nil),
-    drop(1, cons[Double]())               -> (Nil),
-    drop(2, cons[Double]())               -> (Nil),
-    drop(0, cons[String](cons[Double]())) -> (t[String] :: t[Double] :: Nil),
-    drop(1, cons[String](cons[Double]())) -> (t[Double] :: Nil),
-    drop(2, cons[String](cons[Double]())) -> (Nil),
-    drop(3, cons[String](cons[Double]())) -> (Nil),
+    )                                                       -> (t[Double] :: t[String] :: t[Int] :: t[Int] :: t[String] :: t[
+      Double
+    ] :: Nil),
+    take(0, cons[Double]())                                 -> (Nil),
+    take(1, cons[Double]())                                 -> (t[Double] :: Nil),
+    take(2, cons[Double]())                                 -> (t[Double] :: Nil),
+    take(0, cons[String](cons[Double]()))                   -> (Nil),
+    take(1, cons[String](cons[Double]()))                   -> (t[String] :: Nil),
+    take(2, cons[String](cons[Double]()))                   -> (t[String] :: t[Double] :: Nil),
+    take(3, cons[String](cons[Double]()))                   -> (t[String] :: t[Double] :: Nil),
+    drop(0, cons[Double]())                                 -> (t[Double] :: Nil),
+    drop(1, cons[Double]())                                 -> (Nil),
+    drop(2, cons[Double]())                                 -> (Nil),
+    drop(0, cons[String](cons[Double]()))                   -> (t[String] :: t[Double] :: Nil),
+    drop(1, cons[String](cons[Double]()))                   -> (t[Double] :: Nil),
+    drop(2, cons[String](cons[Double]()))                   -> (Nil),
+    drop(3, cons[String](cons[Double]()))                   -> (Nil),
     remove[Double](cons[Double](cons[String](cons[Int]()))) -> (t[String] :: t[
       Int
     ] :: Nil),
     remove[String](cons[Double](cons[String](cons[Int]()))) -> (t[Double] :: t[
       Int
     ] :: Nil),
-    remove[Int](cons[Double](cons[String](cons[Int]()))) -> (t[Double] :: t[
+    remove[Int](cons[Double](cons[String](cons[Int]())))    -> (t[Double] :: t[
       String
     ] :: Nil),
     remove[String](cons[String](cons[String](cons[Int]()))) -> (t[String] :: t[

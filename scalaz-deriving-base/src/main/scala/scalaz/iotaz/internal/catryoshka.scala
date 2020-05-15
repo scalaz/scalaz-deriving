@@ -137,8 +137,8 @@ private[internal] object catryoshka {
 
   case class EnvT[B, W[_], A](ask: B, lower: W[A])
   object EnvT {
-    implicit def envTTraverse[Z, F[_]](
-      implicit F: Traverse[F]
+    implicit def envTTraverse[Z, F[_]](implicit
+      F: Traverse[F]
     ): Traverse[EnvT[Z, F, ?]] =
       new Traverse[EnvT[Z, F, ?]] {
         override def foldLeft[A, B](fa: EnvT[Z, F, A], b: B)(
@@ -164,8 +164,8 @@ private[internal] object catryoshka {
       extends AnyVal {
     // note: above, Algebra[F, A] is expanded to F[A] => A because this
     // apparently has better type inferencing
-    def generalizeM[M[_]: Applicative](
-      implicit F: Functor[F]
+    def generalizeM[M[_]: Applicative](implicit
+      F: Functor[F]
     ): AlgebraM[M, F, A] =
       node => self(node).pure[M]
   }

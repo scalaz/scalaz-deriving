@@ -103,12 +103,13 @@ private[internal] sealed trait TypeListAST { self: Toolbelt =>
   case object NNilF                        extends NodeF[Nothing]
 
   sealed trait ConsFEquality { self: ConsF[_] =>
-    override def equals(that: Any): Boolean = that match {
-      case that: ConsF[_] =>
-        that.canEqual(this) &&
-          this.head =:= that.head && this.tail == that.tail
-      case _ => false
-    }
+    override def equals(that: Any): Boolean =
+      that match {
+        case that: ConsF[_] =>
+          that.canEqual(this) &&
+            this.head =:= that.head && this.tail == that.tail
+        case _              => false
+      }
   }
 
   object NodeF {
@@ -116,16 +117,17 @@ private[internal] sealed trait TypeListAST { self: Toolbelt =>
 
       def traverseImpl[G[_], A, B](
         fa: NodeF[A]
-      )(f: A => G[B])(implicit G: Applicative[G]): G[NodeF[B]] = fa match {
-        case ConsF(hd, a)  => G.map(f(a))(ConsF(hd, _))
-        case ConcatF(as)   => G.map(Traverse[List].traverse(as)(f))(ConcatF(_))
-        case ReverseF(a)   => G.map(f(a))(ReverseF(_))
-        case TakeF(n, a)   => G.map(f(a))(TakeF(n, _))
-        case DropF(n, a)   => G.map(f(a))(DropF(n, _))
-        case RemoveF(t, a) => G.map(f(a))(RemoveF(t, _))
-        case MapF(ft, a)   => G.map(f(a))(MapF(ft, _))
-        case NNilF         => G.pure(NNilF: NodeF[B])
-      }
+      )(f: A => G[B])(implicit G: Applicative[G]): G[NodeF[B]] =
+        fa match {
+          case ConsF(hd, a)  => G.map(f(a))(ConsF(hd, _))
+          case ConcatF(as)   => G.map(Traverse[List].traverse(as)(f))(ConcatF(_))
+          case ReverseF(a)   => G.map(f(a))(ReverseF(_))
+          case TakeF(n, a)   => G.map(f(a))(TakeF(n, _))
+          case DropF(n, a)   => G.map(f(a))(DropF(n, _))
+          case RemoveF(t, a) => G.map(f(a))(RemoveF(t, _))
+          case MapF(ft, a)   => G.map(f(a))(MapF(ft, _))
+          case NNilF         => G.pure(NNilF: NodeF[B])
+        }
 
       override def foldLeft[A, B](fa: NodeF[A], b: B)(f: (B, A) => B): B =
         fa match {
@@ -191,27 +193,28 @@ private[internal] sealed trait TypeListParsers {
     DropSym: Symbol,
     RemoveSym: Symbol,
     MapSym: Symbol = symbolOf[Disregard]
-  ): TypeListParser = tpe0 => {
-    @tailrec def loop(tpe: Type): Either[Id[String], NodeF[Type]] =
-      tpe.dealias match {
-        case TypeRef(_, sym, args) =>
-          sym.asType.toType.dealias.typeSymbol match {
-            case ConsSym    => ConsF(args(0), args(1)).asRight
-            case NilSym     => NNilF.asRight
-            case ConcatSym  => ConcatF(args).asRight
-            case ReverseSym => ReverseF(args(0)).asRight
-            case TakeSym    => literalInt(args(0)).map(TakeF(_, args(1)))
-            case DropSym    => literalInt(args(0)).map(DropF(_, args(1)))
-            case RemoveSym  => RemoveF(args(0), args(1)).asRight
-            case MapSym     => MapF(args(0), args(1)).asRight
-            case sym =>
-              s"Unexpected symbol $sym for type $tpe: ${showRaw(tpe)}".asLeft
-          }
-        case ExistentialType(_, res) => loop(res) // the irony...
-        case _                       => s"Unable to parse type $tpe: ${showRaw(tpe)}".asLeft
-      }
-    loop(tpe0)
-  }
+  ): TypeListParser =
+    tpe0 => {
+      @tailrec def loop(tpe: Type): Either[Id[String], NodeF[Type]] =
+        tpe.dealias match {
+          case TypeRef(_, sym, args)   =>
+            sym.asType.toType.dealias.typeSymbol match {
+              case ConsSym    => ConsF(args(0), args(1)).asRight
+              case NilSym     => NNilF.asRight
+              case ConcatSym  => ConcatF(args).asRight
+              case ReverseSym => ReverseF(args(0)).asRight
+              case TakeSym    => literalInt(args(0)).map(TakeF(_, args(1)))
+              case DropSym    => literalInt(args(0)).map(DropF(_, args(1)))
+              case RemoveSym  => RemoveF(args(0), args(1)).asRight
+              case MapSym     => MapF(args(0), args(1)).asRight
+              case sym        =>
+                s"Unexpected symbol $sym for type $tpe: ${showRaw(tpe)}".asLeft
+            }
+          case ExistentialType(_, res) => loop(res) // the irony...
+          case _                       => s"Unable to parse type $tpe: ${showRaw(tpe)}".asLeft
+        }
+      loop(tpe0)
+    }
 
   private[this] def literalInt(tpe: Type): Either[Id[String], Int] =
     tpe.dealias match {
@@ -311,7 +314,7 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
   case class CopTypes(L: Type)
   case class CopKTypes(L: Type, A: Type)
 
-  private[this] final lazy val CopTpe =
+  private[this] final lazy val CopTpe  =
     typeOf[Cop[Nothing]].etaExpand.resultType
   private[this] final lazy val CopKTpe =
     typeOf[CopK[Nothing, Nothing]].etaExpand.resultType
@@ -323,8 +326,8 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
     tpe.dealias.resultType match {
       case TypeRef(_, sym, l :: Nil) if resultType(sym) <:< CopTpe =>
         Right(CopTypes(l))
-      case TypeRef(_, sym, Nil) => destructCop(sym.asType.toType)
-      case t =>
+      case TypeRef(_, sym, Nil)                                    => destructCop(sym.asType.toType)
+      case t                                                       =>
         Left(s"unexpected type $t ${showRaw(t)} when destructuring Cop $tpe")
     }
 
@@ -332,8 +335,8 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
     tpe.dealias.resultType match {
       case TypeRef(_, sym, l :: a :: Nil) if resultType(sym) <:< CopKTpe =>
         Right(CopKTypes(l, a))
-      case TypeRef(_, sym, Nil) => destructCopK(sym.asType.toType)
-      case t =>
+      case TypeRef(_, sym, Nil)                                          => destructCopK(sym.asType.toType)
+      case t                                                             =>
         Left(s"unexpected type $t ${showRaw(t)} when destructuring CopK $tpe")
     }
 
@@ -370,11 +373,12 @@ private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
   /** Converts a `Type` to a `Tree` so that it can be safely
    * lifted into quasiquotes
    */
-  private[this] final def toTypeTree(tpe: Type): Tree = tpe match {
-    case poly: PolyType       => projectPoly(poly)
-    case TypeRef(_, sym, Nil) => c.internal.gen.mkAttributedIdent(sym)
-    case _                    => c.internal.gen.mkAttributedIdent(tpe.typeSymbol)
-  }
+  private[this] final def toTypeTree(tpe: Type): Tree =
+    tpe match {
+      case poly: PolyType       => projectPoly(poly)
+      case TypeRef(_, sym, Nil) => c.internal.gen.mkAttributedIdent(sym)
+      case _                    => c.internal.gen.mkAttributedIdent(tpe.typeSymbol)
+    }
 
   private[this] val FastNatTrans =
     tq"$iotaPackage.internal.FastNaturalTransformation"
@@ -455,9 +459,8 @@ private[internal] sealed trait TypeListMacroAPIs extends TypeListAPIs {
     f: A => B
   ): B = {
     val b = cache.underlying.getOrElseUpdate(a, f(a)).asInstanceOf[B]
-    if (showCache) {
+    if (showCache)
       c.echo(c.enclosingPosition, s"ShowCache: $b cached result $b")
-    }
     b
   }
 

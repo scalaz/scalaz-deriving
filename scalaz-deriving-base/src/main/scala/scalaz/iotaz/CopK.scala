@@ -22,10 +22,12 @@ final class CopK[LL <: TListK, A] private (
 ) extends Serializable {
   type L = LL
 
-  override def equals(anyOther: Any): Boolean = anyOther match {
-    case other: CopK[LL, A] => (index == other.index) && (value == other.value)
-    case _                  => false
-  }
+  override def equals(anyOther: Any): Boolean =
+    anyOther match {
+      case other: CopK[LL, A] =>
+        (index == other.index) && (value == other.value)
+      case _                  => false
+    }
 
   override def hashCode(): Int =
     41 * index + value.##
@@ -50,25 +52,26 @@ object CopK {
   }
 
   object Inject {
-    def apply[F[_], G[α] <: CopK[_, α]](
-      implicit ev: Inject[F, G]
+    def apply[F[_], G[α] <: CopK[_, α]](implicit
+      ev: Inject[F, G]
     ): Inject[F, G] = ev
 
-    implicit def injectFromInjectL[F[_], L <: TListK](
-      implicit ev: InjectL[F, L]
-    ): Inject[F, CopK[L, ?]] = new Inject[F, CopK[L, ?]] {
-      val inj: F ~> CopK[L, ?] = λ[F ~> CopK[L, ?]](ev.inj(_))
-      val prj: CopK[L, ?] ~> λ[α => Option[F[α]]] =
-        λ[CopK[L, ?] ~> λ[α => Option[F[α]]]](ev.proj(_))
-    }
+    implicit def injectFromInjectL[F[_], L <: TListK](implicit
+      ev: InjectL[F, L]
+    ): Inject[F, CopK[L, ?]] =
+      new Inject[F, CopK[L, ?]] {
+        val inj: F ~> CopK[L, ?]                    = λ[F ~> CopK[L, ?]](ev.inj(_))
+        val prj: CopK[L, ?] ~> λ[α => Option[F[α]]] =
+          λ[CopK[L, ?] ~> λ[α => Option[F[α]]]](ev.proj(_))
+      }
   }
 
   /** A type class witnessing the ability to inject type constructor `F`
    * into a coproduct of types constructors for [[TListK]] type `L`
    */
   final class InjectL[F[_], L <: TListK] private[InjectL] (index: Int) {
-    def inj[A](fa: F[A]): CopK[L, A] = new CopK[L, A](index, fa)
-    def proj[A](ca: CopK[L, A]): Option[F[A]] =
+    def inj[A](fa: F[A]): CopK[L, A]             = new CopK[L, A](index, fa)
+    def proj[A](ca: CopK[L, A]): Option[F[A]]    =
       if (ca.index == index) Some(ca.value.asInstanceOf[F[A]])
       else None
     def apply[A](fa: F[A]): CopK[L, A]           = inj(fa)
@@ -77,9 +80,9 @@ object CopK {
 
   object InjectL {
     def apply[F[_], L <: TListK](implicit ev: InjectL[F, L]): InjectL[F, L] = ev
-    implicit def makeInjectL[F[_], L <: TListK](
-      implicit ev: TListK.Pos[L, F]
-    ): InjectL[F, L] =
+    implicit def makeInjectL[F[_], L <: TListK](implicit
+      ev: TListK.Pos[L, F]
+    ): InjectL[F, L]                                                        =
       new InjectL[F, L](ev.index)
   }
 
@@ -94,9 +97,9 @@ object CopK {
 
   object RemoveL {
     def apply[F[_], L <: TListK](implicit ev: RemoveL[F, L]): RemoveL[F, L] = ev
-    implicit def makeRemoveL[F[_], L <: TListK](
-      implicit ev: TListK.Pos[L, F]
-    ): RemoveL[F, L] =
+    implicit def makeRemoveL[F[_], L <: TListK](implicit
+      ev: TListK.Pos[L, F]
+    ): RemoveL[F, L]                                                        =
       new RemoveL[F, L](ev.index)
   }
 

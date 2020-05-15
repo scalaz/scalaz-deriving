@@ -84,7 +84,9 @@ package object iotaz {
     def catching[T >: Null <: Throwable]: CatchingPartiallyApplied[T] =
       new CatchingPartiallyApplied[T]
 
-    private[Avowal] final class CatchingPartiallyApplied[T >: Null <: Throwable] {
+    private[Avowal] final class CatchingPartiallyApplied[
+      T >: Null <: Throwable
+    ] {
       def apply[A](
         f: =>A
       )(implicit T: ClassTag[T], NT: NotNothing[T]): Avowal[T, A] =
@@ -95,13 +97,15 @@ package object iotaz {
   private[iotaz] implicit final class EitherToAvowalOps[A, B](
     private val eab: Either[A, B]
   ) extends AnyVal {
-    def toAvowal: Avowal[A, B] = eab match {
-      case Left(a)  => Avowal.no(a)
-      case Right(b) => Avowal.yes(b)
-    }
-    def toAvowalNel[AA >: A]: AvowalNel[AA, B] = eab match {
-      case Left(a)  => Avowal.noNel(a)
-      case Right(b) => Avowal.yes(b)
-    }
+    def toAvowal: Avowal[A, B]                 =
+      eab match {
+        case Left(a)  => Avowal.no(a)
+        case Right(b) => Avowal.yes(b)
+      }
+    def toAvowalNel[AA >: A]: AvowalNel[AA, B] =
+      eab match {
+        case Left(a)  => Avowal.noNel(a)
+        case Right(b) => Avowal.yes(b)
+      }
   }
 }

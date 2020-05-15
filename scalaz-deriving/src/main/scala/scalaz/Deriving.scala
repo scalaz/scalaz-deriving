@@ -24,8 +24,8 @@ trait Deriving[F[_]] extends DerivingProducts[F] {
   )(
     f: Cop[A] => Z,
     g: Z => Cop[A]
-  )(
-    implicit ev: A PairedWith FA
+  )(implicit
+    ev: A PairedWith FA
   ): F[Z]
 
 }
@@ -51,13 +51,13 @@ trait DerivingProducts[F[_]] {
     new Prods.ops.ProdOps[A](p)
   protected implicit def ProdOps2[A <: TList](
     p: (Prod[A], Prod[A])
-  ): Prods.ops.ProdOps2[A] =
+  ): Prods.ops.ProdOps2[A]                                                     =
     new Prods.ops.ProdOps2[A](p)
-  protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A] =
+  protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A]     =
     new Cops.ops.CopOps[A](p)
   protected implicit def CopOps2[A <: TList](
     p: (Cop[A], Cop[A])
-  ): Cops.ops.CopOps2[A] =
+  ): Cops.ops.CopOps2[A]                                                       =
     new Cops.ops.CopOps2[A](p)
   // scalafix:on
 
@@ -66,8 +66,8 @@ trait DerivingProducts[F[_]] {
   )(
     f: Prod[A] => Z,
     g: Z => Prod[A]
-  )(
-    implicit ev: A PairedWith FA
+  )(implicit
+    ev: A PairedWith FA
   ): F[Z]
 
 }
@@ -100,8 +100,8 @@ object Deriving {
 
     override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]
-    )(
-      implicit ev: A PairedWith FA
+    )(implicit
+      ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
       (g(z1), g(z2)).zip(tcs).all { p =>
         val (a1, a2) = p.a
@@ -112,8 +112,8 @@ object Deriving {
 
     override def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Cop[A]
-    )(
-      implicit ev: A PairedWith FA
+    )(implicit
+      ev: A PairedWith FA
     ): Equal[Z] = { (z1, z2) =>
       (g(z1), g(z2))
         .zip(tcs)
@@ -135,13 +135,13 @@ object Deriving {
 
     override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]
-    )(
-      implicit ev: A PairedWith FA
+    )(implicit
+      ev: A PairedWith FA
     ): Order[Z] = {
       val delegate = new DecidablezEqual().dividez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering =
+        def order(z1: Z, z2: Z): Ordering         =
           (g(z1), g(z2)).zip(tcs).foldRight(Ordering.EQ: Ordering) { (p, acc) =>
             val (a1, a2) = p.a
             val fa       = p.b
@@ -157,16 +157,16 @@ object Deriving {
 
     override def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Cop[A]
-    )(
-      implicit ev: A PairedWith FA
+    )(implicit
+      ev: A PairedWith FA
     ): Order[Z] = {
       val delegate = new DecidablezEqual().choosez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering =
+        def order(z1: Z, z2: Z): Ordering         =
           (g(z1), g(z2)).zip(tcs).into {
             case -\/((i1, _, i2, _)) => Ordering.fromInt(i1 - i2)
-            case \/-(p) =>
+            case \/-(p)              =>
               val (a1, a2) = p.a
               val fa       = p.b
               if (quick(a1, a2)) Ordering.EQ
@@ -179,8 +179,8 @@ object Deriving {
 }
 
 object DerivingProducts {
-  @inline def apply[F[_]](
-    implicit F: DerivingProducts[F]
+  @inline def apply[F[_]](implicit
+    F: DerivingProducts[F]
   ): DerivingProducts[F] = F
 
   private class InvariantApplicativezSemigroup
@@ -195,14 +195,15 @@ object DerivingProducts {
     )(
       f: Prod[A] => Z,
       g: Z => Prod[A]
-    )(
-      implicit ev: A PairedWith FA
-    ): Semigroup[Z] = new Semigroup[Z] {
-      // can't use SAM types with by-name parameters
-      // z2 is eagerly evaluated :-(
-      def append(z1: Z, z2: =>Z): Z =
-        f(tcs.ziptraverse2(g(z1), g(z2), appender))
-    }
+    )(implicit
+      ev: A PairedWith FA
+    ): Semigroup[Z] =
+      new Semigroup[Z] {
+        // can't use SAM types with by-name parameters
+        // z2 is eagerly evaluated :-(
+        def append(z1: Z, z2: =>Z): Z =
+          f(tcs.ziptraverse2(g(z1), g(z2), appender))
+      }
   }
 
   implicit val _deriving_semigroup: DerivingProducts[Semigroup] =
@@ -215,8 +216,8 @@ object DerivingProducts {
       )(
         f: Prod[A] => Z,
         g: Z => Prod[A]
-      )(
-        implicit ev: A PairedWith FA
+      )(implicit
+        ev: A PairedWith FA
       ): Monoid[Z] = {
         val delegate = new InvariantApplicativezSemigroup()
           .xproductz(tcs)(f, g)(null) // scalafix:ok

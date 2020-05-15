@@ -19,7 +19,7 @@ import simulacrum._
 
   final def different(a1: A, a2: A): Boolean = !same(a1, a2)
 }
-object Same {
+object Same              {
   implicit val string: Same[String]   = (s1, s2) => s1 == s2
   implicit val long: Same[Long]       = (l1, l2) => l1 == l2
   implicit val boolean: Same[Boolean] = (b1, b2) => b1 == b2

@@ -29,13 +29,11 @@ object StaxDecoder {
     } catch {
       case e: Exception =>
         s"parser error: ${e.getMessage} ${e.getClass}".left
-    } finally {
-      reader.close()
-    }
+    } finally reader.close()
   }
 
   private[this] def parseTag(x: XMLStreamReader): XTag = {
-    val name = x.getName.getLocalPart()
+    val name  = x.getName.getLocalPart()
     val attrs = 0.until(x.getAttributeCount).toList.map { i =>
       XAttr(
         x.getAttributeLocalName(i),
@@ -49,13 +47,13 @@ object StaxDecoder {
     x.next()
     while (x.getEventType() != END_ELEMENT) {
       x.getEventType() match {
-        case START_ELEMENT =>
+        case START_ELEMENT      =>
           children = parseTag(x) :: children
         case CHARACTERS | CDATA =>
           val text = x.getText().trim
           if (!text.isEmpty)
             content = text :: content
-        case _ =>
+        case _                  =>
       }
       x.next()
     }

@@ -13,17 +13,18 @@ private[jsonformat] sealed abstract class TCord {
 
   final def reset: TCord = TCord.Leaf(shows)
 
-  final def shows: String = this match {
-    case TCord.Leaf(str) => str
-    case _ =>
-      val sb = new StringBuilder
-      TCord.unsafeAppendTo(this, sb)
-      sb.toString
-  }
+  final def shows: String       =
+    this match {
+      case TCord.Leaf(str) => str
+      case _               =>
+        val sb = new StringBuilder
+        TCord.unsafeAppendTo(this, sb)
+        sb.toString
+    }
   final def ::(o: TCord): TCord = TCord.Branch(o, this)
   final def ++(o: TCord): TCord = TCord.Branch(this, o)
 }
-private[jsonformat] object TCord {
+private[jsonformat] object TCord                {
   implicit def fromString(s: String): TCord = apply(s) // scalafix:ok
   def apply(s: String): TCord               = Leaf.apply(s)
   def apply(): TCord                        = Leaf.Empty
@@ -32,8 +33,8 @@ private[jsonformat] object TCord {
     val s: String
   ) extends TCord
   private[internal] object Leaf {
-    val Empty: Leaf = new Leaf("")
-    def apply(s: String): Leaf =
+    val Empty: Leaf                    = new Leaf("")
+    def apply(s: String): Leaf         =
       if (s.isEmpty) Empty
       else new Leaf(s)
     def unapply(l: Leaf): Some[String] = Some(l.s)
@@ -45,13 +46,13 @@ private[jsonformat] object TCord {
     val right: TCord
   ) extends TCord
   private[internal] object Branch {
-    val max: Int = 100
-    def apply(a: TCord, b: TCord): TCord =
+    val max: Int                                      = 100
+    def apply(a: TCord, b: TCord): TCord              =
       if (a.eq(Leaf.Empty)) b
       else if (b.eq(Leaf.Empty)) a
       else
         a match {
-          case _: Leaf =>
+          case _: Leaf   =>
             new Branch(1, a, b)
           case a: Branch =>
             val branch = new Branch(a.leftDepth + 1, a, b)
@@ -74,10 +75,10 @@ private[jsonformat] object TCord {
       case Branch(_, a, b) =>
         unsafeAppendTo_(a, sb)
         unsafeAppendTo(b, sb)
-      case Leaf(s) =>
+      case Leaf(s)         =>
         val _ = sb.append(s)
     }
-  private[this] def unsafeAppendTo_(c: TCord, sb: StringBuilder): Unit =
+  private[this] def unsafeAppendTo_(c: TCord, sb: StringBuilder): Unit   =
     unsafeAppendTo(c, sb)
 
 }

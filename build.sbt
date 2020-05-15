@@ -45,12 +45,13 @@ val plugin = (project in file("deriving-plugin")).settings(
 )
 
 // doesn't sbt offer a way to do this?
-def ScalazDeriving: Seq[Setting[_]] = Seq(
-  scalacOptions ++= {
-    val jar = (packageBin in (plugin, Compile)).value
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-  }
-)
+def ScalazDeriving: Seq[Setting[_]] =
+  Seq(
+    scalacOptions ++= {
+      val jar = (packageBin in (plugin, Compile)).value
+      Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+    }
+  )
 
 val macros = (project in file("deriving-macro"))
   .settings(ScalazDeriving)
@@ -61,13 +62,13 @@ val macros = (project in file("deriving-macro"))
     scalacOptions += "-Yno-predef",
     scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
     libraryDependencies ++= Seq(
-      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided",
-      "org.scala-lang"       % "scala-reflect"  % scalaVersion.value % "provided",
-      "org.scalaz"           %% "scalaz-core"   % scalazVersion      % "test",
-      "com.chuusai"          %% "shapeless"     % shapelessVersion   % "test",
-      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-      "com.typesafe.play"    %% "play-json"     % "2.8.1"            % "test",
-      "io.estatico"          %% "newtype"       % newtypeVersion     % "test"
+      "org.scala-lang"        % "scala-compiler" % scalaVersion.value % "provided",
+      "org.scala-lang"        % "scala-reflect"  % scalaVersion.value % "provided",
+      "org.scalaz"           %% "scalaz-core"    % scalazVersion      % "test",
+      "com.chuusai"          %% "shapeless"      % shapelessVersion   % "test",
+      "com.github.mpilquist" %% "simulacrum"     % simulacrumVersion  % "test",
+      "com.typesafe.play"    %% "play-json"      % "2.8.1"            % "test",
+      "io.estatico"          %% "newtype"        % newtypeVersion     % "test"
     )
   )
 
@@ -82,8 +83,8 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-imports",
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
-    "org.scala-lang"             % "scala-reflect"              % scalaVersion.value % "provided",
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5" % "test",
+    "org.scala-lang"              % "scala-reflect"             % scalaVersion.value % "provided",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5"            % "test",
     "org.scalaz"                 %% "scalaz-core"               % scalazVersion
   )
 )
@@ -143,9 +144,9 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "io.estatico"          %% "newtype"       % newtypeVersion     % "test",
-      "com.github.mpilquist" %% "simulacrum"    % simulacrumVersion  % "test",
-      "org.scala-lang"       % "scala-compiler" % scalaVersion.value % "provided"
+      "io.estatico"          %% "newtype"        % newtypeVersion     % "test",
+      "com.github.mpilquist" %% "simulacrum"     % simulacrumVersion  % "test",
+      "org.scala-lang"        % "scala-compiler" % scalaVersion.value % "provided"
     )
   )
 
@@ -159,10 +160,10 @@ val xmlformat = (project in file("examples/xmlformat"))
     MonadicFor,
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "6.2.1",
-      "eu.timepit"             %% "refined"      % refinedVersion,
-      "org.scalaz"             %% "scalaz-core"  % scalazVersion,
-      "com.chuusai"            %% "shapeless"    % shapelessVersion,
-      "com.github.mpilquist"   %% "simulacrum"   % simulacrumVersion
+      "eu.timepit"            %% "refined"       % refinedVersion,
+      "org.scalaz"            %% "scalaz-core"   % scalazVersion,
+      "com.chuusai"           %% "shapeless"     % shapelessVersion,
+      "com.github.mpilquist"  %% "simulacrum"    % simulacrumVersion
     )
   )
   .enablePlugins(NeoJmhPlugin)

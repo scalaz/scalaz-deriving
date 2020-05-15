@@ -24,8 +24,8 @@ trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
   )(
     @unused f: Prod[A] => Z,
     g: Z => Prod[A]
-  )(
-    implicit ev: A PairedWith FA
+  )(implicit
+    ev: A PairedWith FA
   ): F[Z] = dividez(tcs)(g)
 
   override def conquer[Z]: F[Z] =

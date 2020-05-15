@@ -23,16 +23,25 @@ object TListKChecks {
   check[Reverse[OptionListL], ListOptionL]
   check[Reverse[ListOptionL], OptionListL]
 
-  check[Concat[OptionListL, ListOptionL], Option :: List :: List :: Option :: TNilK]
+  check[Concat[
+    OptionListL,
+    ListOptionL
+  ], Option :: List :: List :: Option :: TNilK]
 
   type OptionList[A] = CopK[OptionListL, A]
   type ListOption[A] = CopK[ListOptionL, A]
 
-  check[Concat[OptionList[_]#L, ListOption[_]#L], Option :: List :: List :: Option :: TNilK]
+  check[Concat[
+    OptionList[_]#L,
+    ListOption[_]#L
+  ], Option :: List :: List :: Option :: TNilK]
 
   check[Concat[Option :: TNilK, List :: TNilK], OptionListL]
 
-  check[Concat[Reverse[OptionListL], OptionListL], List :: Option :: Option :: List :: TNilK]
+  check[Concat[
+    Reverse[OptionListL],
+    OptionListL
+  ], List :: Option :: Option :: List :: TNilK]
 
   check[Remove[Option, OptionListL], List :: TNilK]
   check[Remove[List, OptionListL], Option :: TNilK]

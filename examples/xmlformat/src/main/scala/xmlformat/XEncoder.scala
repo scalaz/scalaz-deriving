@@ -18,7 +18,7 @@ object XEncoder
     with XEncoderRefined
     with XEncoderStdlib1
     with XEncoderScalaz2
-    with XEncoderStdlib2 {
+    with XEncoderStdlib2     {
 
   implicit val contravariant: Contravariant[XEncoder] =
     new Contravariant[XEncoder] {
@@ -84,12 +84,12 @@ private[xmlformat] trait XEncoderStdlib1 {
 
   implicit def listStr[A: XStrEncoder]: XEncoder[List[A]] =
     ilistStr[A].contramap(_.toIList)
-  implicit def list[A: XEncoder]: XEncoder[List[A]] =
+  implicit def list[A: XEncoder]: XEncoder[List[A]]       =
     ilist[A].contramap(_.toIList)
 
   implicit def tuple2[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[(A, B)] = {
     case (a, b) =>
-      val key = XNodeEncoder[A].toXml(a) match {
+      val key   = XNodeEncoder[A].toXml(a) match {
         case XChildren(ts)  => ts.map(_.copy(name = "key"))
         case s @ XString(_) => IList.single(XTag("key", s))
       }
@@ -107,12 +107,12 @@ private[xmlformat] trait XEncoderStdlib1 {
 private[xmlformat] trait XEncoderStdlib2 {
   this: XEncoder.type =>
 
-  implicit def iterableStr[T[_], A: XStrEncoder](
-    implicit T: T[A] <:< Iterable[A]
+  implicit def iterableStr[T[_], A: XStrEncoder](implicit
+    T: T[A] <:< Iterable[A]
   ): XEncoder[T[A]] = listStr.contramap(_.toList)
 
-  implicit def iterable[T[_], A: XEncoder](
-    implicit T: T[A] <:< Iterable[A]
+  implicit def iterable[T[_], A: XEncoder](implicit
+    T: T[A] <:< Iterable[A]
   ): XEncoder[T[A]] = list[A].contramap(_.toList)
 
 }

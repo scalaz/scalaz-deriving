@@ -19,7 +19,7 @@ object JsEncoder
     with JsEncoderRefined
     with JsEncoderStdlib1
     with JsEncoderScalaz2
-    with JsEncoderStdlib2 {
+    with JsEncoderStdlib2     {
 
   implicit val contravariant: Contravariant[JsEncoder] =
     new Contravariant[JsEncoder] {
@@ -59,7 +59,7 @@ private[jsonformat] trait JsEncoderScalaz1 {
     JsObject(fields.toIList)
   }
 
-  implicit def maybe[A: JsEncoder]: JsEncoder[Maybe[A]] = {
+  implicit def maybe[A: JsEncoder]: JsEncoder[Maybe[A]]                   = {
     case Maybe.Just(a) => a.toJson
     case Maybe.Empty() => JsNull
   }
@@ -81,7 +81,7 @@ private[jsonformat] trait JsEncoderRefined {
 private[jsonformat] trait JsEncoderStdlib1 {
   this: JsEncoder.type =>
 
-  implicit def option[A: JsEncoder]: JsEncoder[Option[A]] =
+  implicit def option[A: JsEncoder]: JsEncoder[Option[A]]                  =
     maybe[A].contramap(_.toMaybe)
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
     disjunction[A, B].contramap(_.disjunction)

@@ -15,7 +15,7 @@ private[scalaz] object DerivingConfig {
   private type Stringy   = Map[String, String]
 
   // cached to avoid hitting disk on every use of the macro.
-  private[scalaz] lazy val targets: Result[Stringy] = {
+  private[scalaz] lazy val targets: Result[Stringy] =
     getClass.getClassLoader
       .getResources("deriving.conf")
       .asScala
@@ -33,29 +33,27 @@ private[scalaz] object DerivingConfig {
         case (Left(e1), _)          => Left(e1)
         case (_, Left(e2))          => Left(e2)
       }
-  }
-  private[this] val EmptyResults: Result[Stringy] = Right(Map.empty)
+  private[this] val EmptyResults: Result[Stringy]   = Right(Map.empty)
 
   private[this] def parseProperties(config: String): Result[Stringy] =
-    try {
-      Right(
-        config
-          .split("\n")
-          .toList
-          .filterNot(_.isEmpty)
-          .filterNot(_.startsWith("#"))
-          .map(_.split("=").toList)
-          .map {
-            case List(from, to) => from.trim -> to.trim
-            case other          =>
-              // I'd have used Left with traverse, but this is stdlib...
-              throw new IllegalArgumentException(
-                s"expected 2 parts but got ${other.size} in $other"
-              )
-          }
-          .toMap
-      )
-    } catch {
+    try Right(
+      config
+        .split("\n")
+        .toList
+        .filterNot(_.isEmpty)
+        .filterNot(_.startsWith("#"))
+        .map(_.split("=").toList)
+        .map {
+          case List(from, to) => from.trim -> to.trim
+          case other          =>
+            // I'd have used Left with traverse, but this is stdlib...
+            throw new IllegalArgumentException(
+              s"expected 2 parts but got ${other.size} in $other"
+            )
+        }
+        .toMap
+    )
+    catch {
       case t: Throwable =>
         Left(t.getMessage)
     }
@@ -67,13 +65,12 @@ private[scalaz] object DerivingConfig {
     is: java.io.InputStream
   ): Either[String, String] =
     try {
-      val baos        = new java.io.ByteArrayOutputStream()
-      val data        = Array.ofDim[Byte](2048)
-      var len: Int    = 0
+      val baos     = new java.io.ByteArrayOutputStream()
+      val data     = Array.ofDim[Byte](2048)
+      var len: Int = 0
       def read(): Int = { len = is.read(data); len }
-      while (read != -1) {
+      while (read != -1)
         baos.write(data, 0, len)
-      }
       Right(baos.toString("UTF-8"))
     } catch {
       case t: Throwable => Left(t.getMessage)

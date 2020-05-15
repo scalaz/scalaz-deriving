@@ -19,7 +19,7 @@ final case class Foo(s: String) extends SimpleTrait
 
 @deriving(XEncoder, XDecoder) final case class Bar() extends SimpleTrait
 @deriving(XEncoder, XDecoder) case object Caz        extends SimpleTrait
-case object Baz extends SimpleTrait {
+case object Baz                                      extends SimpleTrait {
   // user-provided override on the companion
   implicit val e: XStrEncoder[Baz.type] = XStrEncoder[String].contramap { _ =>
     "Baz!"
@@ -85,7 +85,7 @@ final case class Outliners(
 sealed abstract class TaggyNames
 @deriving(XEncoder, XDecoder)
 @x.body
-final case class TaggyA() extends TaggyNames
+final case class TaggyA()             extends TaggyNames
 @xderiving(XStrEncoder, XStrDecoder)
 @x.body
 final case class TaggyB(body: String) extends TaggyNames
@@ -103,14 +103,14 @@ final case class StringyTagged(value: String)
 object StringyTagged {
   private[this] val ambiguous: XDecoder[StringyTagged] =
     generic.DerivedXDecoder.gen
-  implicit val xdecoder: XDecoder[StringyTagged] =
+  implicit val xdecoder: XDecoder[StringyTagged]       =
     XDecoder.tagged("StringyTagged", ambiguous)
 }
 @deriving(XEncoder)
 final case class IntyTagged(value: Int)
-object IntyTagged {
+object IntyTagged    {
   private[this] val ambiguous: XDecoder[IntyTagged] =
     generic.DerivedXDecoder.gen
-  implicit val xdecoder: XDecoder[IntyTagged] =
+  implicit val xdecoder: XDecoder[IntyTagged]       =
     XDecoder.tagged("IntyTagged", ambiguous)
 }

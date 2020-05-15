@@ -49,7 +49,7 @@ class JsEncoderTest extends JsTest {
   // }
 
   it should "encode stringy maps" in {
-    val map = Map("a" -> 1, "b" -> 2, "c" -> 3)
+    val map  = Map("a" -> 1, "b" -> 2, "c" -> 3)
     val json =
       JsObject("a" -> JsInteger(1), "b" -> JsInteger(2), "c" -> JsInteger(3))
 
@@ -110,7 +110,7 @@ class JsEncoderTest extends JsTest {
       def conquer[A]: JsEncoder[A] = _ => JsNull
     }
 
-    val S: JsEncoder[String] = JsEncoder[String]
+    val S: JsEncoder[String]        = JsEncoder[String]
     val E: Equal[JsEncoder[String]] =
       (p1, p2) => p1.toJson("hello") === p2.toJson("hello")
     assert(!D.divideLaw.composition(S, S, S)(E))

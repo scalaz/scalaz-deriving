@@ -29,7 +29,7 @@ abstract class JsTest
   }
 
   // inefficient constructors that are convenient in tests
-  implicit class JsArrayCompanionOps(self: JsArray.type) {
+  implicit class JsArrayCompanionOps(self: JsArray.type)   {
     def apply(vs: JsValue*): JsArray =
       JsArray(vs.toIList)
   }

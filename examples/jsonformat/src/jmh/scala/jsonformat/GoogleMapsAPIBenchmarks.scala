@@ -68,13 +68,13 @@ package m {
     status: String
   )
 
-  object Value {
+  object Value          {
     implicit val equal: Equal[Value] = MagnoliaEqual.gen
   }
-  object Elements {
+  object Elements       {
     implicit val equal: Equal[Elements] = MagnoliaEqual.gen
   }
-  object Rows {
+  object Rows           {
     implicit val equal: Equal[Rows] = MagnoliaEqual.gen
   }
   object DistanceMatrix {
@@ -94,17 +94,17 @@ package s {
     status: String
   )
 
-  object Value {
+  object Value          {
     implicit val encoder: JsEncoder[Value] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Value] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[Value]       = DerivedEqual.gen
   }
-  object Elements {
+  object Elements       {
     implicit val encoder: JsEncoder[Elements] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Elements] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[Elements]       = DerivedEqual.gen
   }
-  object Rows {
+  object Rows           {
     implicit val encoder: JsEncoder[Rows] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Rows] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[Rows]       = DerivedEqual.gen
@@ -113,7 +113,7 @@ package s {
     implicit val encoder: JsEncoder[DistanceMatrix] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[DistanceMatrix] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[DistanceMatrix] = DerivedEqual.gen
+    implicit val equal: Equal[DistanceMatrix]       = DerivedEqual.gen
   }
 
 }
@@ -136,13 +136,13 @@ package z {
     status: String
   )
 
-  object Value {
+  object Value          {
     implicit val equal: Equal[Value] = Deriving.gen[Equal, Value]
   }
-  object Elements {
+  object Elements       {
     implicit val equal: Equal[Elements] = Deriving.gen[Equal, Elements]
   }
-  object Rows {
+  object Rows           {
     implicit val equal: Equal[Rows] = Deriving.gen[Equal, Rows]
   }
   object DistanceMatrix {
@@ -164,7 +164,7 @@ package h {
     status: String
   )
 
-  object Value {
+  object Value          {
     implicit val encoder: JsEncoder[Value] = a =>
       JsObject(
         "text"    -> a.text.toJson ::
@@ -177,10 +177,10 @@ package h {
         value <- j.getAs[Int]("value")
       } yield Value(text, value)
     }
-    implicit val equal: Equal[Value] = (a1, a2) =>
+    implicit val equal: Equal[Value]       = (a1, a2) =>
       a1.text === a2.text && a1.value === a2.value
   }
-  object Elements {
+  object Elements       {
     implicit val encoder: JsEncoder[Elements] = a =>
       JsObject(
         "distance"   -> a.distance.toJson ::
@@ -195,16 +195,16 @@ package h {
         status   <- j.getAs[String]("status")
       } yield Elements(distance, duration, status)
     }
-    implicit val equal: Equal[Elements] = (a1, a2) =>
+    implicit val equal: Equal[Elements]       = (a1, a2) =>
       a1.distance === a2.distance &&
         a1.duration === a2.duration &&
         a1.status === a2.status
   }
-  object Rows {
+  object Rows           {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)] =
+    ): IList[(String, JsValue)]           =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 
@@ -215,13 +215,13 @@ package h {
     implicit val decoder: JsDecoder[Rows] = JsDecoder.obj(1) { j =>
       j.getNullable[IList[Elements]]("elements").map(Rows(_))
     }
-    implicit val equal: Equal[Rows] = (a1, a2) => a1.elements === a2.elements
+    implicit val equal: Equal[Rows]       = (a1, a2) => a1.elements === a2.elements
   }
   object DistanceMatrix {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)] =
+    ): IList[(String, JsValue)]                     =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 
@@ -241,7 +241,7 @@ package h {
         status <- j.getAs[String]("status")
       } yield DistanceMatrix(dest, origin, rows, status)
     }
-    implicit val equal: Equal[DistanceMatrix] = (a1, a2) =>
+    implicit val equal: Equal[DistanceMatrix]       = (a1, a2) =>
       a1.destination_addresses === a2.destination_addresses &&
         a1.origin_addresses === a2.origin_addresses &&
         a1.rows === a2.rows &&

@@ -53,7 +53,7 @@ class GenTests extends AnyFlatSpec {
 
     def gen[A] =
       Prod.gen[Goo[Int], String :: Int :: TNil]
-    val geni = gen[Int]
+    val geni   = gen[Int]
 
     geni.from(geni.to(goo)).shouldBe(goo)
   }

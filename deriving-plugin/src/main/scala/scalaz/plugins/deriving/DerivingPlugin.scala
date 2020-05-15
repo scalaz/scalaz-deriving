@@ -42,9 +42,8 @@ class DerivingPlugin(override val global: Global)
         case (gen, typeclass) =>
           if (clazz.tparams.isEmpty)
             genImplicitVal(gen, typeclass, clazz, target)
-          else {
+          else
             genImplicitDef(gen, typeclass, clazz, target)
-          }
       }
     }
     regenModule(companion, extras)
@@ -170,7 +169,7 @@ class DerivingPlugin(override val global: Global)
       )
     )
 
-  private val newtypes = Set("newtype", "newsubtype")
+  private val newtypes                    = Set("newtype", "newsubtype")
   def isNewType(clazz: ClassDef): Boolean =
     clazz.mods.annotations.collectFirst {
       case Apply(Select(New(ann), termNames.CONSTRUCTOR), Nil) => ann

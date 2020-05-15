@@ -16,23 +16,23 @@ package anyvals {
   final case class Thing(s: String) extends AnyVal
 
   @deriving(Arbitrary)
-  final case class Thong(s: String) extends AnyVal
+  final case class Thong(s: String)                            extends AnyVal
 }
 
 package adt {
   @deriving(Arbitrary)
   sealed trait Foo
-  final case class Bar(s: String)          extends Foo
-  final case class Faz(b: Boolean, i: Int) extends Foo
-  final case object Baz                    extends Foo
+  final case class Bar(s: String)                              extends Foo
+  final case class Faz(b: Boolean, i: Int)                     extends Foo
+  final case object Baz                                        extends Foo
 }
 
 // more complex recursive type example
 package recadt {
   @deriving(Arbitrary)
   sealed trait ATree
-  final case class Leaf(value: String)               extends ATree
-  final case class Branch(left: ATree, right: ATree) extends ATree
+  final case class Leaf(value: String)                         extends ATree
+  final case class Branch(left: ATree, right: ATree)           extends ATree
 }
 
 // more complex recursive GADT type example

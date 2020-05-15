@@ -30,14 +30,15 @@ final case class XTag(
   attrs: IList[XAttr],
   children: IList[XTag],
   body: Maybe[XString]
-) {
+)           {
   def asChild: XChildren = XChildren(IList.single(this))
 }
 object XTag {
-  def apply(key: String, content: XNode): XTag = content match {
-    case XChildren(c)   => XTag(key, IList.empty, c, Maybe.empty)
-    case s @ XString(_) => XTag(key, IList.empty, IList.empty, Maybe.just(s))
-  }
+  def apply(key: String, content: XNode): XTag =
+    content match {
+      case XChildren(c)   => XTag(key, IList.empty, c, Maybe.empty)
+      case s @ XString(_) => XTag(key, IList.empty, IList.empty, Maybe.just(s))
+    }
 }
 
 /**

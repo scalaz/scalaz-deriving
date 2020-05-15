@@ -27,8 +27,7 @@ final class EvidenceMacros(val c: Context) {
 
   private[this] val tb = IotaMacroToolbelt(c)
 
-  def materializeAll[L <: TList](
-    implicit
+  def materializeAll[L <: TList](implicit
     evL: c.WeakTypeTag[L]
   ): c.Expr[All[L]] = {
 
@@ -36,14 +35,13 @@ final class EvidenceMacros(val c: Context) {
 
     tb.foldAbort(for {
       tpes <- tb.memoizedTListTypes(L).leftMap(NonEmptyList.one)
-      evs <- tpes
-              .traverse(summonEvidence(_).toAvowal.leftMap(NonEmptyList.one))
-              .toEither
+      evs  <- tpes
+               .traverse(summonEvidence(_).toAvowal.leftMap(NonEmptyList.one))
+               .toEither
     } yield q"new ${tb.iotaPackage}.evidence.All[$L](${makeProd(L, evs)})")
   }
 
-  def materializeFirstK[L <: TListK, A](
-    implicit
+  def materializeFirstK[L <: TListK, A](implicit
     evL: c.WeakTypeTag[L],
     evA: c.WeakTypeTag[A]
   ): c.Expr[FirstK[L, A]] = {
@@ -54,22 +52,21 @@ final class EvidenceMacros(val c: Context) {
     type Acc = Either[List[String], (Type, Int, Tree)]
 
     tb.foldAbort(for {
-      tpes <- tb.memoizedTListKTypes(L).leftMap(List(_))
-      tup3 <- tpes.foldLeft(Left(Nil): Acc)((acc, F) =>
-               acc match {
-                 case Left(e) =>
-                   summonEvidence(appliedType(F, A))
-                     .leftMap(_ :: e)
-                     .map(fa => (F, e.length, fa))
-                 case other => other
-               }
-             )
+      tpes           <- tb.memoizedTListKTypes(L).leftMap(List(_))
+      tup3           <- tpes.foldLeft(Left(Nil): Acc)((acc, F) =>
+                acc match {
+                  case Left(e) =>
+                    summonEvidence(appliedType(F, A))
+                      .leftMap(_ :: e)
+                      .map(fa => (F, e.length, fa))
+                  case other   => other
+                }
+              )
       (_F, index, fa) = tup3
     } yield q"new ${tb.iotaPackage}.evidence.FirstK[$L, $A](${makeCopK(L, _F, A, index, fa)})")
   }
 
-  def materializeFirstH[L <: TListH, F[_]](
-    implicit
+  def materializeFirstH[L <: TListH, F[_]](implicit
     evL: c.WeakTypeTag[L],
     evF: c.WeakTypeTag[F[Nothing]]
   ): c.Expr[FirstH[L, F]] = {
@@ -80,16 +77,16 @@ final class EvidenceMacros(val c: Context) {
     type Acc = Either[List[String], (Type, Int, Tree)]
 
     tb.foldAbort(for {
-      tpes <- tb.memoizedTListHTypes(L).leftMap(List(_))
-      tup3 <- tpes.foldLeft(Left(Nil): Acc)((acc, H) =>
-               acc match {
-                 case Left(e) =>
-                   summonEvidence(appliedType(H, F))
-                     .leftMap(_ :: e)
-                     .map(hf => (H, e.length, hf))
-                 case other => other
-               }
-             )
+      tpes           <- tb.memoizedTListHTypes(L).leftMap(List(_))
+      tup3           <- tpes.foldLeft(Left(Nil): Acc)((acc, H) =>
+                acc match {
+                  case Left(e) =>
+                    summonEvidence(appliedType(H, F))
+                      .leftMap(_ :: e)
+                      .map(hf => (H, e.length, hf))
+                  case other   => other
+                }
+              )
       (_H, index, hf) = tup3
     } yield q"new ${tb.iotaPackage}.evidence.FirstH[$L, $F](${makeCopH(L, _H, F, index, hf)})")
   }

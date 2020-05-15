@@ -27,7 +27,7 @@ trait InvariantApplicative[F[_]] extends InvariantFunctor[F] { self =>
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
   ): F[Z] = {
-    val a23: F[(A2, A3)] = xproduct2(a2, a3)(
+    val a23: F[(A2, A3)]      = xproduct2(a2, a3)(
       (a, b) => (a, b),
       v => v
     )
@@ -47,11 +47,11 @@ trait InvariantApplicative[F[_]] extends InvariantFunctor[F] { self =>
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
   ): F[Z] = {
-    val a12: F[(A1, A2)] = xproduct2(a1, a2)(
+    val a12: F[(A1, A2)]           = xproduct2(a1, a2)(
       (a, b) => (a, b),
       v => v
     )
-    val a34: F[(A3, A4)] = xproduct2(a3, a4)(
+    val a34: F[(A3, A4)]           = xproduct2(a3, a4)(
       (a, b) => (a, b),
       v => v
     )
@@ -64,19 +64,19 @@ trait InvariantApplicative[F[_]] extends InvariantFunctor[F] { self =>
 
   // these methods fail for recursive ADTs, fixed in
   // https://github.com/scala/scala/pull/6050
-  final def xderiving0[Z](z: =>Z): F[Z] = xproduct0(z)
+  final def xderiving0[Z](z: =>Z): F[Z]                        = xproduct0(z)
   final def xderiving1[Z, A1](
     f: A1 => Z,
     g: Z => A1
-  )(implicit a1: F[A1]): F[Z] = xproduct1(a1)(f, g)
+  )(implicit a1: F[A1]): F[Z]                                  = xproduct1(a1)(f, g)
   final def xderiving2[Z, A1, A2](
     f: (A1, A2) => Z,
     g: Z => (A1, A2)
-  )(implicit a1: F[A1], a2: F[A2]): F[Z] = xproduct2(a1, a2)(f, g)
+  )(implicit a1: F[A1], a2: F[A2]): F[Z]                       = xproduct2(a1, a2)(f, g)
   final def xderiving3[Z, A1, A2, A3](
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z]            =
     xproduct3(a1, a2, a3)(f, g)
   final def xderiving4[Z, A1, A2, A3, A4](
     f: (A1, A2, A3, A4) => Z,
@@ -88,8 +88,8 @@ trait InvariantApplicative[F[_]] extends InvariantFunctor[F] { self =>
 }
 
 object InvariantApplicative {
-  @inline def apply[F[_]](
-    implicit F: InvariantApplicative[F]
+  @inline def apply[F[_]](implicit
+    F: InvariantApplicative[F]
   ): InvariantApplicative[F] = F
 
   ////

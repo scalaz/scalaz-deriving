@@ -66,7 +66,7 @@ trait InvariantApplicativez[F[_]]
 
 }
 object InvariantApplicativez {
-  @inline def apply[F[_]](
-    implicit i: InvariantApplicativez[F]
+  @inline def apply[F[_]](implicit
+    i: InvariantApplicativez[F]
   ): InvariantApplicativez[F] = i
 }

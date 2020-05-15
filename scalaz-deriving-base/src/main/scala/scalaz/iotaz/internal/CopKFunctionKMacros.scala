@@ -31,8 +31,7 @@ final class CopKFunctionKMacros(val c: Context) {
   private[this] val NatTransType: Tree =
     tq"_root_.scalaz.NaturalTransformation"
 
-  def of[F[a] <: CopK[_, a], G[_]](args: c.Expr[Any]*)(
-    implicit
+  def of[F[a] <: CopK[_, a], G[_]](args: c.Expr[Any]*)(implicit
     evF: c.WeakTypeTag[F[_]],
     evG: c.WeakTypeTag[G[_]]
   ): c.Expr[F ~> G] = {
@@ -48,24 +47,23 @@ final class CopKFunctionKMacros(val c: Context) {
       tpes <- tb.memoizedTListKTypes(copK.L).left.map(NonEmptyList.one(_))
 
       unorderedPairs <- Traverse[List]
-                         .traverse(args.toList)(arg =>
-                           destructFunctionKInput(arg.tree.tpe, G)
-                             .map((_, arg.tree))
-                         )
-                         .toEither
-      arrs <- Traverse[List]
-               .traverse(tpes)(tpe =>
-                 unorderedPairs.collectFirst {
-                   case (t, arr) if t =:= tpe => arr
-                 }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
-                   .toAvowalNel
-               )
-               .toEither
+                          .traverse(args.toList)(arg =>
+                            destructFunctionKInput(arg.tree.tpe, G)
+                              .map((_, arg.tree))
+                          )
+                          .toEither
+      arrs           <- Traverse[List]
+                .traverse(tpes)(tpe =>
+                  unorderedPairs.collectFirst {
+                    case (t, arr) if t =:= tpe => arr
+                  }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
+                    .toAvowalNel
+                )
+                .toEither
     } yield makeInterpreter(F, copK.L, G, arrs))
   }
 
-  def summon[F[a] <: CopK[_, a], G[_]](
-    implicit
+  def summon[F[a] <: CopK[_, a], G[_]](implicit
     evF: c.WeakTypeTag[F[_]],
     evG: c.WeakTypeTag[G[_]]
   ): c.Expr[F ~> G] = {
@@ -81,29 +79,30 @@ final class CopKFunctionKMacros(val c: Context) {
       tpes <- tb.memoizedTListKTypes(copK.L).left.map(NonEmptyList.one(_))
 
       arrs <- Traverse[List]
-               .traverse(tpes)(tpe => summonFunctionK(tpe, G))
-               .toEither
+                .traverse(tpes)(tpe => summonFunctionK(tpe, G))
+                .toEither
     } yield makeInterpreter(F, copK.L, G, arrs))
   }
 
   private[this] def guardAssumptions(
     name: String,
     T: Type
-  ): Either[NonEmptyList[String], _] = T.resultType match {
-    case _: ExistentialType =>
-      Left(
-        NonEmptyList.one(
-          s"type parameter $name was inferred to be existential type $T and must be specified"
+  ): Either[NonEmptyList[String], _] =
+    T.resultType match {
+      case _: ExistentialType         =>
+        Left(
+          NonEmptyList.one(
+            s"type parameter $name was inferred to be existential type $T and must be specified"
+          )
         )
-      )
-    case _ if T =:= typeOf[Nothing] =>
-      Left(
-        NonEmptyList.one(
-          s"type parameter $name was inferred to be Nothing and must be specified"
+      case _ if T =:= typeOf[Nothing] =>
+        Left(
+          NonEmptyList.one(
+            s"type parameter $name was inferred to be Nothing and must be specified"
+          )
         )
-      )
-    case _ => Right(())
-  }
+      case _                          => Right(())
+    }
 
   private[this] def makeInterpreter(
     F: Type,
@@ -114,8 +113,8 @@ final class CopKFunctionKMacros(val c: Context) {
 
     val handlers = arrs.zipWithIndex.map {
       case (arr, i) =>
-        val name = TermName(s"arr$i")
-        val pre =
+        val name    = TermName(s"arr$i")
+        val pre     =
           q"private[this] val $name = $arr.asInstanceOf[$NatTransType[_root_.scala.Any, $G]]"
         val handler = (fa: TermName) => q"$name($fa.value)"
         (pre, handler)
@@ -147,12 +146,12 @@ final class CopKFunctionKMacros(val c: Context) {
   ): AvowalNel[String, Type] =
     tpe match {
       case TypeRef(_, _, f :: g :: Nil) if g =:= G => Avowal.yes(f)
-      case RefinedType(_ :: tpe2 :: Nil, _) =>
+      case RefinedType(_ :: tpe2 :: Nil, _)        =>
         destructFunctionKInput(tpe2.dealias, G)
-      case _ =>
+      case _                                       =>
         Avowal.noNel(
           s"unable to destruct input $tpe as $NatTransName[?, $G]\n" +
-            s"  underlying type tree: ${showRaw { tpe }} (class ${tpe.getClass})"
+            s"  underlying type tree: ${showRaw(tpe)} (class ${tpe.getClass})"
         )
     }
 }

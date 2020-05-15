@@ -9,7 +9,7 @@ private[jsonformat] object FastToIList {
 
   implicit final class SeqExtras[A](private val self: Seq[A]) extends AnyVal {
     // there is no Foldable[Seq] so this is a suitable replacement
-    def toIList: IList[A] = self.foldRight(IList.empty[A])(_ :: _)
+    def toIList: IList[A]                  = self.foldRight(IList.empty[A])(_ :: _)
     def mapToIList[B](f: A => B): IList[B] =
       self.foldRight(IList.empty[B])(f(_) :: _)
   }

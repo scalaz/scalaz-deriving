@@ -23,7 +23,7 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
   def optional[A](fa: F[A]): F[Maybe[A]] =
     alt(map(fa)(Maybe.just(_)), pure(Maybe.empty))
 
-  def altly1[Z, A1](a1: =>F[A1])(f: A1 => Z): F[Z] = map(a1)(f)
+  def altly1[Z, A1](a1: =>F[A1])(f: A1 => Z): F[Z]                        = map(a1)(f)
   def altly2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: A1 \/ A2 => Z): F[Z] =
     map(alt(map(a1)(\/.left[A1, A2](_)), map(a2)(\/.right[A1, A2](_))))(f)
 
@@ -47,15 +47,15 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
 
   final def altlying1[Z, A1](
     f: A1 => Z
-  )(implicit a1: F[A1]): F[Z] =
+  )(implicit a1: F[A1]): F[Z]                                  =
     altly1(a1)(f)
   final def altlying2[Z, A1, A2](
     f: A1 \/ A2 => Z
-  )(implicit a1: F[A1], a2: F[A2]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2]): F[Z]                       =
     altly2(a1, a2)(f)
   final def altlying3[Z, A1, A2, A3](
     f: A1 \/ (A2 \/ A3) => Z
-  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z]            =
     altly3(a1, a2, a3)(f)
   final def altlying4[Z, A1, A2, A3, A4](
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
@@ -90,16 +90,16 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
   ): F[Z] = altly4(a1, a2, a3, a4)(f)
 
   // from Apply in scalaz 7.3
-  final def applying1[Z, A1](f: A1 => Z)(
-    implicit a1: F[A1]
-  ): F[Z] = map(a1)(f)
+  final def applying1[Z, A1](f: A1 => Z)(implicit
+    a1: F[A1]
+  ): F[Z]                                                      = map(a1)(f)
   final def applying2[Z, A1, A2](
     f: (A1, A2) => Z
-  )(implicit a1: F[A1], a2: F[A2]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2]): F[Z]                       =
     apply2(a1, a2)(f)
   final def applying3[Z, A1, A2, A3](
     f: (A1, A2, A3) => Z
-  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z] =
+  )(implicit a1: F[A1], a2: F[A2], a3: F[A3]): F[Z]            =
     apply3(a1, a2, a3)(f)
   final def applying4[Z, A1, A2, A3, A4](
     f: (A1, A2, A3, A4) => Z
@@ -107,17 +107,17 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
     apply4(a1, a2, a3, a4)(f)
   //
 
-  override def xproduct0[Z](z: =>Z): F[Z] = pure(z)
+  override def xproduct0[Z](z: =>Z): F[Z]                                  = pure(z)
   override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] =
     xmap(a1, f, g)
   override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z,
     g: Z => (A1, A2)
-  ): F[Z] = apply2(a1, a2)(f)
+  ): F[Z]                                                                  = apply2(a1, a2)(f)
   override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  ): F[Z] = apply3(a1, a2, a3)(f)
+  ): F[Z]                                                                  = apply3(a1, a2, a3)(f)
   override def xproduct4[Z, A1, A2, A3, A4](
     a1: =>F[A1],
     a2: =>F[A2],
@@ -126,7 +126,7 @@ trait Alt[F[_]] extends Applicative[F] with InvariantAlt[F] { self =>
   )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
-  ): F[Z] = apply4(a1, a2, a3, a4)(f)
+  ): F[Z]                                                                  = apply4(a1, a2, a3, a4)(f)
 
   trait AltLaw extends ApplicativeLaw {
     // <!> is associative:             (a <!> b) <!> c = a <!> (b <!> c)

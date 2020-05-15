@@ -28,7 +28,7 @@ final case class Recursive(h: String, t: Option[Recursive] = None)
 sealed abstract class AbstractThing(val id: String) {
   def widen: AbstractThing = this
 }
-case object Wibble                               extends AbstractThing("wibble")
+case object Wibble extends AbstractThing("wibble")
 final case class Wobble(override val id: String) extends AbstractThing(id)
 
 @deriving(Equal, Show, JsEncoder, JsDecoder)

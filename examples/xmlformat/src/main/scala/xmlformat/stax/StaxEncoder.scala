@@ -69,7 +69,7 @@ object StaxEncoder {
     x.writeEndElement()
   }
 
-  private[this] val entities = Pattern.compile("""("|&|'|<|>)""")
+  private[this] val entities                      = Pattern.compile("""("|&|'|<|>)""")
   def containsXmlEntities(input: String): Boolean =
     entities.matcher(input).find()
 

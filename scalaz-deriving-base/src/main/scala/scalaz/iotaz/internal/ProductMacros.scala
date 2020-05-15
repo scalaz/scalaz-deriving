@@ -37,32 +37,29 @@ sealed abstract class OptimisedIndexedSeq[A]
   override def toList: List[A] = {
     @tailrec
     def loop(acc: List[A], i: Int): List[A] =
-      if (i >= 0) {
+      if (i >= 0)
         loop(apply(i) :: acc, i - 1)
-      } else {
+      else
         acc
-      }
     loop(Nil, length - 1)
   }
   override def foldRight[B](z: B)(op: (A, B) => B): B = {
     @tailrec
     def loop(acc: B, i: Int): B =
-      if (i >= 0) {
+      if (i >= 0)
         loop(op(apply(i), acc), i - 1)
-      } else {
+      else
         acc
-      }
     loop(z, length - 1)
   }
   override def foldLeft[B](z: B)(op: (B, A) => B): B = {
-    val len = length
+    val len                     = length
     @tailrec
     def loop(acc: B, i: Int): B =
-      if (i < len) {
+      if (i < len)
         loop(op(acc, apply(i)), i + 1)
-      } else {
+      else
         acc
-      }
     loop(z, 0)
   }
 }
@@ -72,8 +69,7 @@ private[iotaz] final class ProductMacros(val c: Context) {
 
   private[this] val tb = IotaMacroToolbelt(c)
 
-  def prodApply[L <: TList](args: c.Expr[Any]*)(
-    implicit
+  def prodApply[L <: TList](args: c.Expr[Any]*)(implicit
     evL: c.WeakTypeTag[L]
   ): c.Expr[Prod[L]] = {
 
@@ -83,28 +79,29 @@ private[iotaz] final class ProductMacros(val c: Context) {
 
     tb.foldAbort(for {
       algebras <- tb.memoizedTListTypes(L).left.map(NonEmptyList.one(_))
-      argTypes = args.toList.map(_.tree.tpe)
-      _ <- require(
-            argTypes.length == algebras.length,
-            s"Expected ${algebras.length} arguments but received ${argTypes.length}"
-          )
-      _ <- Traverse[List]
-            .traverse(argTypes.zip(algebras))(tpes =>
-              require(
-                tpes._1 <:< tpes._2,
-                s"Expected ${tpes._1} <:< ${tpes._2}"
-              ).toAvowal
-            )
-            .toEither
-      seq = if (argTypes.length == 0) q"_root_.scala.collection.immutable.Nil"
-      // perf testing shows that ArraySeq is faster than ProductSeq
-      // for raw fields, but is faster for case classes.
-      else q"new $pkg.ArraySeq(_root_.scala.Array[_root_.scala.Any](..$args))"
+      argTypes  = args.toList.map(_.tree.tpe)
+      _        <-
+        require(
+          argTypes.length == algebras.length,
+          s"Expected ${algebras.length} arguments but received ${argTypes.length}"
+        )
+      _        <- Traverse[List]
+             .traverse(argTypes.zip(algebras))(tpes =>
+               require(
+                 tpes._1 <:< tpes._2,
+                 s"Expected ${tpes._1} <:< ${tpes._2}"
+               ).toAvowal
+             )
+             .toEither
+      seq       = if (argTypes.length == 0) q"_root_.scala.collection.immutable.Nil"
+            // perf testing shows that ArraySeq is faster than ProductSeq
+            // for raw fields, but is faster for case classes.
+            else
+              q"new $pkg.ArraySeq(_root_.scala.Array[_root_.scala.Any](..$args))"
     } yield q"${tb.iotaPackage}.Prod.unsafeApply[$L]($seq)")
   }
 
-  def prodGen[A, R <: TList](
-    implicit
+  def prodGen[A, R <: TList](implicit
     evA: c.WeakTypeTag[A],
     evR: c.WeakTypeTag[R]
   ): Tree = {
@@ -115,14 +112,14 @@ private[iotaz] final class ProductMacros(val c: Context) {
 
     val Prod = weakTypeOf[iotaz.Prod[_]].typeSymbol
 
-    if (aSym.isModuleClass) {
+    if (aSym.isModuleClass)
       q"""
        _root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]](
          (a: $A) => ${Prod.companion}[$R](),
          (p: $Prod[$R]) => ${A.termSymbol}
        )
        """
-    } else if (aSym.isClass) {
+    else if (aSym.isClass) {
       val aSym = A.typeSymbol.asClass
 
       val accessors = A.decls.collect {
@@ -142,7 +139,7 @@ private[iotaz] final class ProductMacros(val c: Context) {
         case (method, i) =>
           q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }
-      val from = q"""(p: $Prod[$R]) => ${aSym.companion}(..$fromParts): $A"""
+      val from      = q"""(p: $Prod[$R]) => ${aSym.companion}(..$fromParts): $A"""
 
       q"""_root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]]($to, $from)"""
     } else

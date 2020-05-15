@@ -39,7 +39,7 @@ final case class Anyx(s: String) extends AnyVal
 final case class Anyz(s: String) extends AnyVal
 
 @xderiving(Cofoo, B)
-final class Anyzz(val s: String) extends scala.AnyVal
+final class Anyzz(val s: String)               extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
@@ -50,7 +50,7 @@ final case class Gaz[T](t: T)
 final class Waz[T](val t: T)
 
 @typeclass trait Wibble[T] {}
-object DerivedWibble {
+object DerivedWibble       {
   def gen[T]: Wibble[T] = new Wibble[T] {}
 }
 

@@ -34,7 +34,7 @@ package anyvals {
     Show,
     Semigroup
   )
-  final case class Thong(s: String) extends AnyVal
+  final case class Thong(s: String)        extends AnyVal
 }
 
 object newtypes {
@@ -73,7 +73,7 @@ package adt {
     Show,
     Monoid
   )
-  final case class Bar(s: String) extends Foo
+  final case class Bar(s: String)          extends Foo
   @deriving(
     Equal,
     Default,
@@ -94,11 +94,11 @@ package adt {
     Show,
     Semigroup
   )
-  final case object Baz extends Foo
+  final case object Baz                    extends Foo
 
   // the @deriving is implied by the parent!
-  final case class Box(i: Int) extends Foo
-  final case object Flooz      extends Foo
+  final case class Box(i: Int)                                 extends Foo
+  final case object Flooz                                      extends Foo
 }
 
 // more complex recursive type example
@@ -124,7 +124,7 @@ package recadt {
     Same,
     Show
   )
-  final case class Leaf(value: String) extends ATree
+  final case class Leaf(value: String)                         extends ATree
   @deriving(
     Arbitrary,
     Order,
@@ -135,7 +135,7 @@ package recadt {
     Same,
     Show
   )
-  final case class Branch(left: ATree, right: ATree) extends ATree
+  final case class Branch(left: ATree, right: ATree)           extends ATree
 }
 
 // more complex recursive GADT type example
@@ -161,7 +161,7 @@ package recgadt {
     Same,
     Show
   )
-  final case class GLeaf[A](value: A) extends GTree[A]
+  final case class GLeaf[A](value: A)                          extends GTree[A]
   @deriving(
     Arbitrary,
     Equal,
@@ -181,7 +181,7 @@ package bigadt {
   @deriving(Same, Default)
   sealed abstract class Bigly
   @deriving(Same, Default)
-  final case object BiglyO extends Bigly
+  final case object BiglyO  extends Bigly
   @deriving(Same, Default)
   final case class Bigly0() extends Bigly
   @deriving(Same, Default)
