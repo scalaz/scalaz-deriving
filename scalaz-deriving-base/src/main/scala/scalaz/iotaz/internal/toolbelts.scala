@@ -345,7 +345,8 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
 private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
   import u._
 
-  /** Converts an eta expanded `PolyType` such as `[z]Either[String, z]`
+  /**
+   * Converts an eta expanded `PolyType` such as `[z]Either[String, z]`
    * into a type lambda `Tree` `({ type ξ$[z] = Either[String, z] })#ξ$`.
    * The parameter `z` is taken from the original type and used in
    * resulting tree.
@@ -370,7 +371,8 @@ private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
       lambdaName
     )
 
-  /** Converts a `Type` to a `Tree` so that it can be safely
+  /**
+   * Converts a `Type` to a `Tree` so that it can be safely
    * lifted into quasiquotes
    */
   private[this] final def toTypeTree(tpe: Type): Tree =

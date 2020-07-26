@@ -86,18 +86,18 @@ private[iotaz] final class ProductMacros(val c: Context) {
           s"Expected ${algebras.length} arguments but received ${argTypes.length}"
         )
       _        <- Traverse[List]
-             .traverse(argTypes.zip(algebras))(tpes =>
-               require(
-                 tpes._1 <:< tpes._2,
-                 s"Expected ${tpes._1} <:< ${tpes._2}"
-               ).toAvowal
-             )
-             .toEither
+                    .traverse(argTypes.zip(algebras))(tpes =>
+                      require(
+                        tpes._1 <:< tpes._2,
+                        s"Expected ${tpes._1} <:< ${tpes._2}"
+                      ).toAvowal
+                    )
+                    .toEither
       seq       = if (argTypes.length == 0) q"_root_.scala.collection.immutable.Nil"
-            // perf testing shows that ArraySeq is faster than ProductSeq
-            // for raw fields, but is faster for case classes.
-            else
-              q"new $pkg.ArraySeq(_root_.scala.Array[_root_.scala.Any](..$args))"
+                  // perf testing shows that ArraySeq is faster than ProductSeq
+                  // for raw fields, but is faster for case classes.
+                  else
+                    q"new $pkg.ArraySeq(_root_.scala.Array[_root_.scala.Any](..$args))"
     } yield q"${tb.iotaPackage}.Prod.unsafeApply[$L]($seq)")
   }
 

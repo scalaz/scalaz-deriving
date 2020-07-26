@@ -64,7 +64,7 @@ object IStream {
   private final case class Cons[A](
     head: Name[A],
     tail: Name[IStream[A]]
-  ) extends IStream[A]
+  )                                 extends IStream[A]
   // it is very tempting to add a third case that concatenates two streams...
   // but it would break the stack safety of foldLeft.
 

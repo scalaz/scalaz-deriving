@@ -90,7 +90,7 @@ object StringyMap                         {
 // old implementations that have been shown to not be worth it...
 private[jsonformat] final class StringyJavaMap[A] private (
   private[this] val hashmap: java.util.HashMap[String, A]
-) extends StringyMap[A]                 {
+) extends StringyMap[A] {
   def get(s: String): Maybe[A] = Maybe.fromNullable(hashmap.get(s))
 }
 private[jsonformat] object StringyJavaMap {
@@ -112,7 +112,7 @@ private[jsonformat] object StringyJavaMap {
 }
 private[jsonformat] final class StringyIList[A] private (
   private[this] val entries: IList[(String, A)]
-) extends StringyMap[A]                 {
+) extends StringyMap[A] {
   def get(s: String): Maybe[A] = find(entries, s)
   @tailrec private[this] final def find(
     rem: IList[(String, A)],

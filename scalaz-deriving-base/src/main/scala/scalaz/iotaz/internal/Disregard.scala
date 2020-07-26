@@ -12,7 +12,8 @@
 
 package scalaz.iotaz.internal
 
-/** An internal type used for type list operations that don't exist on
+/**
+ * An internal type used for type list operations that don't exist on
  * all shapes of type lists.
  */
 private[internal] sealed trait Disregard

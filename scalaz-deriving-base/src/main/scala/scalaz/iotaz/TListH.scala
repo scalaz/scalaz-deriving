@@ -24,7 +24,8 @@ object TListH {
   /** A syntactic sugar alias for [[TConsH]] */
   type :::[H[_[_]], T <: TListH] = TConsH[H, T]
 
-  /** A type class that witnesses the position of `F` in type list `L`
+  /**
+   * A type class that witnesses the position of `F` in type list `L`
    */
   trait Pos[L <: TListH, F[_[_]]] {
     def index: Int

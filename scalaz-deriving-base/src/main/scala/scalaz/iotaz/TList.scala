@@ -25,7 +25,8 @@ object TList {
   /** A syntactic sugar alias for [[TCons]] */
   type :::[H, T <: TList] = TCons[H, T]
 
-  /** A type class that witnesses the position of type `A` in type
+  /**
+   * A type class that witnesses the position of type `A` in type
    * list `L`
    */
   trait Pos[L <: TList, A] {

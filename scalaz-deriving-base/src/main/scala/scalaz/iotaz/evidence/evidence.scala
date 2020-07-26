@@ -15,7 +15,8 @@ package evidence
 
 import scala.AnyVal
 
-/** Implicit evidence helpers for summoning products and coproducts by
+/**
+ * Implicit evidence helpers for summoning products and coproducts by
  * summing the constituents.
  *
  * Note: These APIs are new and the organization/naming is subject to

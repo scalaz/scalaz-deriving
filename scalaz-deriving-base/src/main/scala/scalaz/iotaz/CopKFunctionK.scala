@@ -16,11 +16,14 @@ import scala._
 
 import scalaz.~>
 
-/** Methods to create [[scalaz.NaturalTransformation]] instances for [[CopK]]
- * coproducts */
+/**
+ * Methods to create [[scalaz.NaturalTransformation]] instances for [[CopK]]
+ * coproducts
+ */
 object CopKNaturalTransformation {
 
-  /** Creates a [[scalaz.NaturalTransformation]] from `F` to `G` by fanning in
+  /**
+   * Creates a [[scalaz.NaturalTransformation]] from `F` to `G` by fanning in
    * respective NaturalTransformations for type all type constructors
    * in the coproduct `F`.
    *
@@ -30,7 +33,8 @@ object CopKNaturalTransformation {
   def of[F[a] <: CopK[_, a], G[_]](args: Any*): F ~> G =
     macro internal.CopKFunctionKMacros.of[F, G]
 
-  /** Creates a [[scalaz.NaturalTransformation]] from `F` to `G` by fanning in
+  /**
+   * Creates a [[scalaz.NaturalTransformation]] from `F` to `G` by fanning in
    * respective NaturalTransformations for type all type constructors
    * in the coproduct `F`.
    *

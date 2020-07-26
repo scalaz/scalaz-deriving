@@ -20,7 +20,8 @@ package object iotaz {
   /** The terminal element of a type list */
   type TNil <: TList
 
-  /** A type list characterized by a head type and a list of tail types
+  /**
+   * A type list characterized by a head type and a list of tail types
    *
    * @tparam H the head type
    * @tparam T the list of tail types
@@ -30,7 +31,8 @@ package object iotaz {
   /** The terminal element of a type constructor list */
   type TNilK <: TListK
 
-  /** A type constructor list characterized by a head type
+  /**
+   * A type constructor list characterized by a head type
    * constructor and a list of tail type constructors
    *
    * @tparam H the head type constructor
@@ -41,7 +43,8 @@ package object iotaz {
   /** The terminal element of a type list for shapes `T[_[_]]` */
   type TNilH <: TListH
 
-  /** A type list characterized by a head type and a list of tail types
+  /**
+   * A type list characterized by a head type and a list of tail types
    * all of shape `T[_[_]]`
    *
    * @tparam H the head type constructor

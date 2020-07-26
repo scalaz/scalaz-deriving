@@ -53,13 +53,13 @@ final class CopKFunctionKMacros(val c: Context) {
                           )
                           .toEither
       arrs           <- Traverse[List]
-                .traverse(tpes)(tpe =>
-                  unorderedPairs.collectFirst {
-                    case (t, arr) if t =:= tpe => arr
-                  }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
-                    .toAvowalNel
-                )
-                .toEither
+                          .traverse(tpes)(tpe =>
+                            unorderedPairs.collectFirst {
+                              case (t, arr) if t =:= tpe => arr
+                            }.toRight(s"Missing interpreter $NatTransName[$tpe, $G]")
+                              .toAvowalNel
+                          )
+                          .toEither
     } yield makeInterpreter(F, copK.L, G, arrs))
   }
 

@@ -784,11 +784,11 @@ package h {
         is_translator                      <- j.getAs[Boolean]("is_translator")
         is_translation_enabled             <- j.getAs[Boolean]("is_translation_enabled")
         profile_background_color           <- j.getAs[String](
-                                      "profile_background_color"
-                                    )
+                                                "profile_background_color"
+                                              )
         profile_background_image_url       <- j.getAs[String](
-                                          "profile_background_image_url"
-                                        )
+                                                "profile_background_image_url"
+                                              )
         profile_background_image_url_https <-
           j.getAs[String](
             "profile_background_image_url_https"
@@ -799,15 +799,15 @@ package h {
         profile_banner_url                 <- j.getAs[String]("profile_banner_url")
         profile_link_color                 <- j.getAs[String]("profile_link_color")
         profile_sidebar_border_color       <- j.getAs[String](
-                                          "profile_sidebar_border_color"
-                                        )
+                                                "profile_sidebar_border_color"
+                                              )
         profile_sidebar_fill_color         <- j.getAs[String](
-                                        "profile_sidebar_fill_color"
-                                      )
+                                                "profile_sidebar_fill_color"
+                                              )
         profile_text_color                 <- j.getAs[String]("profile_text_color")
         profile_use_background_image       <- j.getAs[Boolean](
-                                          "profile_use_background_image"
-                                        )
+                                                "profile_use_background_image"
+                                              )
         has_extended_profile               <- j.getAs[Boolean]("has_extended_profile")
         default_profile                    <- j.getAs[Boolean]("default_profile")
         default_profile_image              <- j.getAs[Boolean]("default_profile_image")
@@ -975,18 +975,18 @@ package h {
         entities                  <- j.getAs[Entities]("entities")
         source                    <- j.getAs[String]("source")
         in_reply_to_status_id     <- j.getOption[String](
-                                   "in_reply_to_status_id"
-                                 )
+                                       "in_reply_to_status_id"
+                                     )
         in_reply_to_status_id_str <- j.getOption[String](
                                        "in_reply_to_status_id_str"
                                      )
         in_reply_to_user_id       <- j.getOption[String]("in_reply_to_user_id")
         in_reply_to_user_id_str   <- j.getOption[String](
-                                     "in_reply_to_user_id_str"
-                                   )
+                                       "in_reply_to_user_id_str"
+                                     )
         in_reply_to_screen_name   <- j.getOption[String](
-                                     "in_reply_to_screen_name"
-                                   )
+                                       "in_reply_to_screen_name"
+                                     )
         user                      <- j.getAs[User]("user")
         geo                       <- j.getOption[String]("geo")
         coordinates               <- j.getOption[String]("coordinates")
@@ -1103,18 +1103,18 @@ package h {
         entities                  <- j.getAs[Entities]("entities")
         source                    <- j.getAs[String]("source")
         in_reply_to_status_id     <- j.getOption[String](
-                                   "in_reply_to_status_id"
-                                 )
+                                       "in_reply_to_status_id"
+                                     )
         in_reply_to_status_id_str <- j.getOption[String](
                                        "in_reply_to_status_id_str"
                                      )
         in_reply_to_user_id       <- j.getOption[String]("in_reply_to_user_id")
         in_reply_to_user_id_str   <- j.getOption[String](
-                                     "in_reply_to_user_id_str"
-                                   )
+                                       "in_reply_to_user_id_str"
+                                     )
         in_reply_to_screen_name   <- j.getOption[String](
-                                     "in_reply_to_screen_name"
-                                   )
+                                       "in_reply_to_screen_name"
+                                     )
         user                      <- j.getAs[User]("user")
         geo                       <- j.getOption[String]("geo")
         coordinates               <- j.getOption[String]("coordinates")

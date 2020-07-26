@@ -25,7 +25,8 @@ object TListK {
   /** A syntactic sugar alias for [[TConsK]] */
   type :::[H[_], T <: TListK] = TConsK[H, T]
 
-  /** A type class that witnesses the position of type constructor `F` in type
+  /**
+   * A type class that witnesses the position of type constructor `F` in type
    * constructor list `L`
    */
   trait Pos[L <: TListK, F[_]] {

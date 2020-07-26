@@ -42,7 +42,8 @@ object Cop {
   def unsafeApply[L <: TList, A](index: Int, a: A): Cop[L] =
     new Cop[L](index, a)
 
-  /** A type class witnessing the ability to inject type `A` into a
+  /**
+   * A type class witnessing the ability to inject type `A` into a
    * coproduct of types `B`
    */
   sealed abstract class Inject[A, B <: Cop[_]] {
@@ -64,7 +65,8 @@ object Cop {
       }
   }
 
-  /** A type class witnessing the ability to inject type `A` into a
+  /**
+   * A type class witnessing the ability to inject type `A` into a
    * coproduct of types for [[TList]] type `L`
    */
   final class InjectL[A, L <: TList] private[InjectL] (index: Int) {

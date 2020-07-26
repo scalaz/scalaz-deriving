@@ -43,12 +43,12 @@ package m {
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -104,12 +104,12 @@ package s {
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -194,12 +194,12 @@ package z {
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  ) extends Geometry
+  )                                                     extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -273,11 +273,11 @@ package h {
   final case class LineString(coordinates: IList[Coords])     extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[Coords]]
-  ) extends Geometry
+  )                                                           extends Geometry
   final case class Polygon(coordinates: IList[IList[Coords]]) extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[Coords]]]
-  ) extends Geometry
+  )                                                           extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 

@@ -12,7 +12,8 @@
 
 package scalaz.iotaz
 
-/** Implicit options to configure/control Iota's macros
+/**
+ * Implicit options to configure/control Iota's macros
  */
 package object debug {
   object optionTypes {
@@ -24,17 +25,20 @@ package object debug {
 
   object options {
 
-    /** Import this value to have Iota print the macro generated code
+    /**
+     * Import this value to have Iota print the macro generated code
      * to the console during compilation
      */
     implicit val ShowTrees: ShowTrees = new ShowTrees {}
 
-    /** Import this value to have Iota print the cached computations
+    /**
+     * Import this value to have Iota print the cached computations
      * during macro expansion
      */
     implicit val ShowCache: ShowCache = new ShowCache {}
 
-    /** Import this value to have Iota print aborted instance
+    /**
+     * Import this value to have Iota print aborted instance
      * materialization for [[TList]] and [[KList]] helpers
      */
     implicit val ShowAborts: ShowAborts = new ShowAborts {}

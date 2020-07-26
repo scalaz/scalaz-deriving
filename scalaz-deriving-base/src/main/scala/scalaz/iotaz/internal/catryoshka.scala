@@ -24,7 +24,8 @@ import scalaz.syntax.applicative._
 import scalaz.syntax.bind._
 import scalaz.syntax.traverse._
 
-/** A gross oversimplification/hack of Matryoshka tailored to the
+/**
+ * A gross oversimplification/hack of Matryoshka tailored to the
  * specific needs of Iota. This works for both Cats and Scalaz.
  *
  * The vast majoriy of this file is derived/copied/modified from

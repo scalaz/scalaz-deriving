@@ -41,7 +41,8 @@ object CopK {
   def unsafeApply[L <: TListK, F[_], A](index: Int, fa: F[A]): CopK[L, A] =
     new CopK[L, A](index, fa)
 
-  /** A type class witnessing the ability to inject type constructor `F`
+  /**
+   * A type class witnessing the ability to inject type constructor `F`
    * into a coproduct of type constructors `G`
    */
   sealed abstract class Inject[F[_], G[α] <: CopK[_, α]] {
@@ -66,7 +67,8 @@ object CopK {
       }
   }
 
-  /** A type class witnessing the ability to inject type constructor `F`
+  /**
+   * A type class witnessing the ability to inject type constructor `F`
    * into a coproduct of types constructors for [[TListK]] type `L`
    */
   final class InjectL[F[_], L <: TListK] private[InjectL] (index: Int) {
