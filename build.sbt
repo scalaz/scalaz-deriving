@@ -185,8 +185,8 @@ val jsonformat = (project in file("examples/jsonformat"))
     libraryDependencies ++= Seq(
       "eu.timepit"           %% "refined"         % refinedVersion,
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
-      "org.typelevel" %% "simulacrum"      % simulacrumVersion,
-      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.2.0",
+      "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
+      "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.4.0",
       "org.typelevel"        %% "jawn-parser"     % "1.0.0"
     )
     //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
