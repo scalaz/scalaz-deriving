@@ -1,0 +1,25 @@
+name: ci
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '0 0 * * *'
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - java: 8
+            os: ubuntu-latest
+          - java: 8
+            os: macos-latest
+          - java: 11
+            os: ubuntu-latest
+    steps:
+    - uses: olafurpg/setup-scala@v10
+      with:
+        java-version: "adopt@1.${{matrix.java}}"
+    - uses: actions/checkout@v1
+    - uses: coursier/cache-action@v5
+    - run: sbt -v -sbt-opts .github/workflows/.sbtopts ";+check ;+cpl ;+test"
