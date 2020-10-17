@@ -26,9 +26,11 @@ val plugin = (project in file("deriving-plugin")).settings(
     "2.12.9",
     "2.12.10",
     "2.12.11",
+    "2.12.12",
     "2.13.0",
     "2.13.1",
-    "2.13.2"
+    "2.13.2",
+    "2.13.3"
   ),
   crossVersion := CrossVersion.full,
   crossTarget := {
@@ -67,7 +69,7 @@ val macros = (project in file("deriving-macro"))
       "org.scalaz"           %% "scalaz-core"    % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"      % shapelessVersion   % "test",
       "com.github.mpilquist" %% "simulacrum"     % simulacrumVersion  % "test",
-      "com.typesafe.play"    %% "play-json"      % "2.8.1"            % "test",
+      "com.typesafe.play"    %% "play-json"      % "2.9.1"            % "test",
       "io.estatico"          %% "newtype"        % newtypeVersion     % "test"
     )
   )
