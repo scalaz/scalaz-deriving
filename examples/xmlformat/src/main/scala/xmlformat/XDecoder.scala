@@ -121,7 +121,7 @@ private[xmlformat] trait XDecoderRefined {
   implicit def refined[A: XDecoder, B](implicit
     V: Validate[A, B]
   ): XDecoder[A Refined B] =
-    XDecoder[A].emap(refineV(_).disjunction)
+    XDecoder[A].emap(refineV(_).toDisjunction)
 }
 
 private[xmlformat] trait XDecoderStdlib1 {

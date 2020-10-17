@@ -167,7 +167,7 @@ private[jsonformat] trait JsDecoderRefined {
   implicit def refined[A: JsDecoder, P](implicit
     V: Validate[A, P]
   ): JsDecoder[A Refined P] =
-    JsDecoder[A].emap(refineV[P](_).disjunction)
+    JsDecoder[A].emap(refineV[P](_).toDisjunction)
 
 }
 private[jsonformat] trait JsDecoderStdlib1 {

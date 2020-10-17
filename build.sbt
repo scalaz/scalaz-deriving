@@ -1,4 +1,4 @@
-val scalazVersion     = "7.2.30"
+val scalazVersion     = "7.3.2"
 val shapelessVersion  = "2.3.3"
 val simulacrumVersion = "0.19.0"
 val magnoliaVersion   = "0.12.8"
@@ -124,7 +124,7 @@ val scalacheck = project
     name := "scalaz-deriving-scalacheck",
     libraryDependencies ++= Seq(
       "com.propensive" %% "magnolia"                  % magnoliaVersion,
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-1.14"
+      "org.scalaz"     %% "scalaz-scalacheck-binding" % scalazVersion
     )
   )
 

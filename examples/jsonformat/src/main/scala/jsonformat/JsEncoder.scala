@@ -84,7 +84,7 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def option[A: JsEncoder]: JsEncoder[Option[A]]                  =
     maybe[A].contramap(_.toMaybe)
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
-    disjunction[A, B].contramap(_.disjunction)
+    disjunction[A, B].contramap(_.toDisjunction)
 
   implicit def list[A: JsEncoder]: JsEncoder[List[A]] =
     ilist[A].contramap(_.toIList)
