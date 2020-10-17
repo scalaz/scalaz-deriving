@@ -1,6 +1,6 @@
 val scalazVersion     = "7.2.30"
 val shapelessVersion  = "2.3.3"
-val simulacrumVersion = "0.19.0"
+val simulacrumVersion = "1.0.0"
 val magnoliaVersion   = "0.12.8"
 val refinedVersion    = "0.9.14"
 val newtypeVersion    = "0.4.4"
@@ -66,7 +66,7 @@ val macros = (project in file("deriving-macro"))
       "org.scala-lang"        % "scala-reflect"  % scalaVersion.value % "provided",
       "org.scalaz"           %% "scalaz-core"    % scalazVersion      % "test",
       "com.chuusai"          %% "shapeless"      % shapelessVersion   % "test",
-      "com.github.mpilquist" %% "simulacrum"     % simulacrumVersion  % "test",
+      "org.typelevel" %% "simulacrum"     % simulacrumVersion  % "test",
       "com.typesafe.play"    %% "play-json"      % "2.8.1"            % "test",
       "io.estatico"          %% "newtype"        % newtypeVersion     % "test"
     )
@@ -145,7 +145,7 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
       "io.estatico"          %% "newtype"        % newtypeVersion     % "test",
-      "com.github.mpilquist" %% "simulacrum"     % simulacrumVersion  % "test",
+      "org.typelevel" %% "simulacrum"     % simulacrumVersion  % "test",
       "org.scala-lang"        % "scala-compiler" % scalaVersion.value % "provided"
     )
   )
@@ -163,7 +163,7 @@ val xmlformat = (project in file("examples/xmlformat"))
       "eu.timepit"            %% "refined"       % refinedVersion,
       "org.scalaz"            %% "scalaz-core"   % scalazVersion,
       "com.chuusai"           %% "shapeless"     % shapelessVersion,
-      "com.github.mpilquist"  %% "simulacrum"    % simulacrumVersion
+      "org.typelevel"  %% "simulacrum"    % simulacrumVersion
     )
   )
   .enablePlugins(NeoJmhPlugin)
@@ -183,7 +183,7 @@ val jsonformat = (project in file("examples/jsonformat"))
     libraryDependencies ++= Seq(
       "eu.timepit"           %% "refined"         % refinedVersion,
       "org.scalaz"           %% "scalaz-core"     % scalazVersion,
-      "com.github.mpilquist" %% "simulacrum"      % simulacrumVersion,
+      "org.typelevel" %% "simulacrum"      % simulacrumVersion,
       "org.scalatestplus"    %% "scalacheck-1-14" % "3.1.2.0",
       "org.typelevel"        %% "jawn-parser"     % "1.0.0"
     )
