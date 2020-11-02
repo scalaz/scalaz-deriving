@@ -45,7 +45,6 @@ object ProjectKeys {
       "-Ywarn-extra-implicit",
       "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
       "-opt:l:method,inline",
-      "-opt-inline-from:scala.**",
       "-opt-inline-from:scalaz.**",
       "-opt-inline-from:fommil.**",
       "-opt-inline-from:magnolia.**",
