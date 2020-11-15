@@ -63,12 +63,12 @@ object ProjectPlugin extends AutoPlugin {
   val autoImport = ProjectKeys
   import autoImport._
 
-  val Scala213 = "2.13.2"
+  val Scala213 = "2.13.3"
 
   override def buildSettings =
     Seq(
       organization := "org.scalaz",
-      crossScalaVersions := Seq("2.12.11", Scala213),
+      crossScalaVersions := Seq("2.12.12", Scala213),
       scalaVersion := Scala213,
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
