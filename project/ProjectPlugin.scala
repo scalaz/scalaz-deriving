@@ -11,6 +11,33 @@ import org.scalafmt.sbt.ScalafmtPlugin, ScalafmtPlugin.autoImport._
 import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 
 object ProjectKeys {
+  val allScalaVersions = Seq(
+    "2.12.8",
+    "2.12.9",
+    "2.12.10",
+    "2.12.11",
+    "2.12.12",
+    "2.13.0",
+    "2.13.1",
+    "2.13.2",
+    "2.13.3",
+    "2.13.4"
+  )
+
+  private[this] def latest(n: Int): String = {
+    val prefix = "2." + n + "."
+    prefix + allScalaVersions
+      .filter(_.startsWith(prefix))
+      .map(_.drop(prefix.length).toLong)
+      .reduceLeftOption(_ max _)
+      .getOrElse(
+        sys.error(s"not found Scala ${prefix}x version ${allScalaVersions}")
+      )
+  }
+
+  val Scala212 = latest(12)
+  val Scala213 = latest(13)
+
   def MacroParadise =
     libraryDependencies ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -63,12 +90,10 @@ object ProjectPlugin extends AutoPlugin {
   val autoImport = ProjectKeys
   import autoImport._
 
-  val Scala213 = "2.13.3"
-
   override def buildSettings =
     Seq(
       organization := "org.scalaz",
-      crossScalaVersions := Seq("2.12.12", Scala213),
+      crossScalaVersions := Seq(Scala212, Scala213),
       scalaVersion := Scala213,
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),

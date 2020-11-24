@@ -13,26 +13,15 @@ addCommandAlias(
 )
 addCommandAlias(
   "lint",
-  ";++ 2.12.11;compile:scalafix --check;test:scalafix --check"
+  s";++ ${Scala212};compile:scalafix --check;test:scalafix --check"
 )
-addCommandAlias("fix", ";++ 2.12.11;all compile:scalafix test:scalafix")
+addCommandAlias("fix", s";++ ${Scala212};all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
   scalacOptions in Test += "-Yno-predef",
   scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
-  crossScalaVersions := Seq(
-    "2.12.8",
-    "2.12.9",
-    "2.12.10",
-    "2.12.11",
-    "2.12.12",
-    "2.13.0",
-    "2.13.1",
-    "2.13.2",
-    "2.13.3",
-    "2.13.4"
-  ),
+  crossScalaVersions := ProjectKeys.allScalaVersions,
   crossVersion := CrossVersion.full,
   crossTarget := {
     // workaround for https://github.com/sbt/sbt/issues/5097
