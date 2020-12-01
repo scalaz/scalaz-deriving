@@ -54,7 +54,7 @@ object ProjectKeys {
     }
   def KindProjector =
     addCompilerPlugin(
-      ("org.typelevel" %% "kind-projector" % "0.11.1").cross(CrossVersion.full)
+      ("org.typelevel" %% "kind-projector" % "0.11.2").cross(CrossVersion.full)
     )
 
   def MonadicFor =
