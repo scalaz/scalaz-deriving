@@ -150,7 +150,7 @@ final class CopKFunctionKMacros(val c: Context) {
         destructFunctionKInput(tpe2.dealias, G)
       case _                                       =>
         Avowal.noNel(
-          s"unable to destruct input $tpe as $NatTransName[?, $G]\n" +
+          s"unable to destruct input $tpe as $NatTransName[*, $G]\n" +
             s"  underlying type tree: ${showRaw(tpe)} (class ${tpe.getClass})"
         )
     }

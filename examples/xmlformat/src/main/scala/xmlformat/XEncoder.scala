@@ -61,7 +61,7 @@ private[xmlformat] trait XEncoderScalaz2 {
   this: XEncoder.type =>
 
   // Foldable derivers are not provided because they can pick up unexpected
-  // instances for `F[_]` such as `Either[A, ?]` and can create `XEncoder`
+  // instances for `F[_]` such as `Either[A, *]` and can create `XEncoder`
   // instances where we really only want an `XStrEncoder`. Also, due to the lack
   // of a builder for decoding, these would be one-way anyway.
 

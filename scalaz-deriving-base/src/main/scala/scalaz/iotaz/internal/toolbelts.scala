@@ -148,7 +148,7 @@ private[internal] sealed trait TypeListParsers {
   self: Toolbelt with TypeListAST =>
   import u._
 
-  type TypeListParser = CoalgebraM[Either[Id[String], ?], NodeF, Type]
+  type TypeListParser = CoalgebraM[Either[Id[String], *], NodeF, Type]
 
   final lazy val tlistParser: TypeListParser = typeListParser(
     NilSym = symbolOf[TNil],
@@ -295,16 +295,16 @@ private[internal] sealed trait TypeListAPIs
   import u._
 
   final def tlistTypes(tpe: Type): Either[Id[String], List[Type]] =
-    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], ?]], tlistParser)
+    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], *]], tlistParser)
 
   final def tlistkTypes(tpe: Type): Either[Id[String], List[Type]] =
-    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], ?]], tlistkParser)
+    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], *]], tlistkParser)
 
   final def tlistkTypeConstructors(tpe: Type): Either[Id[String], List[Type]] =
     tlistkTypes(tpe).map(_.map(_.etaExpand.resultType))
 
   final def tlisthTypes(tpe: Type): Either[Id[String], List[Type]] =
-    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], ?]], tlisthParser)
+    hyloM(tpe)(evalTree.generalizeM[Either[Id[String], *]], tlisthParser)
 
 }
 

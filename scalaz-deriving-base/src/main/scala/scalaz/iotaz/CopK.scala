@@ -59,11 +59,11 @@ object CopK {
 
     implicit def injectFromInjectL[F[_], L <: TListK](implicit
       ev: InjectL[F, L]
-    ): Inject[F, CopK[L, ?]] =
-      new Inject[F, CopK[L, ?]] {
-        val inj: F ~> CopK[L, ?]                    = λ[F ~> CopK[L, ?]](ev.inj(_))
-        val prj: CopK[L, ?] ~> λ[α => Option[F[α]]] =
-          λ[CopK[L, ?] ~> λ[α => Option[F[α]]]](ev.proj(_))
+    ): Inject[F, CopK[L, *]] =
+      new Inject[F, CopK[L, *]] {
+        val inj: F ~> CopK[L, *]                    = λ[F ~> CopK[L, *]](ev.inj(_))
+        val prj: CopK[L, *] ~> λ[α => Option[F[α]]] =
+          λ[CopK[L, *] ~> λ[α => Option[F[α]]]](ev.proj(_))
       }
   }
 

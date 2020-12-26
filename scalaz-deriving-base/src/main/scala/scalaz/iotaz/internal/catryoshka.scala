@@ -140,8 +140,8 @@ private[internal] object catryoshka {
   object EnvT {
     implicit def envTTraverse[Z, F[_]](implicit
       F: Traverse[F]
-    ): Traverse[EnvT[Z, F, ?]] =
-      new Traverse[EnvT[Z, F, ?]] {
+    ): Traverse[EnvT[Z, F, *]] =
+      new Traverse[EnvT[Z, F, *]] {
         override def foldLeft[A, B](fa: EnvT[Z, F, A], b: B)(
           f: (B, A) => B
         ): B =
@@ -155,7 +155,7 @@ private[internal] object catryoshka {
   }
 
   implicit def cofreeBirecursive[F[_], A]
-    : Birecursive.Aux[Cofree[F, A], EnvT[A, F, ?]] =
+    : Birecursive.Aux[Cofree[F, A], EnvT[A, F, *]] =
     Birecursive.algebraIso(
       t => Cofree(t.ask, t.lower),
       t => EnvT(t.head, t.tail)
@@ -173,7 +173,7 @@ private[internal] object catryoshka {
 
   implicit final class CoalgebraOps[F[_], A](private val self: Coalgebra[F, A])
       extends AnyVal {
-    def assign[B](b: B): Coalgebra[EnvT[B, F, ?], A] =
+    def assign[B](b: B): Coalgebra[EnvT[B, F, *], A] =
       a => EnvT[B, F, A](b, self(a))
   }
 
@@ -182,7 +182,7 @@ private[internal] object catryoshka {
   ) extends AnyVal {
     def assign[B](
       b: B
-    )(implicit M: Functor[M]): CoalgebraM[M, EnvT[B, F, ?], A] =
+    )(implicit M: Functor[M]): CoalgebraM[M, EnvT[B, F, *], A] =
       a => M.map(self(a))(aa => EnvT[B, F, A](b, aa))
   }
 

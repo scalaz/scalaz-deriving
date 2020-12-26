@@ -56,8 +56,8 @@ object CopH {
 
     implicit def injectFromInjectL[H[_[_]], L <: TListH](implicit
       ev: InjectL[H, L]
-    ): Inject[H, CopH[L, ?[_]]] =
-      new Inject[H, CopH[L, ?[_]]] {
+    ): Inject[H, CopH[L, *[_]]] =
+      new Inject[H, CopH[L, *[_]]] {
         def inj[F[_]](hf: H[F]): CopH[L, F]         = ev.inj(hf)
         def prj[F[_]](jf: CopH[L, F]): Option[H[F]] = ev.proj(jf)
       }
