@@ -419,7 +419,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
                     case Maybe.Just(v) => H.value.fromJson(v)
                     case _             =>
                       defaults.head match {
-                        case Some(default) => \/-(default)
+                        case Some(default) => \/.r[String](default)
                         case None          => H.value.fromJson(JsNull)
                       }
                   }
@@ -464,7 +464,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
                     case Maybe.Just(v) => H.value.fromJson(v)
                     case _             =>
                       defaults.head match {
-                        case Some(default)     => \/-(default)
+                        case Some(default)     => \/.r[String](default)
                         case None if ann.nulls => err
                         case None              => H.value.fromJson(JsNull)
                       }

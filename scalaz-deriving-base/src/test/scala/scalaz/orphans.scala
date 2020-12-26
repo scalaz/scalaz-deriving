@@ -9,7 +9,7 @@ import scala.AnyRef
 object orphans {
   // breaks typeclass coherence for everything above Divisible
   implicit val _decidable_equal: Decidable[Equal] = new Decidable[Equal] {
-    override def divide[A1, A2, Z](a1: Equal[A1], a2: Equal[A2])(
+    override def divide2[A1, A2, Z](a1: =>Equal[A1], a2: =>Equal[A2])(
       f: Z => (A1, A2)
     ): Equal[Z]                       =
       Equal.equal { (z1, z2) =>

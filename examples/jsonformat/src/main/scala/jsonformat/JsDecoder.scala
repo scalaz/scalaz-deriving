@@ -70,8 +70,8 @@ object JsDecoder
   )
   implicit val monad: MonadError[JsDecoder, String] = MonadError.fromIso(iso)
 
-  def fail[A](expected: String, got: JsValue): -\/[String] =
-    -\/(s"expected $expected, got $got")
+  def fail[A](expected: String, got: JsValue): -\/[String, A] =
+    new -\/[String, A](s"expected $expected, got $got")
 
   implicit val jsValue: JsDecoder[JsValue] = _.right
   implicit val long: JsDecoder[Long]       = {
@@ -167,7 +167,7 @@ private[jsonformat] trait JsDecoderRefined {
   implicit def refined[A: JsDecoder, P](implicit
     V: Validate[A, P]
   ): JsDecoder[A Refined P] =
-    JsDecoder[A].emap(refineV[P](_).disjunction)
+    JsDecoder[A].emap(refineV[P](_).toDisjunction)
 
 }
 private[jsonformat] trait JsDecoderStdlib1 {

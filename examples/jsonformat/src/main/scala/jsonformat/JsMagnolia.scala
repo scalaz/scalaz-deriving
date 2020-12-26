@@ -129,26 +129,46 @@ object JsMagnoliaDecoder {
         }.getOrElse(p.label)
       }.toArray
 
+      private[this] val eitherStringMonadic: mercator.Monadic[String \/ *] =
+        new mercator.Monadic[String \/ *] {
+          override def point[X](value: X): String \/ X                       =
+            \/-(value)
+          override def flatMap[X, Y](
+            from: String \/ X
+          )(fn: X => String \/ Y): String \/ Y                               =
+            from.flatMap(fn)
+          override def map[X, Y](from: String \/ X)(fn: X => Y): String \/ Y =
+            from.map(fn)
+        }
+
+      private[this] val EitherStringIsCovariant: IsCovariant[String \/ *] =
+        IsCovariant[String \/ *]
+
       def fromJson(j: JsValue): String \/ A =
         j match {
           case obj @ JsObject(_) =>
-            import mercator._
             val lookup = StringyMap(obj.fields, fieldnames.length)
-            ctx.constructMonadic { p =>
+            ctx.constructMonadic[String \/ *, Param[JsDecoder, A]#PType] { p =>
               val field = fieldnames(p.index)
               lookup
                 .get(field)
                 .into {
-                  case Maybe.Just(value) => p.typeclass.fromJson(value)
+                  case Maybe.Just(value) =>
+                    EitherStringIsCovariant.widen(p.typeclass.fromJson(value))
                   case _                 =>
                     p.default match {
-                      case Some(default)          => \/-(default)
+                      case Some(default)          =>
+                        \/-[String, Param[JsDecoder, A]#PType](default)
                       case None if nulls(p.index) =>
-                        s"missing field '$field'".left
-                      case None                   => p.typeclass.fromJson(JsNull)
+                        s"missing field '$field'"
+                          .left[Param[JsDecoder, A]#PType]
+                      case None                   =>
+                        EitherStringIsCovariant.widen(
+                          p.typeclass.fromJson(JsNull)
+                        )
                     }
                 }
-            }
+            }(eitherStringMonadic)
           case other             => fail("JsObject", other)
         }
     }
@@ -183,7 +203,9 @@ object JsMagnoliaDecoder {
                   case Maybe.Just(sub) =>
                     val xvalue = xvalues(sub.index)
                     val value  = lookup.get(xvalue).getOrElse(obj)
-                    sub.typeclass.fromJson(value)
+                    IsCovariant[String \/ *].widen(
+                      sub.typeclass.fromJson(value)
+                    )
                 }
               case _                       => fail(s"JsObject with '$typehint' field", obj)
             }

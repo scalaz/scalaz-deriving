@@ -146,7 +146,7 @@ object Prods {
         a.values
           .asInstanceOf[Seq[F[Any]]]
           .toList
-          .traverse(f)
+          .traverse(f.apply)
           .map(bs => Prod.unsafeApply[B](bs))
       }
 

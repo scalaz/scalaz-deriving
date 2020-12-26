@@ -97,17 +97,17 @@ class JsEncoderTest extends JsTest {
 
   it should "break the Divide composition law" in {
     val D: Divisible[JsEncoder] = new Divisible[JsEncoder] {
-      def contramap[A, B](fa: JsEncoder[A])(f: B => A): JsEncoder[B] =
+      override def contramap[A, B](fa: JsEncoder[A])(f: B => A): JsEncoder[B] =
         b => fa.toJson(f(b))
 
-      def divide[A, B, C](fa: JsEncoder[A], fb: JsEncoder[B])(
+      override def divide2[A, B, C](fa: =>JsEncoder[A], fb: =>JsEncoder[B])(
         f: C => (A, B)
       ): JsEncoder[C] = { c =>
         val (a, b) = f(c)
         JsArray(IList(fa.toJson(a), fb.toJson(b)))
       }
 
-      def conquer[A]: JsEncoder[A] = _ => JsNull
+      override def conquer[A]: JsEncoder[A] = _ => JsNull
     }
 
     val S: JsEncoder[String]        = JsEncoder[String]

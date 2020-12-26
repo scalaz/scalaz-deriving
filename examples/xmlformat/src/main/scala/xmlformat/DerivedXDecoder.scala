@@ -152,7 +152,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
 
   implicit val cnil: CXDecoder[CNil, HNil, HNil] =
     new CXDecoder[CNil, HNil, HNil] {
-      def from(in: XTag, as: HNil, bs: HNil): -\/[String] =
+      def from(in: XTag, as: HNil, bs: HNil): -\/[String, CNil] =
         fail("a valid typehint", in.asChild)
     }
 
@@ -431,10 +431,10 @@ trait LowPriorityDerivedXDecoder1 extends LowPriorityDerivedXDecoder2 {
             in.children.map(ts => H.value.fromXml(ts.asChild)).separate
 
           goods.toNel match {
-            case Some(head) =>
+            case Maybe.Just(head) =>
               val folded = Foldable1[NonEmptyList].fold1(head)
               (field[K](folded) :: tail).right[String]
-            case None       =>
+            case _                =>
               val messages = fails.intercalate("\n")
               s"${K.value.name}:\n$messages".left
           }

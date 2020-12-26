@@ -10,46 +10,52 @@ import scalaz.annotation.deriving
 class JsDecoderTest extends JsTest {
 
   "JsDecoder" should "decode primitives" in {
-    JsInteger(42).as[Int].assert_===(\/-(42))
+    JsInteger(42).as[Int].assert_===(\/.r[String](42))
     JsInteger(7563661897011259335L)
       .as[Long]
-      .assert_===(\/-(7563661897011259335L))
-    JsDouble(4.2).as[Float].assert_===(\/-(4.2f))
-    JsDouble(4.2).as[Double].assert_===(\/-(4.2))
-    JsInteger(42).as[Byte].assert_===(\/-(42.toByte))
-    JsInteger(42).as[Short].assert_===(\/-(42.toShort))
-    JsInteger(1).as[Unit].assert_===(\/-(()))
-    JsBoolean(true).as[Boolean].assert_===(\/-(true))
-    JsBoolean(false).as[Boolean].assert_===(\/-(false))
-    JsString("c").as[Char].assert_===(\/-('c'))
-    JsString("Hello").as[String].assert_===(\/-("Hello"))
-    JsString("Hello").as[Symbol].map(_.name).assert_===(\/-("Hello"))
+      .assert_===(\/.r[String](7563661897011259335L))
+    JsDouble(4.2).as[Float].assert_===(\/.r[String](4.2f))
+    JsDouble(4.2).as[Double].assert_===(\/.r[String](4.2))
+    JsInteger(42).as[Byte].assert_===(\/.r[String](42.toByte))
+    JsInteger(42).as[Short].assert_===(\/.r[String](42.toShort))
+    JsInteger(1).as[Unit].assert_===(\/.r[String](()))
+    JsBoolean(true).as[Boolean].assert_===(\/.r[String](true))
+    JsBoolean(false).as[Boolean].assert_===(\/.r[String](false))
+    JsString("c").as[Char].assert_===(\/.r[String]('c'))
+    JsString("Hello").as[String].assert_===(\/.r[String]("Hello"))
+    JsString("Hello").as[Symbol].map(_.name).assert_===(\/.r[String]("Hello"))
   }
 
   it should "give a decent error when decoding fails" in {
     JsString("true")
       .as[Boolean]
-      .assert_===(-\/("expected JsBoolean, got JsString(true)"))
+      .assert_===(\/.l[Boolean]("expected JsBoolean, got JsString(true)"))
   }
 
   it should "decode Option" in {
-    JsNull.as[Option[Int]].assert_===(\/-(None))
-    JsString("Hello").as[Option[String]].assert_===(\/-(Some("Hello")))
+    JsNull.as[Option[Int]].assert_===(\/.r[String](Option.empty[Int]))
+    JsString("Hello")
+      .as[Option[String]]
+      .assert_===(\/.r[String](Option("Hello")))
   }
 
   it should "decode Either" in {
-    JsInteger(42).as[Either[Int, String]].assert_===(\/-(Left(42)))
+    JsInteger(42)
+      .as[Either[Int, String]]
+      .assert_===(\/.r[String](Left(42): Either[Int, String]))
     JsString("Hello")
       .as[Either[Int, String]]
-      .assert_===(\/-(Right("Hello")))
+      .assert_===(\/.r[String](Right("Hello"): Either[Int, String]))
 
     JsInteger(42)
       .as[Either[Int, Int]]
-      .assert_===(-\/("expected No ambiguity, got JsInteger(42)"))
+      .assert_===(
+        \/.l[Either[Int, Int]]("expected No ambiguity, got JsInteger(42)")
+      )
     JsString("42")
       .as[Either[Int, Int]]
       .assert_===(
-        -\/(
+        \/.l[Either[Int, Int]](
           "Left: expected JsInteger, got JsString(42)\nRight: expected JsInteger, got JsString(42)"
         )
       )
@@ -59,80 +65,86 @@ class JsDecoderTest extends JsTest {
     val map  = Map("a" -> 1, "b" -> 2, "c" -> 3)
     val json =
       JsObject("a" -> JsInteger(1), "b" -> JsInteger(2), "c" -> JsInteger(3))
-    json.as[Map[String, Int]].assert_===(\/-(map))
+    json.as[Map[String, Int]].assert_===(\/.r[String](map))
   }
 
   it should "decode stdlib List" in {
     val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
     val list = List(1, 2, 3)
-    json.as[List[Int]].assert_===(\/-(list))
+    json.as[List[Int]].assert_===(\/.r[String](list))
   }
 
   import examples._
   it should "decode anyval" in {
-    JsString("hello").as[Optimal].assert_===(\/-(Optimal("hello")))
+    JsString("hello").as[Optimal].assert_===(\/.r[String](Optimal("hello")))
   }
 
   it should "decode generic coproducts" in {
     """{"type":"Foo","s":"hello"}"""
       .parseAs[SimpleTrait]
       .assert_===(
-        \/-(
+        \/.r[String](
           Foo(
             "hello"
-          )
+          ): SimpleTrait
         )
       )
-    """{"type":"Baz"}""".parseAs[SimpleTrait].assert_===(\/-(Baz))
+    """{"type":"Baz"}"""
+      .parseAs[SimpleTrait]
+      .assert_===(\/.r[String](Baz: SimpleTrait))
 
-    """{"type":"Wibble"}""".parseAs[AbstractThing].assert_===(\/-(Wibble))
+    """{"type":"Wibble"}"""
+      .parseAs[AbstractThing]
+      .assert_===(\/.r[String](Wibble: AbstractThing))
     """{"type":"Wobble","id":"hello"}"""
       .parseAs[AbstractThing]
       .assert_===(
-        \/-(
+        \/.r[String](
           Wobble(
             "hello"
-          )
+          ): AbstractThing
         )
       )
 
     """{"TYPE":"Time","xvalue":"goodbye"}"""
       .parseAs[NotAnObject]
-      .assert_===(\/-(Time("goodbye")))
+      .assert_===(\/.r[String](Time("goodbye"): NotAnObject))
     """{"TYPE":"Money","integer":13}"""
       .parseAs[NotAnObject]
       .assert_===(
-        \/-(
-          Money(13)
+        \/.r[String](
+          Money(13): NotAnObject
         )
       )
 
     """{"type":"fazzy","o":null}"""
       .parseAs[SimpleTrait]
-      .assert_===(\/-(Faz(None)))
+      .assert_===(\/.r[String](Faz(None): SimpleTrait))
     """{"type":"fazzy"}"""
       .parseAs[SimpleTrait]
-      .assert_===(-\/("missing field 'o'"))
+      .assert_===(\/.l[SimpleTrait]("missing field 'o'"))
 
     """{"type":"ded","z":"zed's dead"}"""
       .parseAs[Zed]
-      .assert_===(\/-(Dead("zed's dead")))
+      .assert_===(\/.r[String](Dead("zed's dead"): Zed))
   }
 
   it should "substitute defaults for missing fields" in {
-    """{}""".parseAs[CanHasDefaults].assert_===(\/-(CanHasDefaults("cheez")))
+    """{}"""
+      .parseAs[CanHasDefaults]
+      .assert_===(\/.r[String](CanHasDefaults("cheez")))
   }
 
   it should "decode generic recursive ADTs" in {
     """{"h":"hello","t":{"h":"goodbye"}}"""
       .parseAs[Recursive]
-      .assert_===(\/-(Recursive("hello", Some(Recursive("goodbye")))))
+      .assert_===(\/.r[String](Recursive("hello", Some(Recursive("goodbye")))))
   }
 
   it should "treat missing fields as empty" in {
     """{}"""
       .parseAs[Nested]
-      .assert_===(\/-(Nested(None)))
+      .assert_===(\/.r[String](Nested(None)))
   }
 
   it should "obey the Apply composition law" in {

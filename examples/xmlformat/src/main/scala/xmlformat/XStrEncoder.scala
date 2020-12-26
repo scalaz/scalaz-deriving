@@ -71,7 +71,7 @@ private[xmlformat] trait XStrEncoderStdlib {
   implicit def either[
     A: XStrEncoder,
     B: XStrEncoder
-  ]: XStrEncoder[Either[A, B]] = disjunction[A, B].contramap(_.disjunction)
+  ]: XStrEncoder[Either[A, B]] = disjunction[A, B].contramap(_.toDisjunction)
 
   import scala.concurrent.duration.FiniteDuration
   implicit def finite: XStrEncoder[FiniteDuration] = long.contramap(_.toMillis)

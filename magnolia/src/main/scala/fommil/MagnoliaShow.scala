@@ -10,11 +10,11 @@ object MagnoliaShow {
   type Typeclass[A] = Show[A]
 
   def combine[A](ctx: CaseClass[Show, A]): Show[A] =
-    Show.show { a =>
+    Show.shows { a =>
       val bits = ctx.parameters.map { p =>
-        p.label +: "=" +: p.typeclass.show(p.dereference(a))
+        p.label + "=" + p.typeclass.shows(p.dereference(a))
       }.toList
-      ctx.typeName.short +: "(" +: bits.intercalate(",") :+ ")"
+      ctx.typeName.short + "(" + bits.intercalate(",") + ")"
     }
 
   def dispatch[A](ctx: SealedTrait[Show, A]): Show[A] =

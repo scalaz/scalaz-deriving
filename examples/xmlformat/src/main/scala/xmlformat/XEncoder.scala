@@ -80,7 +80,7 @@ private[xmlformat] trait XEncoderStdlib1 {
   this: XEncoder.type =>
 
   implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]] =
-    disjunction[A, B].contramap(_.disjunction)
+    disjunction[A, B].contramap(_.toDisjunction)
 
   implicit def listStr[A: XStrEncoder]: XEncoder[List[A]] =
     ilistStr[A].contramap(_.toIList)

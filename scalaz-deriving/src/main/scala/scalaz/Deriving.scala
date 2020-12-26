@@ -98,6 +98,11 @@ object Deriving {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
 
+    override def divide2[A1, A2, Z](a1: =>Equal[A1], a2: =>Equal[A2])(
+      f: Z => (A1, A2)
+    ): Equal[Z] =
+      divide(a1, a2)(f)
+
     override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]
     )(implicit
@@ -132,6 +137,11 @@ object Deriving {
   implicit val _deriving_order: Deriving[Order] = new Decidablez[Order] {
     @inline private final def quick(a: Any, b: Any): Boolean =
       a.asInstanceOf[AnyRef].eq(b.asInstanceOf[AnyRef])
+
+    override def divide2[A1, A2, Z](a1: =>Order[A1], a2: =>Order[A2])(
+      f: Z => (A1, A2)
+    ): Order[Z] =
+      divide(a1, a2)(f)
 
     override def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(
       g: Z => Prod[A]

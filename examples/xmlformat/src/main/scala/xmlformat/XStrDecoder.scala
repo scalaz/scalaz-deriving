@@ -99,7 +99,7 @@ private[xmlformat] trait XStrDecoderRefined {
   implicit def refined[A: XStrDecoder, B](implicit
     V: Validate[A, B]
   ): XStrDecoder[A Refined B] =
-    XStrDecoder[A].emap(refineV(_).disjunction)
+    XStrDecoder[A].emap(refineV(_).toDisjunction)
 
 }
 

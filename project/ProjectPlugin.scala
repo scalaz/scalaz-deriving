@@ -70,14 +70,7 @@ object ProjectKeys {
   def extraScalacOptions =
     Seq(
       "-Ywarn-extra-implicit",
-      "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits",
-      "-opt:l:method,inline",
-      "-opt-inline-from:scalaz.**",
-      "-opt-inline-from:fommil.**",
-      "-opt-inline-from:magnolia.**",
-      "-opt-inline-from:shapeless.**",
-      "-opt-inline-from:jsonformat.**",
-      "-opt-inline-from:xmlformat.**"
+      "-Ywarn-unused:explicits,patvars,imports,privates,locals,implicits"
     )
 }
 

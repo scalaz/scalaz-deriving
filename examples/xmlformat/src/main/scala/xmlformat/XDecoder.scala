@@ -48,8 +48,8 @@ object XDecoder
 
   // suppress long messages from the failure messages as they are never useful
   // and better to look at the source XML.
-  def fail[A](expected: String, got: XNode): -\/[String] =
-    -\/(s"expected $expected, got ${got.toString.take(200)}")
+  def fail[A](expected: String, got: XNode): -\/[String, A] =
+    new -\/(s"expected $expected, got ${got.toString.take(200)}")
 
   // sometimes we need a disambiguating tag when decoding
   def tagged[A](name: String, delegate: XDecoder[A]): XDecoder[A] = {
@@ -121,7 +121,7 @@ private[xmlformat] trait XDecoderRefined {
   implicit def refined[A: XDecoder, B](implicit
     V: Validate[A, B]
   ): XDecoder[A Refined B] =
-    XDecoder[A].emap(refineV(_).disjunction)
+    XDecoder[A].emap(refineV(_).toDisjunction)
 }
 
 private[xmlformat] trait XDecoderStdlib1 {

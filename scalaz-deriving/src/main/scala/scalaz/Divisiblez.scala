@@ -37,19 +37,19 @@ trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
   override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
     dividez(Prod(Value(a1)))(z => Prod[A1 :: TNil](f(z)))
 
-  override def divide[A1, A2, Z](a1: F[A1], a2: F[A2])(
+  override def divide2[A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(
     f: Z => (A1, A2)
   ): F[Z] =
     dividez(LazyProd(a1, a2))(z => from2T(f(z)))
-  override def divide3[A1, A2, A3, Z](a1: F[A1], a2: F[A2], a3: F[A3])(
+  override def divide3[A1, A2, A3, Z](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: Z => (A1, A2, A3)
   ): F[Z] =
     dividez(LazyProd(a1, a2, a3))(z => from3T(f(z)))
   override def divide4[A1, A2, A3, A4, Z](
-    a1: F[A1],
-    a2: F[A2],
-    a3: F[A3],
-    a4: F[A4]
+    a1: =>F[A1],
+    a2: =>F[A2],
+    a3: =>F[A3],
+    a4: =>F[A4]
   )(
     f: Z => (A1, A2, A3, A4)
   ): F[Z] =

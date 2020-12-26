@@ -8,50 +8,51 @@ import scalaz._, Scalaz._
 class JsParserTest extends JsTest {
 
   "The JsParser" should "parse 'null' to JsNull" in {
-    JsParser("null").assert_===(JsNull.widen.right)
+    JsParser("null").assert_===(JsNull.widen.right[String])
   }
   it should "parse 'true' to JsBoolean(true)" in {
-    JsParser("true").assert_===(JsBoolean(true).widen.right)
+    JsParser("true").assert_===(JsBoolean(true).widen.right[String])
   }
   it should "parse 'false' to JsBoolean(false)" in {
-    JsParser("false").assert_===(JsBoolean(false).widen.right)
+    JsParser("false").assert_===(JsBoolean(false).widen.right[String])
   }
   it should "parse '0' to JsInteger" in {
-    JsParser("0").assert_===(JsInteger(0).widen.right)
+    JsParser("0").assert_===(JsInteger(0).widen.right[String])
   }
   it should "parse whole numbers to JsInteger" in {
-    JsParser("0.0").assert_===(JsInteger(0).widen.right)
-    JsParser("1.0").assert_===(JsInteger(1).widen.right)
+    JsParser("0.0").assert_===(JsInteger(0).widen.right[String])
+    JsParser("1.0").assert_===(JsInteger(1).widen.right[String])
     JsParser("9223372036854775807.0").assert_===(
-      JsInteger(Long.MaxValue).widen.right
+      JsInteger(Long.MaxValue).widen.right[String]
     )
   }
   it should "parse '1.23' to JsDouble" in {
-    JsParser("1.23").assert_===(JsDouble(1.23).widen.right)
+    JsParser("1.23").assert_===(JsDouble(1.23).widen.right[String])
   }
   it should "double precision is used, not arbitrary precision" in {
-    JsParser("-1E10").assert_===("invalid json".left)
+    JsParser("-1E10").assert_===("invalid json".left[JsValue])
   }
   it should "rounding errors are to be expected" in {
-    JsParser("12.34e-10").assert_===(JsDouble(1.234e-9).widen.right)
+    JsParser("12.34e-10").assert_===(JsDouble(1.234e-9).widen.right[String])
   }
   it should "parse \"xyz\" to JsString" in {
-    JsParser("\"xyz\"").assert_===(JsString("xyz").widen.right)
+    JsParser("\"xyz\"").assert_===(JsString("xyz").widen.right[String])
   }
   it should "parse escapes in a JsString" in {
     JsParser(""""\"\\/\b\f\n\r\t"""").assert_===(
-      JsString("\"\\/\b\f\n\r\t").widen.right
+      JsString("\"\\/\b\f\n\r\t").widen.right[String]
     )
     JsParser("\"L\\" + "u00e4nder\"")
-      .assert_===(JsString("Länder").widen.right)
+      .assert_===(JsString("Länder").widen.right[String])
   }
   it should "parse all representations of the slash (SOLIDUS) character in a JsString" in {
     JsParser("\"" + "/\\/\\u002f" + "\"")
-      .assert_===(JsString("///").widen.right)
+      .assert_===(JsString("///").widen.right[String])
   }
   it should "parse a simple JsObject" in (
     JsParser(""" { "key" :42, "key2": "value" }""").assert_===(
-      JsObject("key" -> JsInteger(42), "key2" -> JsString("value")).widen.right
+      JsObject("key" -> JsInteger(42), "key2" -> JsString("value")).widen
+        .right[String]
     )
   )
   it should "parse a simple JsArray" in (
@@ -60,7 +61,7 @@ class JsParserTest extends JsTest {
         JsNull,
         JsDouble(1.23),
         JsObject("key" -> JsBoolean(true))
-      ).widen.right
+      ).widen.right[String]
     )
   )
   it should "be reentrant" in {
@@ -75,6 +76,7 @@ class JsParserTest extends JsTest {
         case \/-(JsObject(fields)) =>
           fields
             .find(_._1 == "questions")
+            .toOption
             .collect {
               case (_, arr @ JsArray(_)) => arr
             }
