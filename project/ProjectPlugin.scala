@@ -7,7 +7,7 @@ import sbt.Keys._
 import fommil.SensiblePlugin.autoImport._
 import fommil.SonatypePlugin.autoImport._
 import sbtdynver.DynVerPlugin.autoImport._
-import org.scalafmt.sbt.ScalafmtPlugin, ScalafmtPlugin.autoImport._
+import org.scalafmt.sbt.ScalafmtPlugin
 import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 
 object ProjectKeys {
@@ -91,8 +91,7 @@ object ProjectPlugin extends AutoPlugin {
       sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
       licenses := Seq(LGPL3),
-      startYear := Some(2017),
-      scalafmtConfig := file("project/scalafmt.conf")
+      startYear := Some(2017)
     )
 
   override def projectSettings =
