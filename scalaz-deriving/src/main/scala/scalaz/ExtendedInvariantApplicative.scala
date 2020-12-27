@@ -14,7 +14,7 @@ import Prods.ops._
 
 /** Implement `DerivingProducts` (N-arity) by wrapping `InvariantApplicative` (fixed arity). */
 class ExtendedInvariantApplicative[F[_]] private[scalaz] (
-  private val F: InvariantApplicative[F]
+  private[this] val F: InvariantApplicative[F]
 ) extends DerivingProducts[F] {
 
   // I'm so sorry... I'm going to hell.

@@ -13,7 +13,7 @@ import Cops.ops._
 
 /** Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity). */
 final class ExtendedInvariantAlt[F[_]] private (
-  private val F: InvariantAlt[F]
+  private[this] val F: InvariantAlt[F]
 ) extends ExtendedInvariantApplicative[F](F)
     with Deriving[F] {
 

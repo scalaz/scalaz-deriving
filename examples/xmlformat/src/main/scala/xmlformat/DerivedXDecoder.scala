@@ -41,7 +41,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
 
   implicit val hnil: PXDecoder[HNil, HNil, HNil] =
     new PXDecoder[HNil, HNil, HNil] {
-      private val empty                                          = HNil.right[String]
+      private[this] val empty                                    = HNil.right[String]
       def from(x: XTag, as: HNil, bs: HNil): String \/ HNil.type = empty
     }
 
@@ -52,7 +52,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     T: PXDecoder[T, AS, BS]
   ): PXDecoder[FieldType[K, H] :: T, Some[x.attr] :: AS, None.type :: BS] =
     new PXDecoder[FieldType[K, H] :: T, Some[x.attr] :: AS, None.type :: BS] {
-      private val key                     = K.value.name
+      private[this] val key               = K.value.name
       def from(
         in: XTag,
         as: Some[x.attr] :: AS,
@@ -83,8 +83,8 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, Option[H]] :: T, Some[
       x.attr
     ] :: AS, None.type :: BS] {
-      private val key                             = K.value.name
-      private val empty                           = Option.empty[H].right[String]
+      private[this] val key                       = K.value.name
+      private[this] val empty                     = Option.empty[H].right[String]
       def from(
         in: XTag,
         as: Some[x.attr] :: AS,
@@ -138,7 +138,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     new PXDecoder[FieldType[K, Option[H]] :: T, None.type :: AS, Some[
       x.body
     ] :: BS] {
-      private val empty                           = Option.empty[H].right[String]
+      private[this] val empty                     = Option.empty[H].right[String]
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -214,7 +214,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     T: CXDecoder[T, AS, BS]
   ): CXDecoder[FieldType[K, H] :+: T, None.type :: AS, Some[x.body] :: BS] =
     new CXDecoder[FieldType[K, H] :+: T, None.type :: AS, Some[x.body] :: BS] {
-      private val key                      = K.value.name
+      private[this] val key                = K.value.name
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -241,7 +241,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     T: CXDecoder[T, AS, BS]
   ): CXDecoder[FieldType[K, H] :+: T, None.type :: AS, Some[x.body] :: BS] =
     new CXDecoder[FieldType[K, H] :+: T, None.type :: AS, Some[x.body] :: BS] {
-      private val key                      = K.value.name
+      private[this] val key                = K.value.name
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -260,7 +260,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     T: PXDecoder[T, AS, BS]
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
-      private val key = K.value.name
+      private[this] val key = K.value.name
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -294,8 +294,8 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       None.type :: AS,
       None.type :: BS
     ] {
-      private val key   = K.value.name
-      private val empty = Option.empty[H].right[String]
+      private[this] val key   = K.value.name
+      private[this] val empty = Option.empty[H].right[String]
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -317,7 +317,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
     T: PXDecoder[T, AS, BS]
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, None.type :: BS] {
-      private val key = K.value.name
+      private[this] val key = K.value.name
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -355,8 +355,8 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
       None.type :: AS,
       None.type :: BS
     ] {
-      private val key   = K.value.name
-      private val empty = Option.empty[H].right[String]
+      private[this] val key   = K.value.name
+      private[this] val empty = Option.empty[H].right[String]
       def from(
         in: XTag,
         as: None.type :: AS,
@@ -458,7 +458,7 @@ trait LowPriorityDerivedXDecoder2 {
     T: PXDecoder[T, AS, BS]
   ): PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] =
     new PXDecoder[FieldType[K, H] :: T, None.type :: AS, Some[x.body] :: BS] {
-      private val key                     = K.value.name
+      private[this] val key               = K.value.name
       def from(
         in: XTag,
         as: None.type :: AS,

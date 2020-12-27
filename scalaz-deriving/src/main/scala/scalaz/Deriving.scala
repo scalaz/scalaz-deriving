@@ -186,7 +186,7 @@ object DerivingProducts {
   private class InvariantApplicativezSemigroup
       extends InvariantApplicativez[Semigroup] {
     type L[a] = ((a, a), NameF[a])
-    private val appender = λ[L ~> Id] {
+    private[this] val appender = λ[L ~> Id] {
       case ((a1, a2), fa) => fa.value.append(a1, a2)
     }
 

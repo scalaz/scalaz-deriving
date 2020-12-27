@@ -40,7 +40,7 @@ object XDecoder
 
   @inline def instance[A](f: XChildren => String \/ A): XDecoder[A] = f(_)
   private type Sig[a] = XChildren => String \/ a
-  private val iso                                  = Kleisli.iso(
+  private[this] val iso                            = Kleisli.iso(
     λ[Sig ~> XDecoder](instance(_)),
     λ[XDecoder ~> Sig](_.fromXml)
   )

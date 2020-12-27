@@ -13,7 +13,7 @@ class DerivingPlugin(override val global: Global)
 
   import global._
 
-  private val DerivingMacros =
+  private[this] val DerivingMacros =
     Select(
       Select(
         Select(Ident(nme.ROOTPKG), TermName("scalaz")),
@@ -169,7 +169,7 @@ class DerivingPlugin(override val global: Global)
       )
     )
 
-  private val newtypes                    = Set("newtype", "newsubtype")
+  private[this] val newtypes              = Set("newtype", "newsubtype")
   def isNewType(clazz: ClassDef): Boolean =
     clazz.mods.annotations.collectFirst {
       case Apply(Select(New(ann), termNames.CONSTRUCTOR), Nil) => ann

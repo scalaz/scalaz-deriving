@@ -35,7 +35,7 @@ object XStrDecoder
 
   @inline def instance[A](f: XString => String \/ A): XStrDecoder[A] = f(_)
   private type Sig[a] = XString => String \/ a
-  private val iso                                     = Kleisli.iso(
+  private[this] val iso                               = Kleisli.iso(
     λ[Sig ~> XStrDecoder](instance(_)),
     λ[XStrDecoder ~> Sig](_.fromXml)
   )

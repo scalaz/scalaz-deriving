@@ -64,7 +64,7 @@ object JsDecoder
   }
   @inline final def instance[A](f: JsValue => String \/ A): JsDecoder[A] = f(_)
   private type Sig[a] = JsValue => String \/ a
-  private val iso                                   = Kleisli.iso(
+  private[this] val iso                             = Kleisli.iso(
     λ[Sig ~> JsDecoder](instance(_)),
     λ[JsDecoder ~> Sig](_.fromJson)
   )
