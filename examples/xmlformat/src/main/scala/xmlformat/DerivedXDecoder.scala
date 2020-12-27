@@ -41,8 +41,8 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
 
   implicit val hnil: PXDecoder[HNil, HNil, HNil] =
     new PXDecoder[HNil, HNil, HNil] {
-      private[this] val empty                                    = HNil.right[String]
-      def from(x: XTag, as: HNil, bs: HNil): String \/ HNil.type = empty
+      private[this] val empty                               = (HNil: HNil).right[String]
+      def from(x: XTag, as: HNil, bs: HNil): String \/ HNil = empty
     }
 
   implicit def hconsAttr[K <: Symbol, H, T <: HList, AS <: HList, BS <: HList](

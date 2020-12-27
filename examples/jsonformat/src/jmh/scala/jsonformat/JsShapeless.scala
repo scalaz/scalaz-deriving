@@ -383,7 +383,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
 
   implicit def hnil[A]: DerivedProductJsDecoder[A, HNil, HNil, HNil] =
     new DerivedProductJsDecoder[A, HNil, HNil, HNil] {
-      private[this] val nil = HNil.right[String]
+      private[this] val nil = (HNil: HNil).right[String]
 
       def fromJsObject(j: FastJsObject, a: HNil, defaults: HNil) = nil
     }
