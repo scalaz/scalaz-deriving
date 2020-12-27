@@ -131,8 +131,8 @@ object Prods {
         else {
           val lst: List[Id /~\ H] = as
             .zip(bs)
-            .map {
-              case (a, h) => /~\[Id, H, Any](a, h)
+            .map { case (a, h) =>
+              /~\[Id, H, Any](a, h)
             }
             .toList
           lst.toIList
@@ -179,8 +179,8 @@ object Prods {
               .toList
               .indexed
           )
-          .flatMap {
-            case (i, fa) => IStream.fromMaybe(f(fa).map(g => (i, g)))
+          .flatMap { case (i, fa) =>
+            IStream.fromMaybe(f(fa).map(g => (i, g)))
           }
           .map { case (i, g) => g.map(y => Cop.unsafeApply[B, Any](i, y)) }
       }
@@ -215,8 +215,8 @@ object Prods {
           val lst: List[Pair /~\ H] = a1
             .zip(a2)
             .zip(bs)
-            .map {
-              case (aa, h) => /~\[Pair, H, Any](aa, h)
+            .map { case (aa, h) =>
+              /~\[Pair, H, Any](aa, h)
             }
             .toList
           lst.toIList

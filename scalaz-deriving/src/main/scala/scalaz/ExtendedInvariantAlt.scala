@@ -35,16 +35,16 @@ final class ExtendedInvariantAlt[F[_]] private (
     g: Z => Cop[A]
   ): F[Z] =
     (tcs.size: @switch) match {
-      case 1      =>
+      case 1 =>
         val fz: Any => Z = a1 => f(Cops.from1(a1).as[A])
         val gz: Z => Any = z => g(z).value
         F.xcoproduct1(tcs(0).value)(fz, gz)
-      case 2      =>
+      case 2 =>
         type Two = Any :: Any :: TNil
         val fz: (Any \/ Any) => Z = e => f(Cops.from2(e).as[A])
         val gz: Z => (Any \/ Any) = z => Cops.to2(g(z).as[Two])
         F.xcoproduct2(tcs(0).value, tcs(1).value)(fz, gz)
-      case 3      =>
+      case 3 =>
         type Three = Any :: Any :: Any :: TNil
         val fz: (Any \/ (Any \/ Any)) => Z = e => f(Cops.from3(e).as[A])
         val gz: Z => (Any \/ (Any \/ Any)) = z => Cops.to3(g(z).as[Three])
@@ -68,17 +68,16 @@ final class ExtendedInvariantAlt[F[_]] private (
             .zipWithIndex
             .foldRight(
               end.asInstanceOf[F[Cop[TList]]]
-            ) {
-              case ((tc, i), acc) =>
-                val ff: (Any \/ Cop[TList]) => Cop[TList] = {
-                  case -\/(a) => Cop.unsafeApply[TList, Any](i, a)
-                  case \/-(c) => c
-                }
-                val fg: Cop[TList] => (Any \/ Cop[TList]) = { c =>
-                  if (c.index == i) -\/(c.value)
-                  else \/-(c)
-                }
-                F.xcoproduct2(tc.value, acc)(ff, fg)
+            ) { case ((tc, i), acc) =>
+              val ff: (Any \/ Cop[TList]) => Cop[TList] = {
+                case -\/(a) => Cop.unsafeApply[TList, Any](i, a)
+                case \/-(c) => c
+              }
+              val fg: Cop[TList] => (Any \/ Cop[TList]) = { c =>
+                if (c.index == i) -\/(c.value)
+                else \/-(c)
+              }
+              F.xcoproduct2(tc.value, acc)(ff, fg)
             }
 
         val fz: Cop[TList] => Z = c => f(c.as[A])

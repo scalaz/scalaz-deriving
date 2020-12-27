@@ -49,8 +49,8 @@ object BadPack              {
     def dividez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(g: Z => Prod[A])(
       implicit ev: A PairedWith FA
     ): BadPack[Z] = { z =>
-      val entries = g(z).zip(tcs).map {
-        case a /~\ fa => fa.value.encode(a)
+      val entries = g(z).zip(tcs).map { case a /~\ fa =>
+        fa.value.encode(a)
       }
       Product(entries.toIList)
     }
@@ -58,8 +58,8 @@ object BadPack              {
     def choosez[Z, A <: TList, FA <: TList](tcs: Prod[FA])(g: Z => Cop[A])(
       implicit ev: A PairedWith FA
     ): BadPack[Z] = { z =>
-      g(z).zip(tcs).into {
-        case a /~\ fa => fa.value.encode(a)
+      g(z).zip(tcs).into { case a /~\ fa =>
+        fa.value.encode(a)
       }
     }
 

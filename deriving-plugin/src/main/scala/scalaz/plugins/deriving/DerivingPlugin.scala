@@ -38,12 +38,11 @@ class DerivingPlugin(override val global: Global)
   ): ModuleDef = {
     val extras = triggered.flatMap { ann =>
       val target = annotationName(ann)
-      findTypeclasses(ann).map {
-        case (gen, typeclass) =>
-          if (clazz.tparams.isEmpty)
-            genImplicitVal(gen, typeclass, clazz, target)
-          else
-            genImplicitDef(gen, typeclass, clazz, target)
+      findTypeclasses(ann).map { case (gen, typeclass) =>
+        if (clazz.tparams.isEmpty)
+          genImplicitVal(gen, typeclass, clazz, target)
+        else
+          genImplicitDef(gen, typeclass, clazz, target)
       }
     }
     regenModule(companion, extras)
@@ -52,9 +51,8 @@ class DerivingPlugin(override val global: Global)
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef = {
     val extras = triggered.flatMap { ann =>
       val target = annotationName(ann)
-      findTypeclasses(ann).map {
-        case (gen, typeclass) =>
-          genObjectImplicitVal(gen, typeclass, module, target)
+      findTypeclasses(ann).map { case (gen, typeclass) =>
+        genObjectImplicitVal(gen, typeclass, module, target)
       }
     }
     regenModule(module, extras)
@@ -98,14 +96,13 @@ class DerivingPlugin(override val global: Global)
   ): DefDef = {
     val implicits =
       List(
-        c.tparams.zipWithIndex.map {
-          case (t, i) =>
-            ValDef(
-              Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
-              TermName(s"evidence$$$i"),
-              AppliedTypeTree(typeclass.tree.duplicate, List(Ident(t.name))),
-              EmptyTree
-            )
+        c.tparams.zipWithIndex.map { case (t, i) =>
+          ValDef(
+            Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
+            TermName(s"evidence$$$i"),
+            AppliedTypeTree(typeclass.tree.duplicate, List(Ident(t.name))),
+            EmptyTree
+          )
         }
       )
 

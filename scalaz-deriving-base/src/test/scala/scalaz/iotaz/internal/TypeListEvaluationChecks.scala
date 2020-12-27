@@ -20,10 +20,9 @@ object TypeListEvaluationChecks extends Properties("TypeListEvaluators") {
     IotaReflectiveToolbelt()
   )
 
-  checks.evalChecks.foreach {
-    case (in, out) =>
-      property(s"eval $in") = Recursive[checks.Node]
-        .cata(in)(checks.tb.evalTree) ?= out
+  checks.evalChecks.foreach { case (in, out) =>
+    property(s"eval $in") = Recursive[checks.Node]
+      .cata(in)(checks.tb.evalTree) ?= out
   }
 }
 

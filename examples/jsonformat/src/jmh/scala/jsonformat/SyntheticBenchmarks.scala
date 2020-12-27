@@ -40,8 +40,8 @@ package h {
       case JsObject(fields) =>
         if (fields.isEmpty) \/-(Nested(None))
         else
-          fields.collectFirst {
-            case ("n", v) => v.as[Nested]
+          fields.collectFirst { case ("n", v) =>
+            v.as[Nested]
           }.getOrElse(fail("n", JsObject(fields)))
       case other            => fail("JsObject", other)
     }

@@ -29,7 +29,7 @@ object DerivedXDecoder extends LowPriorityDerivedXDecoder1 {
         .map(G.from)
         .leftMap(reason => s"${T.describe} -> $reason")
 
-    case got                         =>
+    case got =>
       fail("one tag", got)
         .leftMap(reason => s"${T.describe} -> $reason")
   }

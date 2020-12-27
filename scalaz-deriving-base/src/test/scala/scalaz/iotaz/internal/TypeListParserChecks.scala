@@ -21,16 +21,14 @@ object TypeListParserChecks extends Properties("TypeListParsers") {
     IotaReflectiveToolbelt()
   )
 
-  checks.tlists.foreach {
-    case (in, out) =>
-      property(s"parse TList $in") = Corecursive[checks.Node]
-        .anaM(in)(checks.tb.tlistParser) ?= Right(out)
+  checks.tlists.foreach { case (in, out) =>
+    property(s"parse TList $in") = Corecursive[checks.Node]
+      .anaM(in)(checks.tb.tlistParser) ?= Right(out)
   }
 
-  checks.tlistks.foreach {
-    case (in, out) =>
-      property(s"parse TListK $in") = Corecursive[checks.Node]
-        .anaM(in)(checks.tb.tlistkParser) ?= Right(out)
+  checks.tlistks.foreach { case (in, out) =>
+    property(s"parse TListK $in") = Corecursive[checks.Node]
+      .anaM(in)(checks.tb.tlistkParser) ?= Right(out)
   }
 
 }

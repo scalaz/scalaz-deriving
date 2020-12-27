@@ -135,8 +135,8 @@ private[jsonformat] trait JsDecoderScalaz1 {
 
   implicit def imap[A: JsDecoder]: JsDecoder[String ==>> A] = {
     case JsObject(fields) =>
-      fields.traverse {
-        case (key, value) => value.as[A].strengthL(key)
+      fields.traverse { case (key, value) =>
+        value.as[A].strengthL(key)
       }.map(IMap.fromFoldable(_))
     case other            => fail("JsObject", other)
   }
@@ -180,8 +180,8 @@ private[jsonformat] trait JsDecoderStdlib1 {
 
   implicit def dict[A: JsDecoder]: JsDecoder[Map[String, A]] = {
     case JsObject(fields) =>
-      fields.traverse {
-        case (key, value) => value.as[A].strengthL(key)
+      fields.traverse { case (key, value) =>
+        value.as[A].strengthL(key)
       }.map(_.toList.toMap)
     case other            => fail("JsObject", other)
   }

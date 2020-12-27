@@ -135,9 +135,8 @@ private[iotaz] final class ProductMacros(val c: Context) {
         }
 
       // inefficient if the underlying is a List...
-      val fromParts = (accessors.zipWithIndex).map {
-        case (method, i) =>
-          q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
+      val fromParts = (accessors.zipWithIndex).map { case (method, i) =>
+        q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }
       val from      = q"""(p: $Prod[$R]) => ${aSym.companion}(..$fromParts): $A"""
 

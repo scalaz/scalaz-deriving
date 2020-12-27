@@ -54,20 +54,18 @@ private[iotaz] final class CopMacros(val c: Context) {
       }
       val provided   = deconstructTCons(R.dealias)
       val calculated = subs.map(_.toTypeConstructor)
-      provided.zip(calculated).map {
-        case (r, s) =>
-          if (!(r =:= s))
-            c.abort(
-              c.enclosingPosition,
-              s"sealed trait parameters are out of order: provided $provided does not match calculated $calculated at $r =:= $s"
-            )
+      provided.zip(calculated).map { case (r, s) =>
+        if (!(r =:= s))
+          c.abort(
+            c.enclosingPosition,
+            s"sealed trait parameters are out of order: provided $provided does not match calculated $calculated at $r =:= $s"
+          )
       }
 
       // should probably generate an Inject instead of like this
-      val fromParts = subs.zipWithIndex.map {
-        case (sub, i) =>
-          val t = sub.toType
-          cq"c: $t => ${Cop.companion}.unsafeApply[$R, $t]($i, c)"
+      val fromParts = subs.zipWithIndex.map { case (sub, i) =>
+        val t = sub.toType
+        cq"c: $t => ${Cop.companion}.unsafeApply[$R, $t]($i, c)"
       }
 
       q"""

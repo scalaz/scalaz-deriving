@@ -79,8 +79,8 @@ object DerivedXEncoder                                    {
       ): IList[XAttr \/ (XTag \/ XString)] =
         r match {
           case head :: tail =>
-            H.value.toXml(head).tree.map {
-              case XTag(_, as, ts, bd) => lift(XTag(K.value.name, as, ts, bd))
+            H.value.toXml(head).tree.map { case XTag(_, as, ts, bd) =>
+              lift(XTag(K.value.name, as, ts, bd))
             } ::: T.product(tail, as.tail, bs.tail)
         }
     }
@@ -113,8 +113,8 @@ object DerivedXEncoder                                    {
         (r: Option[H] :: T) match {
           case None :: tail       => T.product(tail, as.tail, bs.tail)
           case Some(head) :: tail =>
-            H.value.toXml(head).tree.map {
-              case XTag(_, as, ts, bd) => lift(XTag(K.value.name, as, ts, bd))
+            H.value.toXml(head).tree.map { case XTag(_, as, ts, bd) =>
+              lift(XTag(K.value.name, as, ts, bd))
             } ::: T.product(tail, as.tail, bs.tail)
         }
     }

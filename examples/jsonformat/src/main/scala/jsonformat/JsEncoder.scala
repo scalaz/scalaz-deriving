@@ -53,8 +53,8 @@ private[jsonformat] trait JsEncoderScalaz1 {
     ilist[A].contramap(_.list)
 
   implicit def imap[A: JsEncoder]: JsEncoder[String ==>> A] = { m =>
-    val fields = m.toList.map {
-      case (k, v) => k -> v.toJson
+    val fields = m.toList.map { case (k, v) =>
+      k -> v.toJson
     }
     JsObject(fields.toIList)
   }
@@ -89,8 +89,8 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def list[A: JsEncoder]: JsEncoder[List[A]] =
     ilist[A].contramap(_.toIList)
   implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]] = { m =>
-    val fields = m.toList.map {
-      case (k, v) => k -> v.toJson
+    val fields = m.toList.map { case (k, v) =>
+      k -> v.toJson
     }
     JsObject(fields.toIList)
   }

@@ -209,7 +209,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       // to do the rewrites
       def autobots(tree: Tree): Tree =
         tree match {
-          case t: PackageDef if hasTrigger(t)     =>
+          case t: PackageDef if hasTrigger(t) =>
             val updated = decepticons(t.stats)
             treeCopy.PackageDef(t, t.pid, updated)
 
@@ -227,7 +227,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
               update
             )
 
-          case t: ClassDef if hasTrigger(t.impl)  =>
+          case t: ClassDef if hasTrigger(t.impl) =>
             // yuck, this finds classes and modules defined inside other classes.
             // added for completeness.
             val update = treeCopy.Template(
@@ -244,7 +244,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
               update
             )
 
-          case t                                  => t
+          case t => t
         }
 
       // does not recurse, let the autobots handle that
@@ -287,13 +287,13 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
         }
 
         trees.flatMap {
-          case ClassNoCompanion(c) if hasTrigger(c.mods)             =>
+          case ClassNoCompanion(c) if hasTrigger(c.mods) =>
             val companion        = genCompanion(c).withAllPos(c.pos)
             val (cleaned, ann)   = extractTrigger(c)
             val updatedCompanion = updateCompanion(ann, cleaned, companion)
             List(updateClass(ann, cleaned), updatedCompanion)
 
-          case ClassHasCompanion(c) if hasTrigger(c.mods)            =>
+          case ClassHasCompanion(c) if hasTrigger(c.mods) =>
             val (cleaned, ann) = extractTrigger(c)
             List(updateClass(ann, cleaned))
 
@@ -301,11 +301,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             val (cleaned, ann) = extractTrigger(c)
             List(updateCompanion(ann, cleaned, companion))
 
-          case m: ModuleDef if hasTrigger(m.mods)                    =>
+          case m: ModuleDef if hasTrigger(m.mods) =>
             val (cleaned, ann) = extractTrigger(m)
             List(updateModule(ann, cleaned))
 
-          case tr                                                    =>
+          case tr =>
             List(tr)
         }
       }

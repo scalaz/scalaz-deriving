@@ -72,17 +72,16 @@ class JsParserTest extends JsTest {
       .fill(20)(largeJsonSource)
       .map(JsParser(_))
       .toList
-      .collect {
-        case \/-(JsObject(fields)) =>
-          fields
-            .find(_._1 == "questions")
-            .toOption
-            .collect {
-              case (_, arr @ JsArray(_)) => arr
-            }
-            .get
-            .elements
-            .length
+      .collect { case \/-(JsObject(fields)) =>
+        fields
+          .find(_._1 == "questions")
+          .toOption
+          .collect { case (_, arr @ JsArray(_)) =>
+            arr
+          }
+          .get
+          .elements
+          .length
       }
       .assert_===(List.fill(20)(100))
   }

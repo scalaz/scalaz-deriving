@@ -58,13 +58,13 @@ object JsMagnoliaEncoder {
   def combine[A](ctx: CaseClass[JsEncoder, A]): JsEncoder[A] =
     new JsEncoder[A] {
       private[this] val nulls      = ctx.parameters.map { p =>
-        p.annotations.collectFirst {
-          case json.nulls() => true
+        p.annotations.collectFirst { case json.nulls() =>
+          true
         }.getOrElse(false)
       }.toArray
       private[this] val fieldnames = ctx.parameters.map { p =>
-        p.annotations.collectFirst {
-          case json.field(name) => name
+        p.annotations.collectFirst { case json.field(name) =>
+          name
         }.getOrElse(p.label)
       }.toArray
 
@@ -86,13 +86,13 @@ object JsMagnoliaEncoder {
         case json.field(name) => name
       }.getOrElse("type")
       private[this] val hints   = ctx.subtypes.map { s =>
-        s.annotations.collectFirst {
-          case json.hint(name) => field -> JsString(name)
+        s.annotations.collectFirst { case json.hint(name) =>
+          field -> JsString(name)
         }.getOrElse(field -> JsString(s.typeName.short))
       }.toArray
       private[this] val xvalues = ctx.subtypes.map { s =>
-        s.annotations.collectFirst {
-          case json.field(name) => name
+        s.annotations.collectFirst { case json.field(name) =>
+          name
         }.getOrElse("xvalue")
       }.toArray
 
@@ -118,14 +118,14 @@ object JsMagnoliaDecoder {
   def combine[A](ctx: CaseClass[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
       private[this] val nulls = ctx.parameters.map { p =>
-        p.annotations.collectFirst {
-          case json.nulls() => true
+        p.annotations.collectFirst { case json.nulls() =>
+          true
         }.getOrElse(false)
       }.toArray
 
       private[this] val fieldnames = ctx.parameters.map { p =>
-        p.annotations.collectFirst {
-          case json.field(name) => name
+        p.annotations.collectFirst { case json.field(name) =>
+          name
         }.getOrElse(p.label)
       }.toArray
 
@@ -177,8 +177,8 @@ object JsMagnoliaDecoder {
     new JsDecoder[A] {
       private[this] val subtype  = StringyMap(
         ctx.subtypes.mapToIList { s =>
-          s.annotations.collectFirst {
-            case json.hint(name) => name
+          s.annotations.collectFirst { case json.hint(name) =>
+            name
           }.getOrElse(s.typeName.short) -> s
         },
         Int.MaxValue
@@ -187,8 +187,8 @@ object JsMagnoliaDecoder {
         case json.field(name) => name
       }.getOrElse("type")
       private[this] val xvalues  = ctx.subtypes.map { sub =>
-        sub.annotations.collectFirst {
-          case json.field(name) => name
+        sub.annotations.collectFirst { case json.field(name) =>
+          name
         }.getOrElse("xvalue")
       }.toArray
 

@@ -50,8 +50,8 @@ object XStrDecoder
       }
     }
 
-  implicit val string: XStrDecoder[String] = {
-    case XString(text) => \/-(text.trim)
+  implicit val string: XStrDecoder[String] = { case XString(text) =>
+    \/-(text.trim)
   }
 
   implicit val boolean: XStrDecoder[Boolean] = str(_.toBoolean)
