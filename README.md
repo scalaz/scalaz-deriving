@@ -6,7 +6,7 @@
 
 There are two independent and complementary parts to this library:
 
-- a `@deriving` annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](http://magnolia.work/), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`). `@deriving` **does not depend on scalaz**.
+- a `@deriving` annotation to easily add `implicit` typeclass instances to companion objects. This macro is compatible with [magnolia](https://github.com/propensive/magnolia), [shapeless generic derivation](http://fommil.com/scalax15/), and hand-rolled derivers (e.g. `play-json`). `@deriving` **does not depend on scalaz**.
 - `scalaz-deriving`, a principled way for typeclass authors to define typeclass derivations, plus derivations for some `scalaz-core` typeclasses (e.g. `Equal`, `Monoid`).
 
 **NOTE: Bug reports and feature requests can be filed in the "Pull Request" tab above.** Issues filed in the issue tracker are considered documentary at best. This is maintained but unsupported free software; tickets will be resolved only if someone writes the code. (That someone can be you!)
