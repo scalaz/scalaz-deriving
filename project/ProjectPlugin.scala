@@ -140,10 +140,10 @@ object ProjectPlugin extends AutoPlugin {
         "-Yrangepos"
       ),
       scalacOptions ++= extraScalacOptions,
-      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Xlint"))),
-      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Werror"))),
-      scalacOptions in (Test, doc) ~= (_.filterNot(_.startsWith("-Ywarn"))),
-      scalacOptions in (Test, doc) -= "-Xfatal-warnings",
-      initialCommands in (Compile, console) := "import scalaz._, Scalaz._"
+      Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Xlint"))),
+      Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Werror"))),
+      Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Ywarn"))),
+      Test / doc / scalacOptions -= "-Xfatal-warnings",
+      Compile / console / initialCommands := "import scalaz._, Scalaz._"
     )
 }

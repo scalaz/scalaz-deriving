@@ -19,8 +19,8 @@ addCommandAlias("fix", s";++ ${Scala212};all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
-  scalacOptions in Test += "-Yno-predef",
-  scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
+  Test / scalacOptions += "-Yno-predef",
+  Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
   crossScalaVersions := ProjectKeys.allScalaVersions,
   crossVersion := CrossVersion.full,
   crossTarget := {
@@ -30,8 +30,8 @@ val plugin = (project in file("deriving-plugin")).settings(
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   ),
-  scalacOptions in Test ++= {
-    val jar = (packageBin in Compile).value
+  (Test / scalacOptions) ++= {
+    val jar = (Compile / packageBin).value
     Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
   }
 )
@@ -40,7 +40,7 @@ val plugin = (project in file("deriving-plugin")).settings(
 def ScalazDeriving: Seq[Setting[_]] =
   Seq(
     scalacOptions ++= {
-      val jar = (packageBin in (plugin, Compile)).value
+      val jar = (plugin / Compile / packageBin).value
       Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
     }
   )
@@ -52,7 +52,7 @@ val macros = (project in file("deriving-macro"))
     MacroParadise,
     resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",
-    scalacOptions in Test += "-Yno-imports", // checks for relative vs full fqn
+    Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
     libraryDependencies ++= Seq(
       "org.scala-lang"     % "scala-compiler" % scalaVersion.value % "provided",
       "org.scala-lang"     % "scala-reflect"  % scalaVersion.value % "provided",
@@ -191,4 +191,4 @@ val jsonformat = (project in file("examples/jsonformat"))
   )
 
 // root project
-skip in publish := true
+publish / skip := true
