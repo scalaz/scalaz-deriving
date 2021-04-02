@@ -65,7 +65,7 @@ object ProjectKeys {
   def SemanticDB =
     //addCompilerPlugin(scalafixSemanticdb)
     addCompilerPlugin(
-      ("org.scalameta" % "semanticdb-scalac" % "4.4.10")
+      ("org.scalameta" % "semanticdb-scalac" % "4.4.11")
         .cross(CrossVersion.full)
     )
 
