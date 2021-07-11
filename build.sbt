@@ -76,7 +76,7 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
     "org.scala-lang"              % "scala-reflect"             % scalaVersion.value % "provided",
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5"            % "test",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0"            % "test",
     "org.scalaz"                 %% "scalaz-core"               % scalazVersion
   )
 )
