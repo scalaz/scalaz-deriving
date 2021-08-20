@@ -4,7 +4,7 @@
 package xmlformat
 package generic
 
-import scalaz.{ Coproduct => _, :+: => _, _ }, Scalaz._
+import scalaz.{ :+: => _, Coproduct => _, _ }, Scalaz._
 import shapeless._
 import shapeless.labelled._
 
@@ -474,7 +474,7 @@ trait LowPriorityDerivedXDecoder2 {
               val messages = fails.intercalate("\n")
               s"$key:\n$messages".left
             case _                      =>
-              fail(s"only one '${key}'", in.asChild)
+              fail(s"only one '$key'", in.asChild)
           }
         }
     }
