@@ -3,7 +3,7 @@
 
 package jsonformat
 
-import scalaz.{ Coproduct => _, :+: => _, _ }, Scalaz._
+import scalaz.{ :+: => _, Coproduct => _, _ }, Scalaz._
 import shapeless._, labelled._
 
 import JsDecoder.{ fail, FastJsObject }

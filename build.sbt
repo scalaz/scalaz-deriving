@@ -13,17 +13,17 @@ addCommandAlias(
 )
 addCommandAlias(
   "lint",
-  s";++ ${Scala212};compile:scalafix --check;test:scalafix --check"
+  s";++ $Scala212;compile:scalafix --check;test:scalafix --check"
 )
-addCommandAlias("fix", s";++ ${Scala212};all compile:scalafix test:scalafix")
+addCommandAlias("fix", s";++ $Scala212;all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
   Test / scalacOptions += "-Yno-predef",
   Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
   crossScalaVersions := ProjectKeys.allScalaVersions,
-  crossVersion := CrossVersion.full,
-  crossTarget := {
+  crossVersion       := CrossVersion.full,
+  crossTarget        := {
     // workaround for https://github.com/sbt/sbt/issues/5097
     target.value / s"scala-${scalaVersion.value}"
   },
@@ -68,7 +68,7 @@ val macros = (project in file("deriving-macro"))
 val base = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
   MonadicFor,
-  name := "scalaz-deriving-base",
+  name     := "scalaz-deriving-base",
   licenses := Seq(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
   ),

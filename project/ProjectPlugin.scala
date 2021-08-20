@@ -35,7 +35,7 @@ object ProjectKeys {
       .map(_.drop(prefix.length).toLong)
       .reduceLeftOption(_ max _)
       .getOrElse(
-        sys.error(s"not found Scala ${prefix}x version ${allScalaVersions}")
+        sys.error(s"not found Scala ${prefix}x version $allScalaVersions")
       )
   }
 
@@ -89,18 +89,18 @@ object ProjectPlugin extends AutoPlugin {
 
   override def buildSettings =
     Seq(
-      organization := "org.scalaz",
+      organization       := "org.scalaz",
       crossScalaVersions := Seq(Scala212, Scala213),
-      scalaVersion := Scala213,
-      sonatypeGithost := (Github, "scalaz", "scalaz-deriving"),
+      scalaVersion       := Scala213,
+      sonatypeGithost    := (Github, "scalaz", "scalaz-deriving"),
       sonatypeDevelopers := List("Sam Halliday"),
-      licenses := Seq(LGPL3),
-      startYear := Some(2017)
+      licenses           := Seq(LGPL3),
+      startYear          := Some(2017)
     )
 
   override def projectSettings =
     Seq(
-      publishTo := xerial.sbt.Sonatype.autoImport.sonatypePublishToBundle.value,
+      publishTo                              := xerial.sbt.Sonatype.autoImport.sonatypePublishToBundle.value,
       SemanticDB,
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % Test,
       scalacOptions --= Seq(
@@ -146,6 +146,6 @@ object ProjectPlugin extends AutoPlugin {
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Werror"))),
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Ywarn"))),
       Test / doc / scalacOptions -= "-Xfatal-warnings",
-      Compile / console / initialCommands := "import scalaz._, Scalaz._"
+      Compile / console / initialCommands    := "import scalaz._, Scalaz._"
     )
 }
