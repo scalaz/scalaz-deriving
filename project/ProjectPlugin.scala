@@ -103,7 +103,7 @@ object ProjectPlugin extends AutoPlugin {
     Seq(
       publishTo                              := xerial.sbt.Sonatype.autoImport.sonatypePublishToBundle.value,
       SemanticDB,
-      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       scalacOptions --= Seq(
         "-Xfatal-warnings"
       ),
