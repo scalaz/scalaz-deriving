@@ -151,7 +151,7 @@ private[jsonformat] trait JsDecoderScalaz1 {
         case (left @ \/-(_), -\/(_))  => left.map(_.left)
         case (-\/(_), right @ \/-(_)) => right.map(_.right)
         case (\/-(_), \/-(_))         => fail("No ambiguity", v)
-        case (-\/(ea), -\/(eb))       => s"Left: ${ea}\nRight: $eb".left
+        case (-\/(ea), -\/(eb))       => s"Left: $ea\nRight: $eb".left
       }
   }
 
