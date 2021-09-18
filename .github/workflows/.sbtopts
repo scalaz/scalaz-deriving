@@ -1,5 +1,5 @@
 -J-Xms2000M
--J-Xmx3000M
+-J-Xmx5000M
 -J-Xss6M
--J-XX:MaxPermSize=512M
+-J-XX:MaxPermSize=1024M
 -J-XX:+UseG1GC
