@@ -28,7 +28,7 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
     ev: A PairedWith FA
   ): F[Z] = altlyz(tcs)(f)
 
-  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] =
+  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A]         =
     altly2(a1, a2) {
       case -\/(a) => a
       case \/-(a) => a

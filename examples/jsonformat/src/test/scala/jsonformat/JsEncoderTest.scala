@@ -107,7 +107,7 @@ class JsEncoderTest extends JsTest {
         JsArray(IList(fa.toJson(a), fb.toJson(b)))
       }
 
-      override def conquer[A]: JsEncoder[A] = _ => JsNull
+      override def conquer[A]: JsEncoder[A]                                   = _ => JsNull
     }
 
     val S: JsEncoder[String]        = JsEncoder[String]

@@ -649,7 +649,7 @@ package h {
       } yield Urls(url, expanded_url, display_url, indices)
     )
 
-    implicit val equal: Equal[Urls] = (a1, a2) =>
+    implicit val equal: Equal[Urls]       = (a1, a2) =>
       a1.url === a2.url &&
         a1.expanded_url === a2.expanded_url &&
         a1.display_url === a2.display_url

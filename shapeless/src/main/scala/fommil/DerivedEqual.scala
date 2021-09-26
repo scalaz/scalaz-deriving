@@ -32,7 +32,7 @@ object DerivedEqual {
           T.equal(ht1.tail, ht2.tail)
     }
 
-  implicit val hnil: DerivedEqual[HNil] = new DerivedEqual[HNil] {
+  implicit val hnil: DerivedEqual[HNil]                    = new DerivedEqual[HNil] {
     def equal(h1: HNil, h2: HNil): Boolean = true
   }
 
@@ -49,7 +49,7 @@ object DerivedEqual {
         }
     }
 
-  implicit val cnil: DerivedEqual[CNil] = new DerivedEqual[CNil] {
+  implicit val cnil: DerivedEqual[CNil]                    = new DerivedEqual[CNil] {
     def equal(c1: CNil, c2: CNil): Boolean = sys.error("impossible")
   }
 

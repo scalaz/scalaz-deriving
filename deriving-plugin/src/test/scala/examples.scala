@@ -32,7 +32,7 @@ final case class Foo(string: String, int: Int) extends Baz
 
 @deriving(json.Format, Cofoo, B)
 final case class Bar(foo: Foo) extends Baz
-object Bar {
+object Bar   {
   def hello: String = ""
 }
 
@@ -51,7 +51,7 @@ final case class Anyx(s: String) extends AnyVal
 final case class Anyz(s: String) extends AnyVal
 
 @xderiving(Cofoo, B)
-final class Anyzz(val s: String)               extends scala.AnyVal
+final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 

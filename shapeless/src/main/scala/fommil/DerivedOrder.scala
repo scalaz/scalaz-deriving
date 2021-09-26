@@ -40,7 +40,7 @@ object DerivedOrder {
           }
     }
 
-  implicit val hnil: DerivedOrder[HNil] = new DerivedOrder[HNil] {
+  implicit val hnil: DerivedOrder[HNil]                    = new DerivedOrder[HNil] {
     override def equal(h1: HNil, h2: HNil): Boolean = true
     def order(h1: HNil, h2: HNil): Ordering         = Ordering.EQ
   }
@@ -67,7 +67,7 @@ object DerivedOrder {
         }
     }
 
-  implicit val cnil: DerivedOrder[CNil] = new DerivedOrder[CNil] {
+  implicit val cnil: DerivedOrder[CNil]                    = new DerivedOrder[CNil] {
     override def equal(c1: CNil, c2: CNil): Boolean = sys.error("impossible")
     def order(c1: CNil, c2: CNil): Ordering         = sys.error("impossible")
   }

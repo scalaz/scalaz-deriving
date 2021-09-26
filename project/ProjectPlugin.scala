@@ -11,7 +11,7 @@ import org.scalafmt.sbt.ScalafmtPlugin
 import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
 
 object ProjectKeys {
-  val allScalaVersions = Seq(
+  val allScalaVersions                     = Seq(
     "2.12.8",
     "2.12.9",
     "2.12.10",
@@ -85,10 +85,10 @@ object ProjectPlugin extends AutoPlugin {
     fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin && ScalafixPlugin
   override def trigger  = allRequirements
 
-  val autoImport = ProjectKeys
+  val autoImport               = ProjectKeys
   import autoImport._
 
-  override def buildSettings =
+  override def buildSettings   =
     Seq(
       organization       := "org.scalaz",
       crossScalaVersions := Seq(Scala212, Scala213),

@@ -27,11 +27,11 @@ object JsEncoder
         b => fa.toJson(f(b))
     }
 
-  implicit val jsValue: JsEncoder[JsValue] = identity
-  implicit val long: JsEncoder[Long]       = JsInteger(_)
-  implicit val double: JsEncoder[Double]   = JsDouble(_)
-  implicit val boolean: JsEncoder[Boolean] = JsBoolean(_)
-  implicit val string: JsEncoder[String]   = JsString(_)
+  implicit val jsValue: JsEncoder[JsValue]             = identity
+  implicit val long: JsEncoder[Long]                   = JsInteger(_)
+  implicit val double: JsEncoder[Double]               = JsDouble(_)
+  implicit val boolean: JsEncoder[Boolean]             = JsBoolean(_)
+  implicit val string: JsEncoder[String]               = JsString(_)
 
   implicit val float: JsEncoder[Float]   = double.contramap(_.toDouble)
   implicit val int: JsEncoder[Int]       = long.contramap(_.toLong)
@@ -46,13 +46,13 @@ object JsEncoder
 private[jsonformat] trait JsEncoderScalaz1 {
   this: JsEncoder.type =>
 
-  implicit def ilist[A: JsEncoder]: JsEncoder[IList[A]] =
+  implicit def ilist[A: JsEncoder]: JsEncoder[IList[A]]                   =
     as => JsArray(as.map(_.toJson))
 
-  implicit def nel[A: JsEncoder]: JsEncoder[NonEmptyList[A]] =
+  implicit def nel[A: JsEncoder]: JsEncoder[NonEmptyList[A]]              =
     ilist[A].contramap(_.list)
 
-  implicit def imap[A: JsEncoder]: JsEncoder[String ==>> A] = { m =>
+  implicit def imap[A: JsEncoder]: JsEncoder[String ==>> A]               = { m =>
     val fields = m.toList.map { case (k, v) =>
       k -> v.toJson
     }
@@ -68,7 +68,7 @@ private[jsonformat] trait JsEncoderScalaz1 {
     case \/-(b) => b.toJson
   }
 
-  implicit def tagged[A: JsEncoder, Z]: JsEncoder[A @@ Z] =
+  implicit def tagged[A: JsEncoder, Z]: JsEncoder[A @@ Z]                 =
     JsEncoder[A].contramap(Tag.unwrap)
 }
 private[jsonformat] trait JsEncoderRefined {
@@ -86,9 +86,9 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
     disjunction[A, B].contramap(_.toDisjunction)
 
-  implicit def list[A: JsEncoder]: JsEncoder[List[A]] =
+  implicit def list[A: JsEncoder]: JsEncoder[List[A]]                      =
     ilist[A].contramap(_.toIList)
-  implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]] = { m =>
+  implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]]               = { m =>
     val fields = m.toList.map { case (k, v) =>
       k -> v.toJson
     }

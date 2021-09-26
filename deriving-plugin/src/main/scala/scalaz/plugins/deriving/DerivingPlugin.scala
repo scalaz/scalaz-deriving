@@ -166,8 +166,8 @@ class DerivingPlugin(override val global: Global)
       )
     )
 
-  private[this] val newtypes              = Set("newtype", "newsubtype")
-  def isNewType(clazz: ClassDef): Boolean =
+  private[this] val newtypes                                      = Set("newtype", "newsubtype")
+  def isNewType(clazz: ClassDef): Boolean                         =
     clazz.mods.annotations.collectFirst {
       case Apply(Select(New(ann), termNames.CONSTRUCTOR), Nil) => ann
     }.collect {
@@ -175,6 +175,6 @@ class DerivingPlugin(override val global: Global)
       case Select(_, TypeName(annName)) => annName
     }.exists(newtypes)
 
-  override def addSuperFunction(clazz: ClassDef): Boolean = !isNewType(clazz)
+  override def addSuperFunction(clazz: ClassDef): Boolean         = !isNewType(clazz)
 
 }

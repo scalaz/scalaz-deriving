@@ -28,13 +28,13 @@ trait Divisiblez[F[_]] extends InvariantApplicativez[F] with Divisible[F] {
     ev: A PairedWith FA
   ): F[Z] = dividez(tcs)(g)
 
-  override def conquer[Z]: F[Z] =
+  override def conquer[Z]: F[Z]                                         =
     dividez[Z, TNil, TNil](empty)(_ => empty)
 
   override def xmap[A, B](ma: F[A], @unused f: A => B, g: B => A): F[B] =
     contramap(ma)(g)
 
-  override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z] =
+  override def contramap[A1, Z](a1: F[A1])(f: Z => A1): F[Z]            =
     dividez(Prod(Value(a1)))(z => Prod[A1 :: TNil](f(z)))
 
   override def divide2[A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(

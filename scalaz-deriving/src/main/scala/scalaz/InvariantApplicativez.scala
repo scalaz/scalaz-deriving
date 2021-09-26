@@ -16,10 +16,10 @@ trait InvariantApplicativez[F[_]]
     extends InvariantApplicative[F]
     with DerivingProducts[F] {
 
-  override def xmap[A, B](ma: F[A], f: A => B, g: B => A): F[B] =
+  override def xmap[A, B](ma: F[A], f: A => B, g: B => A): F[B]            =
     xproduct1(ma)(f, g)
 
-  override def xproduct0[Z](z: =>Z): F[Z] =
+  override def xproduct0[Z](z: =>Z): F[Z]                                  =
     xproductz[Z, TNil, TNil](empty)(_ => z, _ => empty)
   override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] = {
     type L = A1 :: TNil

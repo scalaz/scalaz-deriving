@@ -7,7 +7,7 @@ import scalaz._, Scalaz._
 import simulacrum._
 
 @typeclass(generateAllOps = false)
-trait XDecoder[A]        { self =>
+trait XDecoder[A] { self =>
   def fromXml(x: XChildren): String \/ A
 
   // for performance
@@ -76,7 +76,7 @@ private[xmlformat] trait XDecoderScalaz1 {
     }
   }
 
-  implicit def ilistStr[A: XStrDecoder]: XDecoder[IList[A]] = { xs =>
+  implicit def ilistStr[A: XStrDecoder]: XDecoder[IList[A]]            = { xs =>
     xs.tree.traverseDisjunction {
       case XTag(_, _, _, Maybe.Just(body)) =>
         XStrDecoder[A].fromXml(body)
@@ -84,21 +84,21 @@ private[xmlformat] trait XDecoderScalaz1 {
     }
   }
 
-  implicit def ilist[A: XDecoder]: XDecoder[IList[A]] = { xs =>
+  implicit def ilist[A: XDecoder]: XDecoder[IList[A]]                  = { xs =>
     xs.tree.traverseDisjunction(x => XDecoder[A].fromXml(x.asChild))
   }
 
-  implicit def nelStr[A: XStrDecoder]: XDecoder[NonEmptyList[A]] =
+  implicit def nelStr[A: XStrDecoder]: XDecoder[NonEmptyList[A]]       =
     ilistStr[A].emap { lst =>
       lst.toNel \/> "list was empty"
     }
 
-  implicit def nel[A: XDecoder]: XDecoder[NonEmptyList[A]] =
+  implicit def nel[A: XDecoder]: XDecoder[NonEmptyList[A]]             =
     ilist[A].emap { lst =>
       lst.toNel \/> "list was empty"
     }
 
-  implicit def tagged[A: XDecoder, Z]: XDecoder[A @@ Z] =
+  implicit def tagged[A: XDecoder, Z]: XDecoder[A @@ Z]                =
     XDecoder[A].map(Tag(_))
 
 }
@@ -130,11 +130,11 @@ private[xmlformat] trait XDecoderStdlib1 {
   implicit def either[A: XDecoder, B: XDecoder]: XDecoder[Either[A, B]] =
     disjunction[A, B].map(_.toEither)
 
-  implicit def listStr[A: XStrDecoder]: XDecoder[List[A]] =
+  implicit def listStr[A: XStrDecoder]: XDecoder[List[A]]               =
     ilistStr[A].map(_.toList)
-  implicit def list[A: XDecoder]: XDecoder[List[A]]       = ilist[A].map(_.toList)
+  implicit def list[A: XDecoder]: XDecoder[List[A]]                     = ilist[A].map(_.toList)
 
-  implicit def tuple2[A: XNodeDecoder, B: XNodeDecoder]: XDecoder[(A, B)] = {
+  implicit def tuple2[A: XNodeDecoder, B: XNodeDecoder]: XDecoder[(A, B)]  = {
     case XChildren(
           ICons(
             XTag(

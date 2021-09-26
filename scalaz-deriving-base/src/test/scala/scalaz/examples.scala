@@ -47,9 +47,9 @@ package adt {
       case faz: Faz      => \/-(\/-(faz))
     }
 
-    implicit val equal: Equal[Foo]     =
+    implicit val equal: Equal[Foo]                            =
       InvariantAlt[Equal].xcoderiving3(to, from)
-    implicit val default: Default[Foo] =
+    implicit val default: Default[Foo]                        =
       InvariantAlt[Default].xcoderiving3(to, from)
   }
 }
@@ -94,12 +94,12 @@ package recadt {
       case branch @ Branch(_, _) => \/-(branch)
     }
 
-    implicit val equal: Equal[ATree]     =
+    implicit val equal: Equal[ATree]                =
       InvariantAlt[Equal].xcoproduct2(
         implicitly[Equal[Leaf]],
         implicitly[Equal[Branch]]
       )(to, from)
-    implicit val default: Default[ATree] =
+    implicit val default: Default[ATree]            =
       InvariantAlt[Default].xcoderiving2(to, from)
   }
 
@@ -145,12 +145,12 @@ package recgadt {
       case branch @ GBranch(_, _) => \/-(branch)
     }
 
-    implicit def equal[A: Equal]: Equal[GTree[A]]       =
+    implicit def equal[A: Equal]: Equal[GTree[A]]                 =
       InvariantAlt[Equal].xcoproduct2(
         implicitly[Equal[GLeaf[A]]],
         implicitly[Equal[GBranch[A]]]
       )(to, from)
-    implicit def default[A: Default]: Default[GTree[A]] =
+    implicit def default[A: Default]: Default[GTree[A]]           =
       InvariantAlt[Default].xcoproduct2(
         implicitly[Default[GLeaf[A]]],
         implicitly[Default[GBranch[A]]]

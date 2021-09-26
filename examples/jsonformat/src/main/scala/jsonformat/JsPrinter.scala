@@ -10,7 +10,7 @@ import internal.TCord
 object PrettyPrinter {
   def apply(j: JsValue): String = print(j, 0).shows
 
-  private def print(j: JsValue, level: Int): TCord =
+  private def print(j: JsValue, level: Int): TCord               =
     j match {
       case JsArray(as)  =>
         "[" :: as.map(print(_, level)).intercalate(", ") ++ "]"
@@ -27,8 +27,8 @@ object PrettyPrinter {
       level
     )
 
-  private[this] val pad: Int => TCord       = Memo.arrayMemo[TCord](16).apply(pad0(_))
-  private[this] def pad0(level: Int): TCord =
+  private[this] val pad: Int => TCord                            = Memo.arrayMemo[TCord](16).apply(pad0(_))
+  private[this] def pad0(level: Int): TCord                      =
     "\n" + (" " * 2 * level)
 
 }
@@ -39,7 +39,7 @@ object CompactPrinter {
 
   def apply(j: JsValue): String = print(j).shows
 
-  private[jsonformat] def print(j: JsValue): TCord =
+  private[jsonformat] def print(j: JsValue): TCord   =
     j match {
       case JsNull       => "null"
       case JsBoolean(v) => if (v) "true" else "false"

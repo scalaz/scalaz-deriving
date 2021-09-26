@@ -37,7 +37,7 @@ case object Baz                                      extends SimpleTrait {
   t: Option[Recursive] = None
 )
 
-object orphans {
+object orphans       {
   implicit val e: XStrEncoder[Foo] = XStrEncoder[String].contramap(_.s)
   implicit val d: XStrDecoder[Foo] = XStrDecoder[String].map(Foo(_))
 
@@ -85,7 +85,7 @@ final case class Outliners(
 sealed abstract class TaggyNames
 @deriving(XEncoder, XDecoder)
 @x.body
-final case class TaggyA()             extends TaggyNames
+final case class TaggyA() extends TaggyNames
 @xderiving(XStrEncoder, XStrDecoder)
 @x.body
 final case class TaggyB(body: String) extends TaggyNames

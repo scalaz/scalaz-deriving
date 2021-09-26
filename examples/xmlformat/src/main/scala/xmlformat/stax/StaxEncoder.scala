@@ -23,7 +23,7 @@ object StaxEncoder {
     }
   }
 
-  def encode(t: XTag): String = {
+  def encode(t: XTag): String                                               = {
     val output = new StringWriter
 
     val x = factory.get.createXMLStreamWriter(output)
@@ -69,8 +69,8 @@ object StaxEncoder {
     x.writeEndElement()
   }
 
-  private[this] val entities                      = Pattern.compile("""("|&|'|<|>)""")
-  def containsXmlEntities(input: String): Boolean =
+  private[this] val entities                                                = Pattern.compile("""("|&|'|<|>)""")
+  def containsXmlEntities(input: String): Boolean                           =
     entities.matcher(input).find()
 
 }

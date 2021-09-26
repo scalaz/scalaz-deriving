@@ -31,13 +31,13 @@ object XEncoder
 private[xmlformat] trait XEncoderScalaz1 {
   this: XEncoder.type =>
 
-  implicit def ilistStr[A: XStrEncoder]: XEncoder[IList[A]] = { as =>
+  implicit def ilistStr[A: XStrEncoder]: XEncoder[IList[A]]            = { as =>
     XChildren(
       as.map(a => XTag("value", XStrEncoder[A].toXml(a)))
     )
   }
 
-  implicit def ilist[A: XEncoder]: XEncoder[IList[A]] = { as =>
+  implicit def ilist[A: XEncoder]: XEncoder[IList[A]]                  = { as =>
     XChildren(as.flatMap(a => XEncoder[A].toXml(a).tree))
   }
 
@@ -46,13 +46,13 @@ private[xmlformat] trait XEncoderScalaz1 {
     case \/-(b) => XEncoder[B].toXml(b)
   }
 
-  implicit def nelStr[A: XStrEncoder]: XEncoder[NonEmptyList[A]] =
+  implicit def nelStr[A: XStrEncoder]: XEncoder[NonEmptyList[A]]       =
     ilistStr[A].contramap(_.list)
 
-  implicit def nel[A: XEncoder]: XEncoder[NonEmptyList[A]] =
+  implicit def nel[A: XEncoder]: XEncoder[NonEmptyList[A]]             =
     ilist[A].contramap(_.list)
 
-  implicit def tagged[A: XEncoder, Z]: XEncoder[A @@ Z] =
+  implicit def tagged[A: XEncoder, Z]: XEncoder[A @@ Z]                =
     XEncoder[A].contramap(Tag.unwrap)
 
 }
@@ -79,15 +79,15 @@ private[xmlformat] trait XEncoderRefined {
 private[xmlformat] trait XEncoderStdlib1 {
   this: XEncoder.type =>
 
-  implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]] =
+  implicit def either[A: XEncoder, B: XEncoder]: XEncoder[Either[A, B]]    =
     disjunction[A, B].contramap(_.toDisjunction)
 
-  implicit def listStr[A: XStrEncoder]: XEncoder[List[A]] =
+  implicit def listStr[A: XStrEncoder]: XEncoder[List[A]]                  =
     ilistStr[A].contramap(_.toIList)
-  implicit def list[A: XEncoder]: XEncoder[List[A]]       =
+  implicit def list[A: XEncoder]: XEncoder[List[A]]                        =
     ilist[A].contramap(_.toIList)
 
-  implicit def tuple2[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[(A, B)] = {
+  implicit def tuple2[A: XNodeEncoder, B: XNodeEncoder]: XEncoder[(A, B)]  = {
     case (a, b) =>
       val key   = XNodeEncoder[A].toXml(a) match {
         case XChildren(ts)  => ts.map(_.copy(name = "key"))

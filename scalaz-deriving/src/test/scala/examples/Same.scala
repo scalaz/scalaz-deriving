@@ -45,7 +45,7 @@ object Same              {
     }
   }
 
-  implicit val deriving: Deriving[Same] = ExtendedInvariantAlt(decidable)
+  implicit val deriving: Deriving[Same]   = ExtendedInvariantAlt(decidable)
 
   implicit val int: Same[Int] = long.contramap(_.toLong)
 

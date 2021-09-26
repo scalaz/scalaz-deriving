@@ -23,7 +23,7 @@ abstract class JsTest
     def jsonString: String = CompactPrinter(t.toJson)
   }
 
-  implicit class DecoderHelper(s: String) {
+  implicit class DecoderHelper(s: String)          {
     def parseAs[A: JsDecoder]: String \/ A =
       JsParser(s) >>= (_.as[A])
   }

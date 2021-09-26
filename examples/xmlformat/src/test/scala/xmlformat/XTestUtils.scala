@@ -26,7 +26,7 @@ object XTestUtils {
       }
   }
 
-  implicit class DisjunctionValuesOps[L, R](e: L \/ R) {
+  implicit class DisjunctionValuesOps[L, R](e: L \/ R)        {
     def rightValue(implicit P: Position): R =
       e match {
         case -\/(left)  => fail(s"got Left: $left")
@@ -40,13 +40,13 @@ object XTestUtils {
       }
   }
 
-  implicit class XHelper(xml: XChildren)  {
+  implicit class XHelper(xml: XChildren)                      {
     def as[T: XDecoder](implicit P: Position): T = xml.decode[T].rightValue
   }
-  implicit class XStrHelper(xml: XString) {
+  implicit class XStrHelper(xml: XString)                     {
     def as[T: XStrDecoder](implicit P: Position): T = xml.decode[T].rightValue
   }
-  implicit class XTagHelper(tag: XTag)    {
+  implicit class XTagHelper(tag: XTag)                        {
     def as[T: XDecoder](implicit P: Position): T = tag.asChild.as[T]
   }
 

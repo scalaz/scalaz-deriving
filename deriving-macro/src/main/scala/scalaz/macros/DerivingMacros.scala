@@ -60,7 +60,7 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
         success => DerivingConfig(success)
       )
 
-  private def parseTerm(s: String): Tree = {
+  private def parseTerm(s: String): Tree   = {
     def toSelect(parts: List[TermName]): Tree =
       parts match {
         case Nil          => Ident(termNames.ROOTPKG)

@@ -19,24 +19,24 @@ object Defaultzy   {
       override def default: Maybe[A] = ma
     }
 
-  implicit val int: Defaultzy[Int]         = instance(0.just)
-  implicit val string: Defaultzy[String]   = instance("".just)
-  implicit val boolean: Defaultzy[Boolean] = instance(false.just)
+  implicit val int: Defaultzy[Int]                             = instance(0.just)
+  implicit val string: Defaultzy[String]                       = instance("".just)
+  implicit val boolean: Defaultzy[Boolean]                     = instance(false.just)
 
   implicit val defaultz_altz: Altz[Defaultzy] = new Altz[Defaultzy] {
     private[this] val extract = λ[NameF ~> Maybe](a => a.value.default)
     def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Prod[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z]           =
+    ): Defaultzy[Z] =
       instance {
         tcs.traverse[A, NameF, Maybe](extract).map(f)
       }
 
-    private[this] val always =
+    private[this] val always  =
       λ[NameF ~> Maybe](a => a.value.default)
     def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z]          =
+    ): Defaultzy[Z] =
       instance {
         tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
       }

@@ -35,7 +35,7 @@ private[scalaz] object DerivingConfig {
       }
   private[this] val EmptyResults: Result[Stringy]   = Right(Map.empty)
 
-  private[this] def parseProperties(config: String): Result[Stringy] =
+  private[this] def parseProperties(config: String): Result[Stringy]  =
     try Right(
       config
         .split("\n")
@@ -65,9 +65,9 @@ private[scalaz] object DerivingConfig {
     is: java.io.InputStream
   ): Either[String, String] =
     try {
-      val baos     = new java.io.ByteArrayOutputStream()
-      val data     = Array.ofDim[Byte](2048)
-      var len: Int = 0
+      val baos        = new java.io.ByteArrayOutputStream()
+      val data        = Array.ofDim[Byte](2048)
+      var len: Int    = 0
       def read(): Int = { len = is.read(data); len }
       while (read != -1)
         baos.write(data, 0, len)

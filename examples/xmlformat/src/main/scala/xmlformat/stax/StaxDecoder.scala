@@ -21,7 +21,7 @@ object StaxDecoder {
   }
 
   import XMLStreamConstants._
-  def parse(txt: String): String \/ XTag = {
+  def parse(txt: String): String \/ XTag               = {
     val reader = factory.get.createXMLStreamReader(new StringReader(txt))
     try {
       reader.nextTag()

@@ -13,7 +13,7 @@ import scalaz._, Scalaz._
 import simulacrum._
 
 @typeclass(generateAllOps = false)
-trait XStrDecoder[A]       { self =>
+trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
 
   // for performance
@@ -50,23 +50,23 @@ object XStrDecoder
       }
     }
 
-  implicit val string: XStrDecoder[String] = { case XString(text) =>
+  implicit val string: XStrDecoder[String]                                    = { case XString(text) =>
     \/-(text.trim)
   }
 
-  implicit val boolean: XStrDecoder[Boolean] = str(_.toBoolean)
-  implicit val short: XStrDecoder[Short]     = str(_.toShort)
-  implicit val int: XStrDecoder[Int]         = str(_.toInt)
-  implicit val long: XStrDecoder[Long]       = str(_.toLong)
-  implicit val float: XStrDecoder[Float]     = str(_.toFloat)
-  implicit val double: XStrDecoder[Double]   = str(_.toDouble)
-  implicit val uuid: XStrDecoder[UUID]       = str(UUID.fromString)
-  implicit val instant: XStrDecoder[Instant] = str(Instant.parse)
-  implicit val char: XStrDecoder[Char]       = string.emap {
+  implicit val boolean: XStrDecoder[Boolean]                                  = str(_.toBoolean)
+  implicit val short: XStrDecoder[Short]                                      = str(_.toShort)
+  implicit val int: XStrDecoder[Int]                                          = str(_.toInt)
+  implicit val long: XStrDecoder[Long]                                        = str(_.toLong)
+  implicit val float: XStrDecoder[Float]                                      = str(_.toFloat)
+  implicit val double: XStrDecoder[Double]                                    = str(_.toDouble)
+  implicit val uuid: XStrDecoder[UUID]                                        = str(UUID.fromString)
+  implicit val instant: XStrDecoder[Instant]                                  = str(Instant.parse)
+  implicit val char: XStrDecoder[Char]                                        = string.emap {
     case s if s.length == 1 => \/-(s(0))
     case s                  => -\/(s"text too long: $s")
   }
-  implicit val symbol: XStrDecoder[Symbol]   = str(Symbol(_))
+  implicit val symbol: XStrDecoder[Symbol]                                    = str(Symbol(_))
 
   implicit val xstring: XStrDecoder[XString] = _.right[String]
 

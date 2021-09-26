@@ -84,7 +84,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     }
   }
 
-  private def phase =
+  private def phase                                   =
     new PluginComponent with TypingTransformers {
       override val phaseName: String                         = AnnotationPlugin.this.name
       override val global: AnnotationPlugin.this.global.type =
@@ -103,18 +103,18 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             autobots(super.transform(tree))
         }
 
-      val Triggers: List[TypeName]             = triggers.map(newTypeName)
-      private def hasTrigger(t: Tree): Boolean =
+      val Triggers: List[TypeName]                                      = triggers.map(newTypeName)
+      private def hasTrigger(t: Tree): Boolean                          =
         t.exists {
           case c: ClassDef if hasTrigger(c.mods)  => true
           case m: ModuleDef if hasTrigger(m.mods) => true
           case _                                  => false
         }
 
-      private def hasTrigger(mods: Modifiers): Boolean =
+      private def hasTrigger(mods: Modifiers): Boolean                  =
         Triggers.exists(mods.hasAnnotationNamed)
 
-      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
+      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree])   = {
         val trigger = getTriggers(c.mods.annotations)
         //val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
         // if we remove the annotation, like a macro annotation, we end up with a
@@ -132,10 +132,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
         (update, trigger)
       }
 
-      private def getTriggers(anns: List[Tree]): List[Tree] =
+      private def getTriggers(anns: List[Tree]): List[Tree]             =
         anns.filter(a => Triggers.exists(isNamed(a, _)))
 
-      private def isNamed(t: Tree, name: TypeName) =
+      private def isNamed(t: Tree, name: TypeName)                      =
         t match {
           case Apply(Select(New(Ident(`name`)), _), _)     => true
           case Apply(Select(New(Select(_, `name`)), _), _) => true
