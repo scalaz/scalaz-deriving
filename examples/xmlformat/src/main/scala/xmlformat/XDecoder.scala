@@ -7,7 +7,7 @@ import scalaz._, Scalaz._
 import simulacrum._
 
 @typeclass(generateAllOps = false)
-trait XDecoder[A]        { self =>
+trait XDecoder[A] { self =>
   def fromXml(x: XChildren): String \/ A
 
   // for performance

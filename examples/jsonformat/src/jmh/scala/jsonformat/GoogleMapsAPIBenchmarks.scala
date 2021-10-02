@@ -204,7 +204,7 @@ package h {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)]           =
+    ): IList[(String, JsValue)] =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 
@@ -221,7 +221,7 @@ package h {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)]                     =
+    ): IList[(String, JsValue)] =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 

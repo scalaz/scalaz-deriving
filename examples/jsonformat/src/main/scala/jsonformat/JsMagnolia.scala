@@ -135,7 +135,7 @@ object JsMagnoliaDecoder {
             \/-(value)
           override def flatMap[X, Y](
             from: String \/ X
-          )(fn: X => String \/ Y): String \/ Y                               =
+          )(fn: X => String \/ Y): String \/ Y =
             from.flatMap(fn)
           override def map[X, Y](from: String \/ X)(fn: X => Y): String \/ Y =
             from.map(fn)
