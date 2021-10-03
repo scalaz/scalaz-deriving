@@ -11,7 +11,7 @@ object BenchmarkUtils {
       val data     = Array.ofDim[Byte](2048)
       var len: Int = 0
       def read(): Int = { len = is.read(data); len }
-      while (read != -1)
+      while (read() != -1)
         baos.write(data, 0, len)
       baos.toString("UTF-8")
     } finally is.close()
