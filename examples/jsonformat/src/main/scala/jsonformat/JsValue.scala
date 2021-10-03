@@ -9,7 +9,7 @@ import org.scalacheck.Arbitrary
 import scalaz.scalacheck.ScalazArbitrary.ilistArbitrary
 
 @deriving(Show, Equal, Arbitrary)
-sealed abstract class JsValue {
+sealed abstract class JsValue extends Product with Serializable {
   def widen: JsValue = this
 }
 
