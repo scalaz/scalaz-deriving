@@ -21,7 +21,7 @@ import simulacrum.typeclass
 sealed abstract class Packed {
   def widen: Packed = this
 }
-object Packed                {
+object Packed {
   final case class Real(double: Double)               extends Packed
   final case class Rational(long: Long)               extends Packed
   final case class Characters(chars: String)          extends Packed

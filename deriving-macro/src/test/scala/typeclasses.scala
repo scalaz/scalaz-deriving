@@ -74,7 +74,7 @@ package a {
   object DerivedCobaz          {
     def gen[T[_]](implicit
       @unused G: shapeless.Generic1[T, DerivedCobaz]
-    ): DerivedCobaz[T]                        =
+    ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 
     implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */
@@ -86,7 +86,7 @@ package b {
   object DerivedCobaz {
     def gen[T[_]](implicit
       @unused G: shapeless.Generic1[T, DerivedCobaz]
-    ): DerivedCobaz[T]                        =
+    ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 
     implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */

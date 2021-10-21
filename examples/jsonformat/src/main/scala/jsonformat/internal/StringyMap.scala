@@ -117,7 +117,7 @@ private[jsonformat] final class StringyIList[A] private (
   @tailrec private[this] final def find(
     rem: IList[(String, A)],
     s: String
-  ): Maybe[A]                  =
+  ): Maybe[A] =
     rem match {
       case _: INil[_]  => Maybe.empty
       case c: ICons[_] =>

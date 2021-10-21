@@ -52,8 +52,8 @@ private[iotaz] final class CopMacros(val c: Context) {
           head.typeConstructor :: deconstructTCons(tail)
         }
       }
-      val provided   = deconstructTCons(R.dealias)
-      val calculated = subs.map(_.toTypeConstructor)
+      val provided                              = deconstructTCons(R.dealias)
+      val calculated                            = subs.map(_.toTypeConstructor)
       provided.zip(calculated).map { case (r, s) =>
         if (!(r =:= s))
           c.abort(

@@ -13,7 +13,7 @@ import scalaz._, Scalaz._
 import simulacrum._
 
 @typeclass(generateAllOps = false)
-trait XStrDecoder[A]       { self =>
+trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
 
   // for performance
