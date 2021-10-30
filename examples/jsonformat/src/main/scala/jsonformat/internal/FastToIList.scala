@@ -18,7 +18,7 @@ private[jsonformat] object FastToIList {
       extends AnyVal {
     // name clash with the Foldable syntax
     def asIList: IList[(A, B)] = self.foldRight(IList.empty[(A, B)])(_ :: _)
-    //def mapToIList[B](f: A => B): IList[B] = self.foldRight(IList.empty[B])(f(_) :: _)
+    // def mapToIList[B](f: A => B): IList[B] = self.foldRight(IList.empty[B])(f(_) :: _)
   }
 
 }

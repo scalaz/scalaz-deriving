@@ -86,7 +86,7 @@ private[jsonformat] trait JsEncoderStdlib1 {
   implicit def either[A: JsEncoder, B: JsEncoder]: JsEncoder[Either[A, B]] =
     disjunction[A, B].contramap(_.toDisjunction)
 
-  implicit def list[A: JsEncoder]: JsEncoder[List[A]] =
+  implicit def list[A: JsEncoder]: JsEncoder[List[A]]        =
     ilist[A].contramap(_.toIList)
   implicit def dict[A: JsEncoder]: JsEncoder[Map[String, A]] = { m =>
     val fields = m.toList.map { case (k, v) =>
@@ -102,7 +102,7 @@ private[jsonformat] trait JsEncoderScalaz2 {
   // isomorphic to IList, e.g. Map[BadThing, String], which has a Foldable over
   // the values. Think hard before adding such instances.
   //
-  //implicit def foldable[F[_]: Foldable, A: JsEncoder]: JsEncoder[F[A]] =
+  // implicit def foldable[F[_]: Foldable, A: JsEncoder]: JsEncoder[F[A]] =
   //  ilist[A].contramap(_.toIList)
 
 }

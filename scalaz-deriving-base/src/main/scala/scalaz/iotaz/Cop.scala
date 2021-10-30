@@ -82,7 +82,7 @@ object Cop {
     def apply[A, L <: TList](implicit ev: InjectL[A, L]): InjectL[A, L] = ev
     implicit def makeInjectL[A, L <: TList](implicit
       ev: TList.Pos[L, A]
-    ): InjectL[A, L]                                                    =
+    ): InjectL[A, L] =
       new InjectL[A, L](ev.index)
   }
 
@@ -99,7 +99,7 @@ object Cop {
     def apply[A, L <: TList](implicit ev: RemoveL[A, L]): RemoveL[A, L] = ev
     implicit def makeRemoveL[A, L <: TList](implicit
       ev: TList.Pos[L, A]
-    ): RemoveL[A, L]                                                    =
+    ): RemoveL[A, L] =
       new RemoveL[A, L](ev.index)
   }
 

@@ -58,7 +58,7 @@ package s {
 }
 @State(Scope.Benchmark)
 class SyntheticBenchmarks {
-  //@Param(Array("100", "1000"))
+  // @Param(Array("100", "1000"))
   var size: Int                       = 500
   var objh: h.Nested                  = _
   var objm: m.Nested                  = _
@@ -95,37 +95,37 @@ class SyntheticBenchmarks {
     require(CompactPrinter(encodeShapeless()) == jsonString)
   }
 
-  //@Benchmark
+  // @Benchmark
   def decodingErrorManual(): \/[String, h.Nested] =
     ast2.as[h.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def decodeManual(): \/[String, h.Nested] =
     ast1.as[h.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def encodeManual(): JsValue = objh.toJson
 
-  //@Benchmark
+  // @Benchmark
   def decodingErrorMagnolia(): String \/ m.Nested =
     ast2.as[m.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def decodeMagnoliaSuccess(): String \/ m.Nested =
     ast1.as[m.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def encodeMagnolia(): JsValue = objm.toJson
 
-  //@Benchmark
+  // @Benchmark
   def decodingErrorShapeless(): String \/ s.Nested =
     ast2.as[s.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def decodeShapelessSuccess(): String \/ s.Nested =
     ast1.as[s.Nested]
 
-  //@Benchmark
+  // @Benchmark
   def encodeShapeless(): JsValue = objs.toJson
 
 }

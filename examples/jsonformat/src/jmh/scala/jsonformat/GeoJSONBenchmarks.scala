@@ -36,19 +36,19 @@ package m {
 
   @deriving(JsEncoder, JsDecoder)
   sealed abstract class Geometry
-  final case class Point(coordinates: (Double, Double)) extends Geometry
+  final case class Point(coordinates: (Double, Double))        extends Geometry
   final case class MultiPoint(coordinates: IList[(Double, Double)])
       extends Geometry
   final case class LineString(coordinates: IList[(Double, Double)])
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -104,12 +104,12 @@ package s {
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -118,39 +118,39 @@ package s {
       extends GeoJSON
   final case class FeatureCollection(features: IList[GeoJSON]) extends GeoJSON
 
-  object Geometry           {
+  object Geometry        {
     implicit val encoder: JsEncoder[Geometry] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Geometry] = DerivedCoproductJsDecoder.gen
     implicit val equal: Equal[Geometry]       = DerivedEqual.gen
   }
-  object Point              {
+  object Point           {
     implicit val encoder: JsEncoder[Point] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Point] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[Point]       = DerivedEqual.gen
   }
-  object MultiPoint         {
+  object MultiPoint      {
     implicit val encoder: JsEncoder[MultiPoint] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiPoint] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[MultiPoint]       = DerivedEqual.gen
   }
-  object LineString         {
+  object LineString      {
     implicit val encoder: JsEncoder[LineString] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[LineString] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[LineString]       = DerivedEqual.gen
   }
-  object MultiLineString    {
+  object MultiLineString {
     implicit val encoder: JsEncoder[MultiLineString] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiLineString] =
       DerivedProductJsDecoder.gen
     implicit val equal: Equal[MultiLineString]       = DerivedEqual.gen
   }
-  object Polygon            {
+  object Polygon         {
     implicit val encoder: JsEncoder[Polygon] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Polygon] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[Polygon]       = DerivedEqual.gen
 
   }
-  object MultiPolygon       {
+  object MultiPolygon {
     implicit val encoder: JsEncoder[MultiPolygon] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiPolygon] = DerivedProductJsDecoder.gen
     implicit val equal: Equal[MultiPolygon]       = DerivedEqual.gen
@@ -194,12 +194,12 @@ package z {
       extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[(Double, Double)]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class Polygon(coordinates: IList[IList[(Double, Double)]])
       extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[(Double, Double)]]]
-  )                                                     extends Geometry
+  ) extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -273,11 +273,11 @@ package h {
   final case class LineString(coordinates: IList[Coords])     extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[Coords]]
-  )                                                           extends Geometry
+  ) extends Geometry
   final case class Polygon(coordinates: IList[IList[Coords]]) extends Geometry
   final case class MultiPolygon(
     coordinates: IList[IList[IList[Coords]]]
-  )                                                           extends Geometry
+  ) extends Geometry
   final case class GeometryCollection(geometries: IList[Geometry])
       extends Geometry
 
@@ -290,7 +290,7 @@ package h {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)]               =
+    ): IList[(String, JsValue)] =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 
@@ -399,14 +399,14 @@ package h {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
-    ): IList[(String, JsValue)]              =
+    ): IList[(String, JsValue)] =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 
     private def dict[A: JsEncoder](
       field: String,
       as: Map[String, A]
-    ): IList[(String, JsValue)]              =
+    ): IList[(String, JsValue)] =
       if (as.isEmpty) IList.empty
       else field -> as.toJson :: IList.empty
 

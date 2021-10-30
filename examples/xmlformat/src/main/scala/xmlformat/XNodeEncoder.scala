@@ -7,7 +7,7 @@ package xmlformat
 trait XNodeEncoder[A] { self =>
   def toXml(a: A): XNode
 }
-object XNodeEncoder   {
+object XNodeEncoder {
   implicit def fromTags[A](implicit X: XEncoder[A]): XNodeEncoder[A]    =
     X.toXml(_)
   implicit def fromText[A](implicit X: XStrEncoder[A]): XNodeEncoder[A] =

@@ -32,7 +32,7 @@ private[jsonformat] object TCord                {
   private[internal] final class Leaf private (
     val s: String
   ) extends TCord
-  private[internal] object Leaf {
+  private[internal] object Leaf   {
     val Empty: Leaf                    = new Leaf("")
     def apply(s: String): Leaf         =
       if (s.isEmpty) Empty

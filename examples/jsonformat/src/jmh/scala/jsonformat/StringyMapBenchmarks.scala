@@ -27,15 +27,15 @@ class StringyMapBenchmarks {
     stringy_java = createJava()
   }
 
-  //@Benchmark
+  // @Benchmark
   def createIList(): StringyMap[String] = StringyIList(data)
   @Benchmark
-  def createJava(): StringyMap[String]  = StringyJavaMap(data, 16)
+  def createJava(): StringyMap[String] = StringyJavaMap(data, 16)
 
   @Benchmark
   def lookupIList(): IList[Maybe[String]] = queries.map(stringy_ilist.get)
   @Benchmark
-  def lookupJava(): IList[Maybe[String]]  = queries.map(stringy_java.get)
+  def lookupJava(): IList[Maybe[String]] = queries.map(stringy_java.get)
 
 }
 

@@ -16,7 +16,7 @@ package anyvals {
   final case class Thing(s: String) extends AnyVal
 
   @deriving(Arbitrary)
-  final case class Thong(s: String)                            extends AnyVal
+  final case class Thong(s: String) extends AnyVal
 }
 
 package adt {
