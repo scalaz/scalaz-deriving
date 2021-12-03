@@ -170,12 +170,12 @@ libraryDependencies ++= Seq(
 )
 ```
 
-where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:org.scalaz%20a:scalaz-deriving_2.12).
+where `<version>` is the latest on [maven central](https://search.maven.org/#search|ga|1|g:org.scalaz%20a:scalaz-deriving_2.13).
 
 If you are supplying a `deriving.conf` file, make sure the following is added to your project settings, so that the `deriving.conf` is present
 on the compilation classpath:
 
-```
+```scala
 (Compile / compile) := ((Compile / compile).dependsOn(Compile / copyResources)).value,
 ```
 
