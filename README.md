@@ -172,6 +172,13 @@ libraryDependencies ++= Seq(
 
 where `<version>` is the latest on [maven central](http://search.maven.org/#search|ga|1|g:org.scalaz%20a:scalaz-deriving_2.12).
 
+If you are supplying a `deriving.conf` file, make sure the following is added to your project settings, so that the `deriving.conf` is present
+on the compilation classpath:
+
+```
+(Compile / compile) := ((Compile / compile).dependsOn(Compile / copyResources)).value,
+```
+
 To use the opt-in shapeless alternatives, which can sometimes improve runtime performance (and sometimes slow it down), either manually call the `DerivingEqual.gen` etc from your companions, or create a `deriving.conf` containing the wirings following the instructions above. Recall that shapeless derivations require annotations on every element of an ADT, not just the top element.
 
 ## Caveats
