@@ -68,9 +68,9 @@ class PrinterTest extends JsTest {
         |  "number": -1.2323424E-5,
         |  "simpleKey" : "some value",
         |  "sub object" : {
-        |    "sub key": 26.5,
         |    "a": "b",
-        |    "array": [1, 2, { "yes":1, "no":0 }, ["a", "b", null], false]
+        |    "sub key": 26.5,
+        |    "array": [1, 2, { "no":0, "yes":1 }, ["a", "b", null], false]
         |  },
         |  "zero": 0
         |}""".stripMargin
@@ -85,12 +85,12 @@ class PrinterTest extends JsTest {
         |  "number": -1.2323424E-5,
         |  "simpleKey": "some value",
         |  "sub object": {
-        |    "sub key": 26.5,
         |    "a": "b",
         |    "array": [1, 2, {
-        |      "yes": 1,
-        |      "no": 0
-        |    }, ["a", "b", null], false]
+        |      "no": 0,
+        |      "yes": 1
+        |    }, ["a", "b", null], false],
+        |    "sub key": 26.5
         |  },
         |  "zero": 0
         |}""".stripMargin
