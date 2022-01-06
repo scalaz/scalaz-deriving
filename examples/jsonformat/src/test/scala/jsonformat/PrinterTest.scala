@@ -70,7 +70,7 @@ class PrinterTest extends JsTest {
         |  "sub object" : {
         |    "sub key": 26.5,
         |    "a": "b",
-        |    "array": [1, 2, { "yes":1, "no":0 }, ["a", "b", null], false]
+        |    "array": [1, 2, { "no":0, "yes":1 }, ["a", "b", null], false]
         |  },
         |  "zero": 0
         |}""".stripMargin
