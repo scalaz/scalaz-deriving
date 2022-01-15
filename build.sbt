@@ -5,15 +5,15 @@ val magnoliaVersion   = "0.12.8"
 val refinedVersion    = "0.9.28"
 val newtypeVersion    = "0.4.4"
 
-addCommandAlias("cpl", "all compile test:compile jmh:compile")
-addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt jmh:scalafmt")
+addCommandAlias("cpl", "all Test/compile Jmh/compile")
+addCommandAlias("fmt", "all scalafmtSbt scalafmtAll")
 addCommandAlias(
   "check",
-  "all headerCheck test:headerCheck jmh:headerCheck scalafmtSbtCheck scalafmtCheck test:scalafmtCheck jmh:scalafmtCheck"
+  "all headerCheck Test/headerCheck Jmh/headerCheck scalafmtSbtCheck scalafmtCheckAll"
 )
 addCommandAlias(
   "lint",
-  s";++ $Scala212;compile:scalafix --check;test:scalafix --check"
+  s";++ $Scala212;scalafix --check;Test/scalafix --check"
 )
 addCommandAlias("fix", s";++ $Scala212;all compile:scalafix test:scalafix")
 
