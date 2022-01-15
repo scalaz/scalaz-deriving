@@ -1210,7 +1210,7 @@ class TwitterAPIBenchmarks {
 
     objs = decodeShapelessSuccess().getOrElse(null)
     require(CompactPrinter(encodeShapeless()) == jsonString2)
-    require(decodeShapelessError.isLeft)
+    require(decodeShapelessError().isLeft)
 
     objh = decodeManualSuccess().getOrElse(null)
     require(CompactPrinter(encodeManual()) == jsonString2)

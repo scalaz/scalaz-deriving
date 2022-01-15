@@ -476,7 +476,7 @@ class GeoJSONBenchmarks {
     require(decodeMagnoliaError.isLeft)
     require(CompactPrinter(encodeMagnolia()) == jsonString)
     objs = decodeShapelessSuccess().getOrElse(null)
-    require(decodeShapelessError.isLeft)
+    require(decodeShapelessError().isLeft)
     require(CompactPrinter(encodeShapeless()) == jsonString)
     objh = decodeManualSuccess().getOrElse(null)
     require(decodeManualError.isLeft)
