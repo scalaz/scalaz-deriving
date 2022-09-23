@@ -114,20 +114,20 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       private def hasTrigger(mods: Modifiers): Boolean =
         Triggers.exists(mods.hasAnnotationNamed)
 
-      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
+      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree])   = {
         val trigger = getTriggers(c.mods.annotations)
-        //val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
+        // val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
         // if we remove the annotation, like a macro annotation, we end up with a
         // compiler warning saying that the annotation is unused. Perhaps we could
         // remove it after such warnings are emitted.
-        //val update = treeCopy.ClassDef(c, mods, c.name, c.tparams, c.impl)
+        // val update = treeCopy.ClassDef(c, mods, c.name, c.tparams, c.impl)
         val update  = c
         (update, trigger)
       }
       private def extractTrigger(m: ModuleDef): (ModuleDef, List[Tree]) = {
         val trigger = getTriggers(m.mods.annotations)
-        //val mods = m.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
-        //val update = treeCopy.ModuleDef(m, mods, m.name, m.impl)
+        // val mods = m.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
+        // val update = treeCopy.ModuleDef(m, mods, m.name, m.impl)
         val update  = m
         (update, trigger)
       }

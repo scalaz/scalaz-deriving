@@ -34,7 +34,7 @@ sealed abstract class OptimisedIndexedSeq[A]
     extends collection.immutable.IndexedSeq[A] {
 
   // optimisations...
-  override def toList: List[A] = {
+  override def toList: List[A]                        = {
     @tailrec
     def loop(acc: List[A], i: Int): List[A] =
       if (i >= 0)
@@ -52,7 +52,7 @@ sealed abstract class OptimisedIndexedSeq[A]
         acc
     loop(z, length - 1)
   }
-  override def foldLeft[B](z: B)(op: (B, A) => B): B = {
+  override def foldLeft[B](z: B)(op: (B, A) => B): B  = {
     val len                     = length
     @tailrec
     def loop(acc: B, i: Int): B =

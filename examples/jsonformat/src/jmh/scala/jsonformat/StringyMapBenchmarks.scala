@@ -27,7 +27,7 @@ class StringyMapBenchmarks {
     stringy_java = createJava()
   }
 
-  //@Benchmark
+  // @Benchmark
   def createIList(): StringyMap[String] = StringyIList(data)
   @Benchmark
   def createJava(): StringyMap[String]  = StringyJavaMap(data, 16)
@@ -65,7 +65,7 @@ class StringyMapMoarBenchmarks {
     queries.map(lookup.get)
   }
   @Benchmark
-  def aggregateJava(): IList[Maybe[String]] = {
+  def aggregateJava(): IList[Maybe[String]]  = {
     val lookup = StringyJavaMap(data, numQueries)
     queries.map(lookup.get)
   }

@@ -42,7 +42,7 @@ object JsDecoder
   final class FastJsObject private (
     val orig: JsObject,
     val lookup: StringyMap[JsValue]
-  )                   {
+  ) {
     def get(key: String): String \/ JsValue                       =
       lookup.get(key) \/> s"missing field '$key'"
     def getAs[A: JsDecoder](key: String): String \/ A             =
@@ -141,7 +141,7 @@ private[jsonformat] trait JsDecoderScalaz1 {
     case other            => fail("JsObject", other)
   }
 
-  implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]] = {
+  implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]]                   = {
     case JsNull => Maybe.empty.right
     case a      => a.as[A].map(_.just)
   }

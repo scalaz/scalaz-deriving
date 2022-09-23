@@ -36,23 +36,24 @@ private[scalaz] object DerivingConfig {
   private[this] val EmptyResults: Result[Stringy]   = Right(Map.empty)
 
   private[this] def parseProperties(config: String): Result[Stringy] =
-    try Right(
-      config
-        .split("\n")
-        .toList
-        .filterNot(_.isEmpty)
-        .filterNot(_.startsWith("#"))
-        .map(_.split("=").toList)
-        .map {
-          case List(from, to) => from.trim -> to.trim
-          case other          =>
-            // I'd have used Left with traverse, but this is stdlib...
-            throw new IllegalArgumentException(
-              s"expected 2 parts but got ${other.size} in $other"
-            )
-        }
-        .toMap
-    )
+    try
+      Right(
+        config
+          .split("\n")
+          .toList
+          .filterNot(_.isEmpty)
+          .filterNot(_.startsWith("#"))
+          .map(_.split("=").toList)
+          .map {
+            case List(from, to) => from.trim -> to.trim
+            case other          =>
+              // I'd have used Left with traverse, but this is stdlib...
+              throw new IllegalArgumentException(
+                s"expected 2 parts but got ${other.size} in $other"
+              )
+          }
+          .toMap
+      )
     catch {
       case t: Throwable =>
         Left(t.getMessage)
@@ -65,9 +66,9 @@ private[scalaz] object DerivingConfig {
     is: java.io.InputStream
   ): Either[String, String] =
     try {
-      val baos     = new java.io.ByteArrayOutputStream()
-      val data     = Array.ofDim[Byte](2048)
-      var len: Int = 0
+      val baos        = new java.io.ByteArrayOutputStream()
+      val data        = Array.ofDim[Byte](2048)
+      var len: Int    = 0
       def read(): Int = { len = is.read(data); len }
       while (read() != -1)
         baos.write(data, 0, len)

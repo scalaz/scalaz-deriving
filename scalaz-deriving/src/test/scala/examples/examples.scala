@@ -187,25 +187,25 @@ package bigadt {
   @deriving(Same, Default)
   final case class Bigly1(
     a: String
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly2(
     a: String,
     b: Int
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly3(
     a: String,
     b: String,
     c: Int
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly4(
     a: String,
     b: String,
     c: Int,
     d: String
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly5(
     a: String,
@@ -213,7 +213,7 @@ package bigadt {
     c: String,
     d: String,
     e: Int
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly6(
     a: Int,
@@ -222,7 +222,7 @@ package bigadt {
     d: Int,
     e: String,
     f: String
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly7(
     a: String,
@@ -232,7 +232,7 @@ package bigadt {
     e: Int,
     f: String,
     g: String
-  )                         extends Bigly
+  ) extends Bigly
   @deriving(Same, Default)
   final case class Bigly8(
     a: Int,
@@ -243,6 +243,6 @@ package bigadt {
     f: String,
     g: String,
     h: Int
-  )                         extends Bigly
+  ) extends Bigly
 
 }

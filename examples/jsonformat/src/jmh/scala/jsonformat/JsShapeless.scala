@@ -279,7 +279,7 @@ object DerivedCoproductJsDecoder extends DerivedCoproductJsDecoder1 {
     T: DerivedCoproductJsDecoder[A, T, J]
   ): DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] =
     new DerivedCoproductJsDecoder[A, FieldType[K, H] :+: T, Some[json] :: J] {
-      private[this] val hintfield = A().field.getOrElse("type")
+      private[this] val hintfield                              = A().field.getOrElse("type")
       def fromJsObject(j: FastJsObject, anns: Some[json] :: J) = {
         val ann  = anns.head.get
         val hint = ann.hint.getOrElse(K.value.name)
@@ -413,7 +413,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
         j: FastJsObject,
         anns: None.type :: J,
         defaults: Option[H] :: D
-      )                           =
+      ) =
         for {
           head <- j.lookup.get(fieldname) match {
                     case Maybe.Just(v) => H.value.fromJson(v)
