@@ -53,6 +53,19 @@ val macros = (project in file("deriving-macro"))
     resourcesOnCompilerCp(Test),
     scalacOptions += "-Yno-predef",
     Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
+    Test / sources := {
+      val x = (Test / sources).value
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) =>
+          if ((0.to(6)).map("2.13." + _).toSet.contains(scalaVersion.value)) {
+            x
+          } else {
+            Nil // TODO enable tests
+          }
+        case _             =>
+          x
+      }
+    },
     libraryDependencies ++= Seq(
       "org.scala-lang"     % "scala-compiler" % scalaVersion.value % "provided",
       "org.scala-lang"     % "scala-reflect"  % scalaVersion.value % "provided",
