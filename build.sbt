@@ -179,8 +179,8 @@ val jsonformat = (project in file("examples/jsonformat"))
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0",
       "org.typelevel"     %% "jawn-parser"     % "1.4.0"
     )
-    //addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
-    //scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")
+    // addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
+    // scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")
   )
   .enablePlugins(NeoJmhPlugin)
   .settings(headerSettings(Jmh))

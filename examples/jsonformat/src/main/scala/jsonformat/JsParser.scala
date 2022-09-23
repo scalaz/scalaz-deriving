@@ -18,9 +18,9 @@ object JsParser extends SupportParser[JsValue] {
 
   implicit val facade: Facade[JsValue] =
     new Facade.SimpleFacade[JsValue] {
-      val jnull: JsNull.type = JsNull
-      val jfalse: JsBoolean  = JsBoolean(false)
-      val jtrue: JsBoolean   = JsBoolean(true)
+      val jnull: JsNull.type                                            = JsNull
+      val jfalse: JsBoolean                                             = JsBoolean(false)
+      val jtrue: JsBoolean                                              = JsBoolean(true)
       def jnum(cs: CharSequence, decIndex: Int, expIndex: Int): JsValue = {
         val s = cs.toString
         val n =

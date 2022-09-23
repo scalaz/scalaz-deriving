@@ -27,7 +27,7 @@ object Defaultz   {
     private[this] val extract = λ[NameF ~> Id](a => a.value.default)
     def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Prod[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultz[Z]            =
+    ): Defaultz[Z] =
       instance {
         f(tcs.traverse[A, NameF, Id](extract))
       }
@@ -36,7 +36,7 @@ object Defaultz   {
       λ[NameF ~> Maybe](a => Maybe.just(a.value.default))
     def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultz[Z]           =
+    ): Defaultz[Z] =
       instance {
         val head = tcs.coptraverse[A, NameF, Id](always).headMaybe match {
           case Maybe.Empty() => scala.sys.error("I am sorry, I am not Total.")

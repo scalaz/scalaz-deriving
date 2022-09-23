@@ -29,7 +29,7 @@ object Default   {
       override def point[A](a: =>A): Default[A] = instance(a)
       override def ap[A, B](fa: =>Default[A])(
         f: =>Default[A => B]
-      ): Default[B]                             = instance(f.default(fa.default))
+      ): Default[B] = instance(f.default(fa.default))
 
       override def alt[A](a: =>Default[A], b: =>Default[A]): Default[A] = a
     }

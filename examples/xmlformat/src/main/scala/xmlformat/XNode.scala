@@ -30,7 +30,7 @@ final case class XTag(
   attrs: IList[XAttr],
   children: IList[XTag],
   body: Maybe[XString]
-)           {
+) {
   def asChild: XChildren = XChildren(IList.single(this))
 }
 object XTag {

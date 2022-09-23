@@ -107,7 +107,7 @@ private[internal] sealed trait TypeListAST { self: Toolbelt =>
       that match {
         case that: ConsF[_] =>
           that.canEqual(this) &&
-            this.head =:= that.head && this.tail == that.tail
+          this.head =:= that.head && this.tail == that.tail
         case _              => false
       }
   }
@@ -436,17 +436,18 @@ private[internal] sealed trait TypeListMacroAPIs extends TypeListAPIs {
     either: =>Either[F[String], Tree],
     isImplicit: Boolean = false
   ): c.Expr[T] =
-    try either.fold(
-      errors => {
-        val error = errors.toList.mkString(", and\n")
-        if (isImplicit && showAborts) c.echo(c.enclosingPosition, error)
-        c.abort(c.enclosingPosition, error)
-      },
-      tree => {
-        if (showTrees) c.echo(c.enclosingPosition, showCode(tree))
-        c.Expr[T](tree)
-      }
-    )
+    try
+      either.fold(
+        errors => {
+          val error = errors.toList.mkString(", and\n")
+          if (isImplicit && showAborts) c.echo(c.enclosingPosition, error)
+          c.abort(c.enclosingPosition, error)
+        },
+        tree => {
+          if (showTrees) c.echo(c.enclosingPosition, showCode(tree))
+          c.Expr[T](tree)
+        }
+      )
     catch {
       case e: StackOverflowError =>
         c.echo(

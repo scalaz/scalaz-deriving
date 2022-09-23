@@ -19,7 +19,7 @@ case object Baz                 extends SimpleTrait
 @json(false, None, Some("fazzy"))
 final case class Faz(
   @json(true, None, None) o: Option[String]
-)                               extends SimpleTrait
+) extends SimpleTrait
 
 @deriving(Equal, Show, JsEncoder, JsDecoder)
 final case class Recursive(h: String, t: Option[Recursive] = None)
@@ -38,7 +38,7 @@ sealed abstract class NotAnObject { def widen: NotAnObject = this }
 final case class Time(s: String) extends NotAnObject
 final case class Money(
   @json(false, Some("integer"), None) i: Int
-)                                extends NotAnObject
+) extends NotAnObject
 
 @deriving(Equal, Show, JsEncoder, JsDecoder)
 sealed abstract class Zed { def widen: Zed = this }
