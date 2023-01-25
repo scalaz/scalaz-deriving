@@ -72,7 +72,7 @@ val macros = (project in file("deriving-macro"))
       "org.scalaz"        %% "scalaz-core"    % scalazVersion      % "test",
       "com.chuusai"       %% "shapeless"      % shapelessVersion   % "test",
       "org.typelevel"     %% "simulacrum"     % simulacrumVersion  % "test",
-      "com.typesafe.play" %% "play-json"      % "2.9.3"            % "test",
+      "com.typesafe.play" %% "play-json"      % "2.9.4"            % "test",
       "io.estatico"       %% "newtype"        % newtypeVersion     % "test"
     )
   )
