@@ -2,7 +2,7 @@ val scalazVersion     = "7.3.7"
 val shapelessVersion  = "2.3.10"
 val simulacrumVersion = "1.0.1"
 val magnoliaVersion   = "0.12.8"
-val refinedVersion    = "0.10.1"
+val refinedVersion    = "0.10.2"
 val newtypeVersion    = "0.4.4"
 
 addCommandAlias("cpl", "all Test/compile Jmh/compile")
