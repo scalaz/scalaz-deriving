@@ -189,7 +189,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "eu.timepit"        %% "refined"         % refinedVersion,
       "org.scalaz"        %% "scalaz-core"     % scalazVersion,
       "org.typelevel"     %% "simulacrum"      % simulacrumVersion,
-      "org.scalatestplus" %% "scalacheck-1-17" % "3.2.15.0",
+      "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0",
       "org.typelevel"     %% "jawn-parser"     % "1.4.0"
     )
     // addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
