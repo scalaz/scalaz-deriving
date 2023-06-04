@@ -23,8 +23,6 @@ object ProjectKeys {
     "2.12.16",
     "2.12.17",
     "2.12.18",
-    "2.13.0",
-    "2.13.1",
     "2.13.2",
     "2.13.3",
     "2.13.4",
@@ -72,13 +70,6 @@ object ProjectKeys {
   def MonadicFor =
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 
-  def SemanticDB =
-    // addCompilerPlugin(scalafixSemanticdb)
-    addCompilerPlugin(
-      ("org.scalameta" % "semanticdb-scalac" % "4.5.13")
-        .cross(CrossVersion.full)
-    )
-
   def extraScalacOptions =
     Seq(
       "-Ywarn-extra-implicit",
@@ -109,8 +100,23 @@ object ProjectPlugin extends AutoPlugin {
   override def projectSettings =
     Seq(
       publishTo                              := xerial.sbt.Sonatype.autoImport.sonatypePublishToBundle.value,
-      SemanticDB,
-      semanticdbVersion                      := "4.7.8",
+      libraryDependencies += {
+        if (
+          SemanticSelector(">=2.12.10")
+            .matches(VersionNumber(scalaVersion.value))
+        ) {
+          compilerPlugin(
+            ("org.scalameta" % "semanticdb-scalac" % "4.7.8")
+              .cross(CrossVersion.full)
+          )
+        } else {
+          compilerPlugin(
+            ("org.scalameta" % "semanticdb-scalac" % "4.5.3").cross(
+              CrossVersion.full
+            )
+          )
+        }
+      },
       libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.16" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec"       % "3.2.16" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.16" % Test,
