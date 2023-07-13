@@ -107,7 +107,7 @@ object ProjectPlugin extends AutoPlugin {
             .matches(VersionNumber(scalaVersion.value))
         ) {
           compilerPlugin(
-            ("org.scalameta" % "semanticdb-scalac" % "4.8.3")
+            ("org.scalameta" % "semanticdb-scalac" % "4.8.4")
               .cross(CrossVersion.full)
           )
         } else {
