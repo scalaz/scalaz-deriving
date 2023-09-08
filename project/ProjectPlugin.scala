@@ -121,7 +121,7 @@ object ProjectPlugin extends AutoPlugin {
       },
       libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.17" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec"       % "3.2.17" % Test,
-      libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.16" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.17" % Test,
       scalacOptions --= Seq(
         "-Xfatal-warnings"
       ),
