@@ -9,4 +9,4 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.11.1")
 
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.21")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.10.0")
