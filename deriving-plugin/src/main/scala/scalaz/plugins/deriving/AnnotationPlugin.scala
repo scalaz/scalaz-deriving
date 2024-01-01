@@ -1,4 +1,4 @@
-// Copyright: 2017 - 2023 Sam Halliday
+// Copyright: 2017 - 2024 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 // To install: copy this file, changing the package. Canonical latest is
