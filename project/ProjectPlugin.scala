@@ -118,7 +118,7 @@ object ProjectPlugin extends AutoPlugin {
           ("org.scalameta" % "semanticdb-scalac" % v).cross(CrossVersion.full)
         )
       },
-      libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.18" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec"       % "3.2.18" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.18" % Test,
       scalacOptions --= Seq(
