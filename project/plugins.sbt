@@ -1,7 +1,10 @@
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 ivyLoggingLevel := UpdateLogging.Quiet
 
-addSbtPlugin("com.fommil" % "sbt-sensible" % "2.4.6")
+addSbtPlugin(
+  ("com.fommil" % "sbt-sensible" % "2.4.6")
+    .exclude("io.get-coursier", "sbt-coursier")
+)
 
 addSbtPlugin("com.fommil" % "sbt-neojmh" % "1.1.1")
 
