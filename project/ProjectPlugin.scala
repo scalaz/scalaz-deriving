@@ -99,7 +99,7 @@ object ProjectPlugin extends AutoPlugin {
                 SemanticSelector(">=2.13.13")
                   .matches(VersionNumber(scalaVersion.value))
               ) {
-                "4.9.3"
+                "4.9.9"
               } else {
                 "4.8.4"
               }
