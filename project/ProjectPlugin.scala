@@ -17,6 +17,7 @@ object ProjectKeys {
     "2.12.17",
     "2.12.18",
     "2.12.19",
+    "2.12.20",
     "2.13.10",
     "2.13.11",
     "2.13.12",
@@ -107,7 +108,7 @@ object ProjectPlugin extends AutoPlugin {
                 SemanticSelector(">=2.12.19")
                   .matches(VersionNumber(scalaVersion.value))
               ) {
-                "4.8.15"
+                "4.9.9"
               } else {
                 "4.8.4"
               }
