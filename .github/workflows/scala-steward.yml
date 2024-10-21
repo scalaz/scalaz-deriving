@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 30
     if: ${{ github.repository_owner == 'scalaz' }}
     steps:
-    - uses: sbt/setup-sbt@8a071aa780c993c7a204c785d04d3e8eb64ef272 # v1.1.0
+    - uses: sbt/setup-sbt@646c82cdb36e794ff9ab674b60242d80d96910df # v1.1.1
     - name: Generate token
       id: generate_token
       uses: tibdex/github-app-token@v2
