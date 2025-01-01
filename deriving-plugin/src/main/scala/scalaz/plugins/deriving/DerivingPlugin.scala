@@ -1,4 +1,4 @@
-// Copyright: 2017 - 2024 Sam Halliday
+// Copyright: 2017 - 2025 Sam Halliday
 // License: http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 package scalaz.plugins.deriving
