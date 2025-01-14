@@ -631,7 +631,7 @@ package h {
 
   // \([^ ]+\):.*    "\1" -> a.\1.toJson ::
   // "\(.*\)".*      \1 <- j.getAs[]("\1")
-  object Urls            {
+  object Urls         {
     implicit val encoder: JsEncoder[Urls] = a =>
       JsObject(
         "url"            -> a.url.toJson ::
@@ -654,7 +654,7 @@ package h {
         a1.expanded_url === a2.expanded_url &&
         a1.display_url === a2.display_url
   }
-  object Url             {
+  object Url          {
     implicit val encoder: JsEncoder[Url] = a =>
       JsObject(
         "urls" -> a.urls.toJson ::
@@ -667,7 +667,7 @@ package h {
     )
     implicit val equal: Equal[Url]       = (a1, a2) => a1.urls === a2.urls
   }
-  object UserEntities    {
+  object UserEntities {
     implicit val encoder: JsEncoder[UserEntities] = a =>
       JsObject(
         "url"           -> a.url.toJson ::
@@ -684,7 +684,7 @@ package h {
       a1.url === a2.url &&
         a1.description === a2.description
   }
-  object UserMentions    {
+  object UserMentions {
     implicit val encoder: JsEncoder[UserMentions] = a =>
       JsObject(
         "screen_name" -> a.screen_name.toJson ::

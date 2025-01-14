@@ -71,7 +71,7 @@ object CustomGen              {
 package a {
   @typeclass trait Cobaz[T[_]] {}
   @typeclass trait DerivedCobaz[T[_]] extends Cobaz[T] {}
-  object DerivedCobaz          {
+  object DerivedCobaz {
     def gen[T[_]](implicit
       @unused G: shapeless.Generic1[T, DerivedCobaz]
     ): DerivedCobaz[T] =
