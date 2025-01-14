@@ -66,8 +66,7 @@ class DerivingPluginTest extends AnyFlatSpec {
     implicitly[Cofoo[Inner.type]].shouldBe(Inner._deriving_cofoo)
   }
 
-  it should "support nested types with dupe names" in {
+  it should "support nested types with dupe names" in
     implicitly[Cofoo[nesty.Duped]].shouldBe(nesty.Duped._deriving_cofoo)
-  }
 
 }

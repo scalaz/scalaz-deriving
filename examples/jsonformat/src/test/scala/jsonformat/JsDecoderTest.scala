@@ -157,9 +157,8 @@ class JsDecoderTest extends JsTest {
     composeTest(JsObject(IList("b" -> JsInteger(1))))
   }
 
-  it should "obey the Apply composition law for arbitrary data" in {
+  it should "obey the Apply composition law for arbitrary data" in
     forAll(SizeRange(5))((j: JsValue) => composeTest(j))
-  }
 
   def composeTest(j: JsValue)(implicit P: Position): Assertion = {
     val A                                                = Applicative[JsDecoder]

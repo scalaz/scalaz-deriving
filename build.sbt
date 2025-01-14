@@ -23,10 +23,9 @@ val plugin = (project in file("deriving-plugin")).settings(
   Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
   crossScalaVersions := ProjectKeys.allScalaVersions,
   crossVersion       := CrossVersion.full,
-  crossTarget        := {
+  crossTarget        :=
     // workaround for https://github.com/sbt/sbt/issues/5097
-    target.value / s"scala-${scalaVersion.value}"
-  },
+    target.value / s"scala-${scalaVersion.value}",
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   ),

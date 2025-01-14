@@ -38,17 +38,14 @@ class XEncoderTests extends AnyFreeSpec {
       0.1.toDouble.toXml.shouldBe(expected)
     }
 
-    "should support single characters" in {
+    "should support single characters" in
       'c'.toXml.shouldBe(XString("c"))
-    }
 
-    "should support Strings" in {
+    "should support Strings" in
       "<wibble><wobble".toXml.shouldBe(XString("<wibble><wobble"))
-    }
 
-    "should support Symbols" in {
+    "should support Symbols" in
       Symbol("foo").toXml.shouldBe(XString("foo"))
-    }
 
     "should special-case Either" in {
       val encoder = XStrEncoder[Either[String, Int]]
@@ -101,7 +98,7 @@ class XEncoderTests extends AnyFreeSpec {
       List(1, 2, 3).toXml.shouldBe(expected)
     }
 
-    "should special case Map[Thing, OtherThing]" in {
+    "should special case Map[Thing, OtherThing]" in
       Map(1 -> "a", 2 -> "b", 3 -> "c").toXml.shouldBe(
         XChildren(
           IList(
@@ -135,9 +132,8 @@ class XEncoderTests extends AnyFreeSpec {
           )
         )
       )
-    }
 
-    "should support NonEmptyList" in {
+    "should support NonEmptyList" in
       NonEmptyList(1, 2, 3).toXml
         .shouldBe(
           XChildren(
@@ -148,11 +144,9 @@ class XEncoderTests extends AnyFreeSpec {
             )
           )
         )
-    }
 
-    "should support FiniteDuration" in {
+    "should support FiniteDuration" in
       10.seconds.toXml.shouldBe(XString("10000"))
-    }
 
     "should support Instant" in {
       val iso     = "2013-05-30T23:38:23.085Z"

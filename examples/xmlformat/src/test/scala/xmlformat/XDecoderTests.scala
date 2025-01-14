@@ -48,13 +48,11 @@ class XDecoderTests extends AnyFreeSpec {
       XString("c").as[Char].shouldBe('c')
     }
 
-    "should support Strings" in {
+    "should support Strings" in
       XString("<wibble><wobble").as[String].shouldBe("<wibble><wobble")
-    }
 
-    "should support Symbols" in {
+    "should support Symbols" in
       XString("foo").as[Symbol].shouldEqual(Symbol("foo"))
-    }
 
     "should special-case Either" in {
       XString("hello").as[Either[String, Int]].shouldBe(Left("hello"))
@@ -131,7 +129,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
       // what about empty lists?
     }
 
-    "should special case Map[Thing, OtherThing]" in {
+    "should special case Map[Thing, OtherThing]" in
       XChildren(
         IList(
           XTag(
@@ -163,7 +161,6 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
           )
         )
       ).as[Map[Int, String]].shouldBe(Map(1 -> "a", 2 -> "b", 3 -> "c"))
-    }
 
     "should support NonEmptyList" in {
       XChildren(
@@ -184,9 +181,8 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
         .shouldBe("list was empty")
     }
 
-    "should support FiniteDuration" in {
+    "should support FiniteDuration" in
       XString("10000").as[FiniteDuration].shouldBe(10.seconds)
-    }
 
     "should support Instant" in {
       val iso     = "2013-05-30T23:38:23.085Z"

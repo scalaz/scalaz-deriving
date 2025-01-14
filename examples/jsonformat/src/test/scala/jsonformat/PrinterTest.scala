@@ -52,10 +52,9 @@ class PrinterTest extends JsTest {
       JsArray(JsNull, JsDouble(1.23), JsObject("key" -> JsBoolean(true)))
     ).assert_===("""[null,1.23,{"key":true}]""")
   )
-  it should "properly print a JSON padding (JSONP) if requested" in {
+  it should "properly print a JSON padding (JSONP) if requested" in
     CompactPrinter(JsBoolean(true), "customCallback")
       .assert_===("customCallback(true)")
-  }
 
   "The PrettyPrinter" should "align a complicated input" in {
     val \/-(JsObject(fields)) = JsParser {
