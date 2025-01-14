@@ -13,9 +13,9 @@ import orphans._
 // a simple adt with typeclass derivations
 package adt {
   sealed trait Foo
-  final case class Bar(s: String)                    extends Foo
-  final case class Faz(b: Boolean, i: Int)           extends Foo
-  final case object Baz                              extends Foo {
+  final case class Bar(s: String)          extends Foo
+  final case class Faz(b: Boolean, i: Int) extends Foo
+  final case object Baz                    extends Foo {
     implicit val equal: Equal[Baz.type]     =
       InvariantAlt[Equal].xderiving0(Baz)
     implicit val default: Default[Baz.type] =
@@ -108,7 +108,7 @@ package recadt {
 // more complex recursive GADT type example
 package recgadt {
   sealed trait GTree[A]
-  final case class GLeaf[A](value: A) extends GTree[A]
+  final case class GLeaf[A](value: A)                          extends GTree[A]
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 
   object GLeaf   {

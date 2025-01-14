@@ -15,7 +15,7 @@ package anyvals {
   final case class Thing(s: String) extends AnyVal
 
   @deriving(Show)
-  final case class Thong(s: String)        extends AnyVal
+  final case class Thong(s: String) extends AnyVal
 }
 
 package adt {
@@ -29,8 +29,8 @@ package adt {
   final case object Baz                    extends Foo
 
   // the @deriving is implied by the parent!
-  final case class Box(i: Int)                                 extends Foo
-  final case object Flooz                                      extends Foo
+  final case class Box(i: Int) extends Foo
+  final case object Flooz      extends Foo
 }
 
 // more complex recursive type example
@@ -38,9 +38,9 @@ package recadt {
   @deriving(Show)
   sealed trait ATree
   @deriving(Show)
-  final case class Leaf(value: String)                         extends ATree
+  final case class Leaf(value: String)               extends ATree
   @deriving(Show)
-  final case class Branch(left: ATree, right: ATree)           extends ATree
+  final case class Branch(left: ATree, right: ATree) extends ATree
 }
 
 // more complex recursive GADT type example
