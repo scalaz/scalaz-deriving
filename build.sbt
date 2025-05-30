@@ -164,7 +164,7 @@ val xmlformat = (project in file("examples/xmlformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "com.fasterxml.woodstox" % "woodstox-core" % "7.1.0",
+      "com.fasterxml.woodstox" % "woodstox-core" % "7.1.1",
       "eu.timepit"            %% "refined"       % refinedVersion,
       "org.scalaz"            %% "scalaz-core"   % scalazVersion,
       "com.chuusai"           %% "shapeless"     % shapelessVersion,
