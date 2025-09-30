@@ -24,7 +24,8 @@ object ProjectKeys {
     "2.13.13",
     "2.13.14",
     "2.13.15",
-    "2.13.16"
+    "2.13.16",
+    "2.13.17"
   )
 
   private[this] def latest(n: Int): String = {
@@ -101,7 +102,7 @@ object ProjectPlugin extends AutoPlugin {
                 SemanticSelector(">=2.13.13")
                   .matches(VersionNumber(scalaVersion.value))
               ) {
-                "4.9.9"
+                "4.13.10"
               } else {
                 "4.8.4"
               }
