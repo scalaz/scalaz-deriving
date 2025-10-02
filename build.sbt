@@ -174,7 +174,7 @@ val xmlformat = (project in file("examples/xmlformat"))
   .enablePlugins(NeoJmhPlugin)
   .settings(headerSettings(Jmh))
   .settings(
-    inConfig(Jmh)(org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings)
+    org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings(Jmh)
   )
 
 val jsonformat = (project in file("examples/jsonformat"))
@@ -198,9 +198,7 @@ val jsonformat = (project in file("examples/jsonformat"))
   .enablePlugins(NeoJmhPlugin)
   .settings(headerSettings(Jmh))
   .settings(
-    inConfig(Jmh)(
-      org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings
-    )
+    org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings(Jmh)
   )
 
 // root project
