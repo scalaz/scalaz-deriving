@@ -10,6 +10,6 @@ addSbtPlugin("com.fommil" % "sbt-neojmh" % "1.1.1")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.5")
 
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.3")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.4")
 
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.21")
