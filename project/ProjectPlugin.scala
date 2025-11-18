@@ -25,7 +25,8 @@ object ProjectKeys {
     "2.13.14",
     "2.13.15",
     "2.13.16",
-    "2.13.17"
+    "2.13.17",
+    "2.13.18"
   )
 
   private[this] def latest(n: Int): String = {
