@@ -24,7 +24,7 @@ trait InvariantAltz[F[_]]
   override def xcoproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: A1 \/ A2 => Z,
     g: Z => A1 \/ A2
-  ): F[Z] = {
+  ): F[Z]                                                                    = {
     type L = A1 :: A2 :: TNil
     xcoproductz(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)), z => from2(g(z)))
   }
@@ -35,7 +35,7 @@ trait InvariantAltz[F[_]]
   )(
     f: A1 \/ (A2 \/ A3) => Z,
     g: Z => A1 \/ (A2 \/ A3)
-  ): F[Z] = {
+  ): F[Z]                                                                    = {
     type L = A1 :: A2 :: A3 :: TNil
     xcoproductz(LazyProd(a1, a2, a3))(
       (c: Cop[L]) => f(to3(c)),
@@ -50,7 +50,7 @@ trait InvariantAltz[F[_]]
   )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z,
     g: Z => A1 \/ (A2 \/ (A3 \/ A4))
-  ): F[Z] = {
+  ): F[Z]                                                                    = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
     xcoproductz(LazyProd(a1, a2, a3, a4))(
       (c: Cop[L]) => f(to4(c)),

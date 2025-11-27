@@ -364,7 +364,7 @@ object DerivedXEncoder                                    {
         r: FieldType[K, H] :+: T,
         as: None.type :: AS,
         bs: None.type :: BS
-      ): XTag \/ XTag =
+      ): XTag \/ XTag        =
         r match {
           case Inl(ins) =>
             H.value.toXml(ins) match {
@@ -403,7 +403,7 @@ object DerivedXEncoder                                    {
         r: FieldType[K, H] :+: T,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
-      ): XTag \/ XTag =
+      ): XTag \/ XTag       =
         r match {
           case Inl(ins) =>
             H.value.toXml(ins) match {

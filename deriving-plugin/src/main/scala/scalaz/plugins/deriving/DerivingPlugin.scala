@@ -35,7 +35,7 @@ class DerivingPlugin(override val global: Global)
     triggered: List[Tree],
     clazz: ClassDef,
     companion: ModuleDef
-  ): ModuleDef = {
+  ): ModuleDef                                                      = {
     val extras = triggered.flatMap { ann =>
       val target = annotationName(ann)
       findTypeclasses(ann).map { case (gen, typeclass) =>

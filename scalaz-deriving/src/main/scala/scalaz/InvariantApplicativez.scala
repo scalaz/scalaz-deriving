@@ -31,7 +31,7 @@ trait InvariantApplicativez[F[_]]
   override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z,
     g: Z => (A1, A2)
-  ): F[Z] = {
+  ): F[Z]                                                                  = {
     type L = A1 :: A2 :: TNil
     xproductz(LazyProd(a1, a2))(
       (as: Prod[L]) => f.tupled(to2T(as)),
@@ -41,7 +41,7 @@ trait InvariantApplicativez[F[_]]
   override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  ): F[Z] = {
+  ): F[Z]                                                                  = {
     type L = A1 :: A2 :: A3 :: TNil
     xproductz(LazyProd(a1, a2, a3))(
       (as: Prod[L]) => f.tupled(to3T(as)),
@@ -56,7 +56,7 @@ trait InvariantApplicativez[F[_]]
   )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
-  ): F[Z] = {
+  ): F[Z]                                                                  = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
     xproductz(LazyProd(a1, a2, a3, a4))(
       (as: Prod[L]) => f.tupled(to4T(as)),

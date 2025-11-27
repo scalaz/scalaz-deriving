@@ -51,13 +51,13 @@ trait DerivingProducts[F[_]] {
     new Prods.ops.ProdOps[A](p)
   protected implicit def ProdOps2[A <: TList](
     p: (Prod[A], Prod[A])
-  ): Prods.ops.ProdOps2[A] =
+  ): Prods.ops.ProdOps2[A]                                                     =
     new Prods.ops.ProdOps2[A](p)
   protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A]     =
     new Cops.ops.CopOps[A](p)
   protected implicit def CopOps2[A <: TList](
     p: (Cop[A], Cop[A])
-  ): Cops.ops.CopOps2[A] =
+  ): Cops.ops.CopOps2[A]                                                       =
     new Cops.ops.CopOps2[A](p)
   // scalafix:on
 

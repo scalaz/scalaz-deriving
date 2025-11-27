@@ -77,7 +77,7 @@ object CopH {
       ev
     implicit def makeInjectL[H[_[_]], L <: TListH](implicit
       ev: TListH.Pos[L, H]
-    ): InjectL[H, L] =
+    ): InjectL[H, L]                                                           =
       new InjectL[H, L](ev.index)
   }
 
@@ -97,7 +97,7 @@ object CopH {
       ev
     implicit def makeRemoveL[H[_[_]], L <: TListH](implicit
       ev: TListH.Pos[L, H]
-    ): RemoveL[H, L] =
+    ): RemoveL[H, L]                                                           =
       new RemoveL[H, L](ev.index)
   }
 

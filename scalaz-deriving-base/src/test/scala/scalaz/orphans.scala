@@ -11,7 +11,7 @@ object orphans {
   implicit val _decidable_equal: Decidable[Equal] = new Decidable[Equal] {
     override def divide2[A1, A2, Z](a1: =>Equal[A1], a2: =>Equal[A2])(
       f: Z => (A1, A2)
-    ): Equal[Z] =
+    ): Equal[Z]                       =
       Equal.equal { (z1, z2) =>
         val (s1, s2) = f(z1)
         val (t1, t2) = f(z2)

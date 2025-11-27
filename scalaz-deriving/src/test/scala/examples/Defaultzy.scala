@@ -27,7 +27,7 @@ object Defaultzy   {
     private[this] val extract = λ[NameF ~> Maybe](a => a.value.default)
     def applyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Prod[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z] =
+    ): Defaultzy[Z]           =
       instance {
         tcs.traverse[A, NameF, Maybe](extract).map(f)
       }
@@ -36,7 +36,7 @@ object Defaultzy   {
       λ[NameF ~> Maybe](a => a.value.default)
     def altlyz[Z, A <: TList, FA <: TList](tcs: Prod[FA])(f: Cop[A] => Z)(
       implicit ev: A PairedWith FA
-    ): Defaultzy[Z] =
+    ): Defaultzy[Z]          =
       instance {
         tcs.coptraverse[A, NameF, Id](always).map(f).headMaybe.toMaybe
       }

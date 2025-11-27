@@ -23,14 +23,14 @@ object LazyProd {
     a1: =>A1,
     a2: =>A2,
     a3: =>A3
-  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil] =
+  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: TNil]                         =
     Prod(Need(a1), Need(a2), Need(a3))
   def apply[A1, A2, A3, A4](
     a1: =>A1,
     a2: =>A2,
     a3: =>A3,
     a4: =>A4
-  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil] =
+  ): Prod[Name[A1] :: Name[A2] :: Name[A3] :: Name[A4] :: TNil]             =
     Prod(Need(a1), Need(a2), Need(a3), Need(a4))
 }
 
@@ -47,7 +47,7 @@ object Prods {
     Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3)))
   def from4T[A1, A2, A3, A4](
     e: (A1, A2, A3, A4)
-  ): Prod[A1 :: A2 :: A3 :: A4 :: TNil] =
+  ): Prod[A1 :: A2 :: A3 :: A4 :: TNil]                                 =
     Prod.unsafeApply(new ArraySeq(Array(e._1, e._2, e._3, e._4)))
 
   def to1T[A1](a: Prod[A1 :: TNil]): A1                               = a.values(0).asInstanceOf[A1]
@@ -64,7 +64,7 @@ object Prods {
     )
   def to4T[A1, A2, A3, A4](
     a: Prod[A1 :: A2 :: A3 :: A4 :: TNil]
-  ): (A1, A2, A3, A4) =
+  ): (A1, A2, A3, A4)                                                 =
     (
       a.values(0).asInstanceOf[A1],
       a.values(1).asInstanceOf[A2],
@@ -89,7 +89,7 @@ object Prods {
     def zip2map[B1, B2, C](
       b1s: Backdoor[B1],
       b2s: Backdoor[B2]
-    )(f: (A, B1, B2) => C): IList[C] = {
+    )(f: (A, B1, B2) => C): IList[C]                            = {
       var lst = IList.empty[C]
       var i   = self.length - 1
       while (i >= 0) {
@@ -242,7 +242,7 @@ object Cops {
     }
   def from4[A1, A2, A3, A4](
     e: A1 \/ (A2 \/ (A3 \/ A4))
-  ): Cop[A1 :: A2 :: A3 :: A4 :: TNil] =
+  ): Cop[A1 :: A2 :: A3 :: A4 :: TNil]                                    =
     e match {
       case -\/(a)           => Cop.unsafeApply(0, a)
       case \/-(-\/(b))      => Cop.unsafeApply(1, b)
@@ -264,7 +264,7 @@ object Cops {
     }
   def to4[A1, A2, A3, A4](
     c: Cop[A1 :: A2 :: A3 :: A4 :: TNil]
-  ): A1 \/ (A2 \/ (A3 \/ A4)) =
+  ): A1 \/ (A2 \/ (A3 \/ A4))                                           =
     (c.index: @switch) match {
       case 0 => -\/(c.value.asInstanceOf[A1])
       case 1 => \/-(-\/(c.value.asInstanceOf[A2]))
