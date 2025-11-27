@@ -39,13 +39,13 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
   }
   override def altly2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: A1 \/ A2 => Z
-  ): F[Z] = {
+  ): F[Z]                                                   = {
     type L = A1 :: A2 :: TNil
     altlyz(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)))
   }
   override def altly3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: A1 \/ (A2 \/ A3) => Z
-  ): F[Z] = {
+  ): F[Z]                                                   = {
     type L = A1 :: A2 :: A3 :: TNil
     altlyz(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
   }
@@ -56,7 +56,7 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
     a4: =>F[A4]
   )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
-  ): F[Z] = {
+  ): F[Z]                                                   = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
     altlyz(LazyProd(a1, a2, a3, a4))((c: Cop[L]) => f(to4(c)))
   }

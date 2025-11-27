@@ -84,7 +84,7 @@ object CopK {
     def apply[F[_], L <: TListK](implicit ev: InjectL[F, L]): InjectL[F, L] = ev
     implicit def makeInjectL[F[_], L <: TListK](implicit
       ev: TListK.Pos[L, F]
-    ): InjectL[F, L] =
+    ): InjectL[F, L]                                                        =
       new InjectL[F, L](ev.index)
   }
 
@@ -101,7 +101,7 @@ object CopK {
     def apply[F[_], L <: TListK](implicit ev: RemoveL[F, L]): RemoveL[F, L] = ev
     implicit def makeRemoveL[F[_], L <: TListK](implicit
       ev: TListK.Pos[L, F]
-    ): RemoveL[F, L] =
+    ): RemoveL[F, L]                                                        =
       new RemoveL[F, L](ev.index)
   }
 

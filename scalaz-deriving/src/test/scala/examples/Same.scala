@@ -27,7 +27,7 @@ object Same              {
   implicit val decidable: Decidable[Same] = new Decidable[Same] {
     override def divide2[A1, A2, Z](a1: =>Same[A1], a2: =>Same[A2])(
       f: Z => (A1, A2)
-    ): Same[Z] = { (z1, z2) =>
+    ): Same[Z]                       = { (z1, z2) =>
       val (s1, s2) = f(z1)
       val (t1, t2) = f(z2)
       a1.same(s1, t1) && a2.same(s2, t2)

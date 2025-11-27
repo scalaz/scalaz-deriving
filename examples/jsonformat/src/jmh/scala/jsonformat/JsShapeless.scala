@@ -413,7 +413,7 @@ object DerivedProductJsDecoder extends DerivedProductJsDecoder1 {
         j: FastJsObject,
         anns: None.type :: J,
         defaults: Option[H] :: D
-      ) =
+      )                           =
         for {
           head <- j.lookup.get(fieldname) match {
                     case Maybe.Just(v) => H.value.fromJson(v)
