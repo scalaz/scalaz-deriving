@@ -1,5 +1,8 @@
-// Copyright: 2017 - 2025 Sam Halliday
-// License: http://www.gnu.org/licenses/lgpl-3.0.en.html
+/*
+ * Copyright 2017 Sam Halliday
+ *
+ * SPDX-License-Identifier: LGPL-3.0
+ */
 
 package fommil
 

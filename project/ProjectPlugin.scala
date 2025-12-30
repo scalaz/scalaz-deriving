@@ -4,11 +4,9 @@
 import sbt._
 import sbt.Keys._
 
-import fommil.SensiblePlugin.autoImport._
-import fommil.SonatypePlugin.autoImport._
-import sbtdynver.DynVerPlugin.autoImport._
 import org.scalafmt.sbt.ScalafmtPlugin
 import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
+import sbtheader.HeaderPlugin.autoImport.*
 
 object ProjectKeys {
   val allScalaVersions = Seq(
@@ -65,31 +63,52 @@ object ProjectKeys {
 
 object ProjectPlugin extends AutoPlugin {
 
-  override def requires =
-    fommil.SensiblePlugin && fommil.SonatypePlugin && ScalafmtPlugin && ScalafixPlugin
+  override def requires = ScalafmtPlugin && ScalafixPlugin
   override def trigger  = allRequirements
 
   val autoImport = ProjectKeys
   import autoImport._
+
+  def startYearValue: Int = 2017
 
   override def buildSettings =
     Seq(
       organization       := "org.scalaz",
       crossScalaVersions := Seq(Scala212, Scala213),
       scalaVersion       := Scala213,
-      sonatypeGithost    := (Github, "scalaz", "scalaz-deriving"),
-      sonatypeDevelopers := List("Sam Halliday"),
-      licenses           := Seq(LGPL3),
-      startYear          := Some(2017)
+      pomExtra           := {
+        <url>http://github.com/scalaz/scalaz-deriving</url>
+        <scm>
+          <url>http://github.com/scalaz/scalaz-deriving</url>
+          <connection>scm:git:git@github.com:scalaz/scalaz-deriving.git</connection>
+        </scm>
+        <developers>
+          <developer>
+            <id>Sam Halliday</id>
+          </developer>
+        </developers>
+      },
+      headerLicense      := Some(
+        HeaderLicense.LGPLv3(
+          yyyy = startYearValue.toString,
+          copyrightOwner = "Sam Halliday",
+          licenseStyle = HeaderLicenseStyle.SpdxSyntax
+        )
+      ),
+      licenses           := Seq(
+        "LGPL 3.0" -> url("https://www.gnu.org/licenses/lgpl-3.0.en.html")
+      ),
+      startYear          := Some(startYearValue)
     )
 
-  override def projectSettings =
+  override def projectSettings: Seq[Def.Setting[?]] =
     Seq(
-      publishTo                              := xerial.sbt.Sonatype.autoImport.sonatypePublishToBundle.value,
+      publishTo                              := (if (isSnapshot.value) None else localStaging.value),
       libraryDependencies += compilerPlugin(
         ("org.scalameta" % "semanticdb-scalac" % "4.14.3")
           .cross(CrossVersion.full)
       ),
+      fork                                   := true,
       libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec"       % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.19" % Test,
