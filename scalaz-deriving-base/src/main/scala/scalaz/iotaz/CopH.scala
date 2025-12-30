@@ -1,5 +1,8 @@
-// Copyright: 2017 - 2025 Sam Halliday
-// License: https://opensource.org/licenses/BSD-3-Clause
+/*
+ * Copyright 2017 Sam Halliday
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 // Derived from https://github.com/frees-io/iota
 //

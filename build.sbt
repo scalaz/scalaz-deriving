@@ -1,3 +1,5 @@
+import sbtrelease.ReleaseStateTransformations.*
+
 val scalazVersion     = "7.3.8"
 val shapelessVersion  = "2.3.13"
 val simulacrumVersion = "1.0.1"
@@ -48,12 +50,17 @@ def ScalazDeriving: Seq[Setting[_]] =
 val macros = (project in file("deriving-macro"))
   .settings(ScalazDeriving)
   .settings(
-    name := "deriving-macro",
+    name                    := "deriving-macro",
     MacroParadise,
-    resourcesOnCompilerCp(Test),
+    exportJars              := true,
+    Test / managedClasspath := {
+      val res = (Test / resourceDirectory).value
+      val old = (Test / managedClasspath).value
+      Attributed.blank(res) +: old
+    },
     scalacOptions += "-Yno-predef",
     Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
-    Test / sources := {
+    Test / sources          := {
       val x = (Test / sources).value
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 13)) =>
@@ -81,9 +88,16 @@ val macros = (project in file("deriving-macro"))
 val base = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
   MonadicFor,
-  name     := "scalaz-deriving-base",
-  licenses := Seq(
+  name          := "scalaz-deriving-base",
+  licenses      := Seq(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
+  ),
+  headerLicense := Some(
+    HeaderLicense.BSD3Clause(
+      yyyy = ProjectPlugin.startYearValue.toString,
+      copyrightOwner = "Sam Halliday",
+      licenseStyle = HeaderLicenseStyle.SpdxSyntax
+    )
   ),
   scalacOptions += "-Yno-imports",
   scalacOptions += "-Yno-predef",
@@ -203,3 +217,19 @@ val jsonformat = (project in file("examples/jsonformat"))
 
 // root project
 publish / skip := true
+
+releaseCrossBuild := true
+
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommandAndRemaining("+publishSigned"),
+  releaseStepCommandAndRemaining("sonaRelease"),
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
