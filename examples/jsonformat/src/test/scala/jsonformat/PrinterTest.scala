@@ -65,7 +65,7 @@ class PrinterTest extends JsTest {
       """{
         |  "Boolean no": false,
         |  "Boolean yes":true,
-        |  "Unic\u00f8de" :  "Long string with newline\nescape",
+        |  "Unicøde" :  "Long string with newline\nescape",
         |  "key with \"quotes\"" : "string",
         |  "key with spaces": null,
         |  "number": -1.2323424E-5,
@@ -82,7 +82,7 @@ class PrinterTest extends JsTest {
       """{
         |  "Boolean no": false,
         |  "Boolean yes": true,
-        |  "Unic\u00f8de": "Long string with newline\nescape",
+        |  "Unicøde": "Long string with newline\nescape",
         |  "key with \"quotes\"": "string",
         |  "key with spaces": null,
         |  "number": -1.2323424E-5,
