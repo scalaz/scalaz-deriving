@@ -50,8 +50,13 @@ object XTag {
  *
  * `name` must be a valid https://www.w3.org/TR/xml/#NT-AttValue (not enforced).
  */
-@deriving(Equal, Show, Arbitrary)
+@deriving(Show, Arbitrary)
 final case class XAttr(name: String, value: XString)
+
+object XAttr {
+  implicit val equal: Equal[XAttr] =
+    Equal.equalA[XAttr]
+}
 
 /**
  * A raw variant of children in an XTag.
@@ -62,5 +67,10 @@ final case class XChildren(tree: IList[XTag]) extends XNode
 
 /** String content for an XAttr value or XTag body. */
 @deriving(Show)
-@xderiving(Equal, Semigroup, Arbitrary)
+@xderiving(Equal, Arbitrary)
 final case class XString(text: String) extends XNode
+
+object XString {
+  implicit val semigroup: Semigroup[XString] =
+    Semigroup.instance((a, b) => XString(s"${a.text}${b.text}"))
+}
