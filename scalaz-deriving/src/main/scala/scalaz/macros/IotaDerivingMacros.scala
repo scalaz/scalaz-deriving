@@ -66,7 +66,7 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
     val data = tlist(parts)
     val tcs  = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
 
-    val tcs_rhs = parts.map { s: Type =>
+    val tcs_rhs = parts.map { (s: Type) =>
       val tc  = appliedType(F, s)
       val imp =
         c.inferImplicitValue(tc).orElse {
