@@ -21,7 +21,7 @@ package typeclasses {
   package json {
     trait Format[A]
     object Format {
-      implicit val string: Format[String] = null // scalafix:ok
+      implicit val string: Format[String] = null
     }
   }
 }

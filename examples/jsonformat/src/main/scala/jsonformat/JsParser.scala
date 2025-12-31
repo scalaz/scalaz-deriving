@@ -35,8 +35,7 @@ object JsParser extends SupportParser[JsValue] {
           else
             s.parseDouble.map(JsDouble(_))
         n.getOrElse(
-          throw new IllegalArgumentException(s"bad number $s")
-            with NoStackTrace // scalafix:ok
+          throw new IllegalArgumentException(s"bad number $s") with NoStackTrace
         )
       }
 

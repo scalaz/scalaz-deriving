@@ -73,7 +73,10 @@ private[scalaz] object DerivingConfig {
       val baos = new java.io.ByteArrayOutputStream()
       val data = Array.ofDim[Byte](2048)
       var len: Int = 0
-      def read(): Int = { len = is.read(data); len }
+      def read(): Int = {
+        len = is.read(data)
+        len
+      }
       while (read() != -1)
         baos.write(data, 0, len)
       Right(baos.toString("UTF-8"))

@@ -18,8 +18,8 @@ package scalaz {
 
   package macros {
     object DerivingMacros {
-      def deriving[F[_], A]: Null = null // scalafix:ok
-      def xderiving[F[_], A]: Null = null // scalafix:ok
+      def deriving[F[_], A]: Null = null
+      def xderiving[F[_], A]: Null = null
     }
   }
 

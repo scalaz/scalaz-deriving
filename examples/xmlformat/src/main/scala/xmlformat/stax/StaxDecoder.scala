@@ -15,7 +15,6 @@ import javax.xml.stream.XMLStreamReader
 import scalaz.*
 import scalaz.Scalaz.*
 
-// scalafix:off DisableSyntax.keywords.while,DisableSyntax.keywords.var
 object StaxDecoder {
   // must not escape the code in this module
   private[this] val factory = new ThreadLocal[XMLInputFactory] {

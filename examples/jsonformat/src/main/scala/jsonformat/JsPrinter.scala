@@ -58,7 +58,6 @@ object CompactPrinter {
     escaped(entry._1) :: ":" :: print(entry._2)
 
   private[jsonformat] def escaped(s: String): String = {
-    // scalafix:off
     val sb = new java.lang.StringBuilder
     var i = 0
     sb.append("\"")
@@ -68,7 +67,6 @@ object CompactPrinter {
     }
     sb.append("\"")
     sb.toString
-    // scalafix:on
   }
 
   // https://www.ietf.org/rfc/rfc4627.txt

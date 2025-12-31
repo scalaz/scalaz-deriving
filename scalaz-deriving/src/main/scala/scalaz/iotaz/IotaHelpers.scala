@@ -79,7 +79,6 @@ object Prods {
 
   import scalaz.iotaz.internal.OptimisedIndexedSeq as Backdoor
 
-  // scalafix:off
   implicit private final class BackdoorOps[A](private val self: Backdoor[A])
       extends AnyVal {
     def zipmap[B, C](bs: Backdoor[B])(f: (A, B) => C): IList[C] = {
@@ -104,7 +103,6 @@ object Prods {
       lst
     }
   }
-  // scalafix:on
 
   object ops {
 
