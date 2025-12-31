@@ -112,9 +112,6 @@ object ProjectPlugin extends AutoPlugin {
       libraryDependencies += "org.scalatest" %% "scalatest-flatspec" % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.19" % Test,
-      scalacOptions --= Seq(
-        "-Xfatal-warnings"
-      ),
       scalacOptions --= {
         CrossVersion.partialVersion(scalaVersion.value) match {
           case Some((2, v)) if v >= 13 =>
@@ -146,6 +143,8 @@ object ProjectPlugin extends AutoPlugin {
         }
       },
       scalacOptions ++= Seq(
+        "-deprecation",
+        "-feature",
         "-language:experimental.macros,higherKinds,implicitConversions",
         "-unchecked",
         "-explaintypes",
@@ -158,7 +157,6 @@ object ProjectPlugin extends AutoPlugin {
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Xlint"))),
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Werror"))),
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Ywarn"))),
-      Test / doc / scalacOptions -= "-Xfatal-warnings",
       Compile / console / initialCommands := "import scalaz._, Scalaz._"
     )
 }
