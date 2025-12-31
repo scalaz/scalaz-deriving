@@ -7,13 +7,15 @@
 package testing.classes
 
 import java.lang.String
-import scala.{ AnyVal, Either, Int }
+import play.api.libs.json
+import scala.AnyVal
+import scala.Either
+import scala.Int
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
-import testing.typeclasses.{ Cobar => B, _ }
 import simulacrum.typeclass
-import play.api.libs.json
-import OrphanCobarInstances._
+import testing.typeclasses.OrphanCobarInstances.*
+import testing.typeclasses.{ Cobar as B, * }
 
 @deriving(Cofoo, B)
 sealed trait Baz
@@ -42,7 +44,7 @@ final case class Anyx(s: String) extends AnyVal
 final case class Anyz(s: String) extends AnyVal
 
 @xderiving(Cofoo, B)
-final class Anyzz(val s: String)               extends scala.AnyVal
+final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 
@@ -53,7 +55,7 @@ final case class Gaz[T](t: T)
 final class Waz[T](val t: T)
 
 @typeclass trait Wibble[T] {}
-object DerivedWibble       {
+object DerivedWibble {
   def gen[T]: Wibble[T] = new Wibble[T] {}
 }
 
@@ -69,7 +71,7 @@ package object d {
 
 object newtypes {
 
-  import io.estatico.newtype.macros._
+  import io.estatico.newtype.macros.*
 
   @deriving(json.Format)
   @newtype final case class Spam(value: String)

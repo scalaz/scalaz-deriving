@@ -6,20 +6,20 @@
 
 package jsonformat
 
-import simulacrum._
-import scalaz._, Scalaz._
+import JsDecoder.ops.*
 import internal.StringyMap
-
-import JsDecoder.ops._
+import scalaz.*
+import scalaz.Scalaz.*
+import simulacrum.*
 
 @typeclass(generateAllOps = false) trait JsDecoder[A] {
   def fromJson(json: JsValue): String \/ A
 
   // for performance
   final def xmap[B](f: A => B, @unused g: B => A): JsDecoder[B] = map(f)
-  final def map[B](f: A => B): JsDecoder[B]                     =
+  final def map[B](f: A => B): JsDecoder[B] =
     j => fromJson(j).map(f)
-  final def emap[B](f: A => String \/ B): JsDecoder[B]          =
+  final def emap[B](f: A => String \/ B): JsDecoder[B] =
     j => fromJson(j).flatMap(f)
 }
 object JsDecoder
@@ -27,7 +27,7 @@ object JsDecoder
     with JsDecoderRefined
     with JsDecoderStdlib1
     with JsDecoderScalaz2
-    with JsDecoderStdlib2                             {
+    with JsDecoderStdlib2 {
   object ops {
     implicit final class JsValueExtras(private val j: JsValue) extends AnyVal {
       def as[A: JsDecoder]: String \/ A = JsDecoder[A].fromJson(j)
@@ -46,11 +46,11 @@ object JsDecoder
     val orig: JsObject,
     val lookup: StringyMap[JsValue]
   ) {
-    def get(key: String): String \/ JsValue                       =
+    def get(key: String): String \/ JsValue =
       lookup.get(key) \/> s"missing field '$key'"
-    def getAs[A: JsDecoder](key: String): String \/ A             =
+    def getAs[A: JsDecoder](key: String): String \/ A =
       get(key).flatMap(_.as[A])
-    def getNullable[A: JsDecoder](key: String): String \/ A       =
+    def getNullable[A: JsDecoder](key: String): String \/ A =
       lookup.get(key) match {
         case Maybe.Empty() => JsNull.as[A]
         case Maybe.Just(v) => v.as[A]
@@ -67,7 +67,7 @@ object JsDecoder
   }
   @inline final def instance[A](f: JsValue => String \/ A): JsDecoder[A] = f(_)
   private type Sig[a] = JsValue => String \/ a
-  private[this] val iso                             = Kleisli.iso(
+  private[this] val iso = Kleisli.iso(
     λ[Sig ~> JsDecoder](instance(_)),
     λ[JsDecoder ~> Sig](_.fromJson)
   )
@@ -77,11 +77,11 @@ object JsDecoder
     new -\/[String, A](s"expected $expected, got $got")
 
   implicit val jsValue: JsDecoder[JsValue] = _.right
-  implicit val long: JsDecoder[Long]       = {
+  implicit val long: JsDecoder[Long] = {
     case JsInteger(n) => n.right
     case other        => fail("JsInteger", other)
   }
-  implicit val double: JsDecoder[Double]   = {
+  implicit val double: JsDecoder[Double] = {
     case JsDouble(n)  => n.right
     case JsInteger(n) => n.toDouble.right // potential loss of precision
     case other        => fail("JsDouble or JsInteger", other)
@@ -90,32 +90,32 @@ object JsDecoder
     case JsBoolean(x) => x.right
     case other        => fail("JsBoolean", other)
   }
-  implicit val string: JsDecoder[String]   = {
+  implicit val string: JsDecoder[String] = {
     case JsString(x) => x.right
     case other       => fail("JsString", other)
   }
 
-  implicit val float: JsDecoder[Float]   = double.emap {
+  implicit val float: JsDecoder[Float] = double.emap {
     case n if n >= Float.MinValue && n <= Float.MaxValue => n.toFloat.right
-    case other                                           => fail("64 bit floating point number", JsDouble(other))
+    case other => fail("64 bit floating point number", JsDouble(other))
   }
-  implicit val int: JsDecoder[Int]       = long.emap {
+  implicit val int: JsDecoder[Int] = long.emap {
     case n if n >= Int.MinValue && n <= Int.MaxValue => n.toInt.right
-    case other                                       => fail("32 bit integer", JsInteger(other))
+    case other => fail("32 bit integer", JsInteger(other))
   }
-  implicit val short: JsDecoder[Short]   = long.emap {
+  implicit val short: JsDecoder[Short] = long.emap {
     case n if n >= Short.MinValue && n <= Short.MaxValue => n.toShort.right
-    case other                                           => fail("16 bit integer", JsInteger(other))
+    case other => fail("16 bit integer", JsInteger(other))
   }
-  implicit val byte: JsDecoder[Byte]     = long.emap {
+  implicit val byte: JsDecoder[Byte] = long.emap {
     case n if n >= Byte.MinValue && n <= Byte.MaxValue => n.toByte.right
-    case other                                         => fail("8 bit integer", JsInteger(other))
+    case other => fail("8 bit integer", JsInteger(other))
   }
-  implicit val unit: JsDecoder[Unit]     = long.emap {
+  implicit val unit: JsDecoder[Unit] = long.emap {
     case 1     => ().right
     case other => fail("1.0", JsInteger(other))
   }
-  implicit val char: JsDecoder[Char]     = string.emap {
+  implicit val char: JsDecoder[Char] = string.emap {
     case str if str.length == 1 => str(0).right
     case other                  => fail("single character", JsString(other))
   }
@@ -130,7 +130,7 @@ private[jsonformat] trait JsDecoderScalaz1 {
     case JsArray(js) =>
       val A = JsDecoder[A]
       js.traverseDisjunction(A.fromJson)
-    case other       => fail("JsArray", other)
+    case other => fail("JsArray", other)
   }
 
   implicit def nel[A: JsDecoder]: JsDecoder[NonEmptyList[A]] =
@@ -141,10 +141,10 @@ private[jsonformat] trait JsDecoderScalaz1 {
       fields.traverse { case (key, value) =>
         value.as[A].strengthL(key)
       }.map(IMap.fromFoldable(_))
-    case other            => fail("JsObject", other)
+    case other => fail("JsObject", other)
   }
 
-  implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]]                   = {
+  implicit def maybe[A: JsDecoder]: JsDecoder[Maybe[A]] = {
     case JsNull => Maybe.empty.right
     case a      => a.as[A].map(_.just)
   }
@@ -165,8 +165,8 @@ private[jsonformat] trait JsDecoderScalaz1 {
 private[jsonformat] trait JsDecoderRefined {
   this: JsDecoder.type =>
 
+  import eu.timepit.refined.api.*
   import eu.timepit.refined.refineV
-  import eu.timepit.refined.api._
   implicit def refined[A: JsDecoder, P](implicit
     V: Validate[A, P]
   ): JsDecoder[A Refined P] =
@@ -176,7 +176,7 @@ private[jsonformat] trait JsDecoderRefined {
 private[jsonformat] trait JsDecoderStdlib1 {
   this: JsDecoder.type =>
 
-  implicit def option[A: JsDecoder]: JsDecoder[Option[A]]                  =
+  implicit def option[A: JsDecoder]: JsDecoder[Option[A]] =
     maybe[A].map(_.toOption)
   implicit def either[A: JsDecoder, B: JsDecoder]: JsDecoder[Either[A, B]] =
     disjunction[A, B].map(_.toEither)
@@ -186,7 +186,7 @@ private[jsonformat] trait JsDecoderStdlib1 {
       fields.traverse { case (key, value) =>
         value.as[A].strengthL(key)
       }.map(_.toList.toMap)
-    case other            => fail("JsObject", other)
+    case other => fail("JsObject", other)
   }
 
 }

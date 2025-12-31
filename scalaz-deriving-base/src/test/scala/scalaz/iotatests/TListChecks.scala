@@ -8,14 +8,14 @@ package scalaz
 package iotatests
 
 import java.lang.String
-import scala._
-import iotaz._
+import scala.*
+import scalaz.iotaz.*
 
 object TListChecks {
 
-  import TList.Compute
-  import TList.Op._
   import TList.::
+  import TList.Compute
+  import TList.Op.*
 
   def check[L <: TList, O <: TList](implicit ev: Compute.Aux[L, O]): Unit = ()
 

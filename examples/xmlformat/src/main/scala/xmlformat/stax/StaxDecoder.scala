@@ -7,10 +7,13 @@
 package xmlformat
 package stax
 
-import java.io.StringReader
-import javax.xml.stream.{ XMLInputFactory, XMLStreamConstants, XMLStreamReader }
-import scalaz._, Scalaz._
 import com.ctc.wstx.stax.WstxInputFactory
+import java.io.StringReader
+import javax.xml.stream.XMLInputFactory
+import javax.xml.stream.XMLStreamConstants
+import javax.xml.stream.XMLStreamReader
+import scalaz.*
+import scalaz.Scalaz.*
 
 // scalafix:off DisableSyntax.keywords.while,DisableSyntax.keywords.var
 object StaxDecoder {
@@ -23,7 +26,7 @@ object StaxDecoder {
     }
   }
 
-  import XMLStreamConstants._
+  import XMLStreamConstants.*
   def parse(txt: String): String \/ XTag = {
     val reader = factory.get.createXMLStreamReader(new StringReader(txt))
     try {
@@ -36,7 +39,7 @@ object StaxDecoder {
   }
 
   private[this] def parseTag(x: XMLStreamReader): XTag = {
-    val name  = x.getName.getLocalPart()
+    val name = x.getName.getLocalPart()
     val attrs = 0.until(x.getAttributeCount).toList.map { i =>
       XAttr(
         x.getAttributeLocalName(i),
@@ -45,18 +48,18 @@ object StaxDecoder {
     }
 
     var children = IList.empty[XTag]
-    var content  = IList.empty[String]
+    var content = IList.empty[String]
 
     x.next()
     while (x.getEventType() != END_ELEMENT) {
       x.getEventType() match {
-        case START_ELEMENT      =>
+        case START_ELEMENT =>
           children = parseTag(x) :: children
         case CHARACTERS | CDATA =>
           val text = x.getText().trim
           if (!text.isEmpty)
             content = text :: content
-        case _                  =>
+        case _ =>
       }
       x.next()
     }

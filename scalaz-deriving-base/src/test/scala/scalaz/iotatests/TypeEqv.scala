@@ -7,14 +7,13 @@
 package scalaz
 package iotatests
 
-import scala._
-import scalaz._
 import org.scalacheck.Prop
-import org.scalacheck.Prop._
-import shapeless.{ Id => _, _ }
-import shapeless.ops.hlist.{ ToList => HListToList }
-
-import scala.reflect.runtime.universe._
+import org.scalacheck.Prop.*
+import scala.*
+import scala.reflect.runtime.universe.*
+import scalaz.*
+import shapeless.ops.hlist.ToList as HListToList
+import shapeless.{ Id as _, * }
 
 sealed trait TypeEqv[A] {
   def check(x: A, y: A): Prop

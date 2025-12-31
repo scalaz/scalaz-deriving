@@ -6,12 +6,12 @@
 
 package jsonformat
 
-import scala.annotation.Annotation
-
-import magnolia._
-import scalaz._, Scalaz._
+import internal.FastToIList.*
 import internal.StringyMap
-import internal.FastToIList._
+import magnolia.*
+import scala.annotation.Annotation
+import scalaz.*
+import scalaz.Scalaz.*
 
 /**
  * Annotation for customising automatically derived instances of JsEncoder and
@@ -50,7 +50,7 @@ object json {
   object field {
     def unapply(j: json): Option[String] = j.field
   }
-  object hint  {
+  object hint {
     def unapply(j: json): Option[String] = j.hint
   }
 }
@@ -60,7 +60,7 @@ object JsMagnoliaEncoder {
 
   def combine[A](ctx: CaseClass[JsEncoder, A]): JsEncoder[A] =
     new JsEncoder[A] {
-      private[this] val nulls      = ctx.parameters.map { p =>
+      private[this] val nulls = ctx.parameters.map { p =>
         p.annotations.collectFirst { case json.nulls() =>
           true
         }.getOrElse(false)
@@ -72,11 +72,11 @@ object JsMagnoliaEncoder {
       }.toArray
 
       def toJson(a: A): JsValue = {
-        val empty  = IList.empty[(String, JsValue)]
+        val empty = IList.empty[(String, JsValue)]
         val fields = ctx.parameters.foldRight(empty) { (p, acc) =>
           p.typeclass.toJson(p.dereference(a)) match {
             case JsNull if !nulls(p.index) => acc
-            case value                     => (fieldnames(p.index) -> value) :: acc
+            case value => (fieldnames(p.index) -> value) :: acc
           }
         }
         JsObject(fields)
@@ -85,10 +85,10 @@ object JsMagnoliaEncoder {
 
   def dispatch[A](ctx: SealedTrait[JsEncoder, A]): JsEncoder[A] =
     new JsEncoder[A] {
-      private[this] val field   = ctx.annotations.collectFirst {
+      private[this] val field = ctx.annotations.collectFirst {
         case json.field(name) => name
       }.getOrElse("type")
-      private[this] val hints   = ctx.subtypes.map { s =>
+      private[this] val hints = ctx.subtypes.map { s =>
         s.annotations.collectFirst { case json.hint(name) =>
           field -> JsString(name)
         }.getOrElse(field -> JsString(s.typeName.short))
@@ -134,11 +134,11 @@ object JsMagnoliaDecoder {
 
       private[this] val eitherStringMonadic: mercator.Monadic[String \/ *] =
         new mercator.Monadic[String \/ *] {
-          override def point[X](value: X): String \/ X                       =
+          override def point[X](value: X): String \/ X =
             \/-(value)
           override def flatMap[X, Y](
             from: String \/ X
-          )(fn: X => String \/ Y): String \/ Y                               =
+          )(fn: X => String \/ Y): String \/ Y =
             from.flatMap(fn)
           override def map[X, Y](from: String \/ X)(fn: X => Y): String \/ Y =
             from.map(fn)
@@ -158,27 +158,27 @@ object JsMagnoliaDecoder {
                 .into {
                   case Maybe.Just(value) =>
                     EitherStringIsCovariant.widen(p.typeclass.fromJson(value))
-                  case _                 =>
+                  case _ =>
                     p.default match {
-                      case Some(default)          =>
+                      case Some(default) =>
                         \/-[String, Param[JsDecoder, A]#PType](default)
                       case None if nulls(p.index) =>
                         s"missing field '$field'"
                           .left[Param[JsDecoder, A]#PType]
-                      case None                   =>
+                      case None =>
                         EitherStringIsCovariant.widen(
                           p.typeclass.fromJson(JsNull)
                         )
                     }
                 }
             }(eitherStringMonadic)
-          case other             => fail("JsObject", other)
+          case other => fail("JsObject", other)
         }
     }
 
   def dispatch[A](ctx: SealedTrait[JsDecoder, A]): JsDecoder[A] =
     new JsDecoder[A] {
-      private[this] val subtype  = StringyMap(
+      private[this] val subtype = StringyMap(
         ctx.subtypes.mapToIList { s =>
           s.annotations.collectFirst { case json.hint(name) =>
             name
@@ -189,7 +189,7 @@ object JsMagnoliaDecoder {
       private[this] val typehint = ctx.annotations.collectFirst {
         case json.field(name) => name
       }.getOrElse("type")
-      private[this] val xvalues  = ctx.subtypes.map { sub =>
+      private[this] val xvalues = ctx.subtypes.map { sub =>
         sub.annotations.collectFirst { case json.field(name) =>
           name
         }.getOrElse("xvalue")
@@ -205,14 +205,14 @@ object JsMagnoliaDecoder {
                   case Maybe.Empty()   => fail(s"a valid '$h'", obj)
                   case Maybe.Just(sub) =>
                     val xvalue = xvalues(sub.index)
-                    val value  = lookup.get(xvalue).getOrElse(obj)
+                    val value = lookup.get(xvalue).getOrElse(obj)
                     IsCovariant[String \/ *].widen(
                       sub.typeclass.fromJson(value)
                     )
                 }
-              case _                       => fail(s"JsObject with '$typehint' field", obj)
+              case _ => fail(s"JsObject with '$typehint' field", obj)
             }
-          case other                  => fail("JsObject", other)
+          case other => fail("JsObject", other)
         }
     }
 

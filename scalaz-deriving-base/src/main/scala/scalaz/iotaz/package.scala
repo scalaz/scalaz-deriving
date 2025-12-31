@@ -15,7 +15,7 @@
 
 package scalaz
 
-import scala._
+import scala.*
 import scala.reflect.ClassTag
 
 package object iotaz {
@@ -64,7 +64,7 @@ package object iotaz {
   private[iotaz] implicit final class ToEitherCompatOps[A](
     private val obj: A
   ) extends AnyVal {
-    def asLeft[B]: Either[A, B]  = Left(obj)
+    def asLeft[B]: Either[A, B] = Left(obj)
     def asRight[B]: Either[B, A] = Right(obj)
   }
 
@@ -79,12 +79,12 @@ package object iotaz {
     def one[A](head: A): scalaz.NonEmptyList[A] = scalaz.NonEmptyList(head)
   }
 
-  type Avowal[A, B]    = Validation[A, B]
+  type Avowal[A, B] = Validation[A, B]
   type AvowalNel[A, B] = ValidationNel[A, B]
 
   object Avowal {
-    def yes[A, B](b: B): Avowal[A, B]      = Validation.success(b)
-    def no[A, B](a: A): Avowal[A, B]       = Validation.failure(a)
+    def yes[A, B](b: B): Avowal[A, B] = Validation.success(b)
+    def no[A, B](a: A): Avowal[A, B] = Validation.failure(a)
     def noNel[A, B](a: A): AvowalNel[A, B] = Validation.failureNel(a)
 
     def catching[T >: Null <: Throwable]: CatchingPartiallyApplied[T] =
@@ -103,7 +103,7 @@ package object iotaz {
   private[iotaz] implicit final class EitherToAvowalOps[A, B](
     private val eab: Either[A, B]
   ) extends AnyVal {
-    def toAvowal: Avowal[A, B]                 =
+    def toAvowal: Avowal[A, B] =
       eab match {
         case Left(a)  => Avowal.no(a)
         case Right(b) => Avowal.yes(b)

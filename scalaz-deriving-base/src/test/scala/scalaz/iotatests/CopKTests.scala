@@ -7,18 +7,18 @@
 package scalaz
 package iotatests
 
-import scala._, Predef._
-import iotaz._
-
-import org.scalacheck._
+import org.scalacheck.*
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop._
-import org.scalacheck.ScalacheckShapeless._
+import org.scalacheck.Prop.*
+import org.scalacheck.ScalacheckShapeless.*
+import scala.*
+import scala.Predef.*
+import scalaz.iotaz.*
 
 object CopKTests extends Properties("CopKTests") {
 
   import TListK.::
-  import TListK.Op._
+  import TListK.Op.*
 
   sealed abstract class One[A]
   object One {
@@ -75,7 +75,7 @@ object CopKTests extends Properties("CopKTests") {
   )
 
   type First[A] = String
-  type Last[A]  = A
+  type Last[A] = A
   type Y[A]
 
   type Yuge =

@@ -24,7 +24,7 @@ package object debug {
     sealed trait ShowCache
     sealed trait ShowAborts
   }
-  import optionTypes._
+  import optionTypes.*
 
   object options {
 

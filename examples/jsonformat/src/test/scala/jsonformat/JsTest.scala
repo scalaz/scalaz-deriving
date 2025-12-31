@@ -6,20 +6,20 @@
 
 package jsonformat
 
-import org.scalatest._
-import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
-import JsDecoder.ops._
-import JsEncoder.ops._
-import internal.FastToIList._
-
-import scalaz._, Scalaz._
+import JsDecoder.ops.*
+import JsEncoder.ops.*
+import internal.FastToIList.*
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import scalaz.*
+import scalaz.Scalaz.*
 
 abstract class JsTest
     extends AnyFlatSpec
     with NonImplicitAssertions
     with ScalaCheckDrivenPropertyChecks {
-  type Position  = org.scalactic.source.Position
+  type Position = org.scalactic.source.Position
   type Assertion = org.scalatest.Assertion
 
   implicit class EncoderHelper[T: JsEncoder](t: T) {
@@ -32,7 +32,7 @@ abstract class JsTest
   }
 
   // inefficient constructors that are convenient in tests
-  implicit class JsArrayCompanionOps(self: JsArray.type)   {
+  implicit class JsArrayCompanionOps(self: JsArray.type) {
     def apply(vs: JsValue*): JsArray =
       JsArray(vs.toIList)
   }

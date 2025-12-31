@@ -17,12 +17,12 @@ package scalaz
 package iotaz
 package internal
 
-import scalaz.iotaz.TList
-import scala._
+import scala.*
 import scala.reflect.macros.blackbox.Context
+import scalaz.iotaz.TList
 
 private[iotaz] final class CopMacros(val c: Context) {
-  import c.universe._
+  import c.universe.*
 
   def copGen[A, R <: TList](implicit
     evA: c.WeakTypeTag[A],
@@ -33,7 +33,7 @@ private[iotaz] final class CopMacros(val c: Context) {
 
     val aSym = A.typeSymbol.asClass
 
-    val Cop = weakTypeOf[iotaz.Cop[_]].typeSymbol
+    val Cop = weakTypeOf[iotaz.Cop[?]].typeSymbol
 
     if (!aSym.isSealed)
       c.abort(c.enclosingPosition, "only supports sealed traits / classes")
@@ -55,8 +55,8 @@ private[iotaz] final class CopMacros(val c: Context) {
           head.typeConstructor :: deconstructTCons(tail)
         }
       }
-      val provided                              = deconstructTCons(R.dealias)
-      val calculated                            = subs.map(_.toTypeConstructor)
+      val provided = deconstructTCons(R.dealias)
+      val calculated = subs.map(_.toTypeConstructor)
       provided.zip(calculated).map { case (r, s) =>
         if (!(r =:= s))
           c.abort(

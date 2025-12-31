@@ -6,8 +6,9 @@
 
 package xmlformat
 
-import scalaz._, Scalaz._
-import simulacrum._
+import scalaz.*
+import scalaz.Scalaz.*
+import simulacrum.*
 
 /** Encoder for the XString half of the XNode ADT. */
 @typeclass trait XStrEncoder[A] { self =>
@@ -15,12 +16,12 @@ import simulacrum._
 
   // for performance
   final def xmap[B](@unused f: A => B, g: B => A): XStrEncoder[B] = contramap(g)
-  final def contramap[B](g: B => A): XStrEncoder[B]               = b => toXml(g(b))
+  final def contramap[B](g: B => A): XStrEncoder[B] = b => toXml(g(b))
 }
 object XStrEncoder
     extends XStrEncoderScalaz
     with XStrEncoderRefined
-    with XStrEncoderStdlib      {
+    with XStrEncoderStdlib {
 
   implicit val contravariant: Contravariant[XStrEncoder] =
     new Contravariant[XStrEncoder] {
@@ -29,18 +30,18 @@ object XStrEncoder
     }
 
   // JVM data types
-  implicit val string: XStrEncoder[String]             = s => XString(s)
-  implicit val boolean: XStrEncoder[Boolean]           = string.contramap(_.toString)
-  implicit val short: XStrEncoder[Short]               = string.contramap(_.toString)
-  implicit val int: XStrEncoder[Int]                   = string.contramap(_.toString)
-  implicit val long: XStrEncoder[Long]                 = string.contramap(_.toString)
-  implicit val float: XStrEncoder[Float]               = string.contramap(_.toString)
-  implicit val double: XStrEncoder[Double]             = string.contramap(_.toString)
-  implicit val uuid: XStrEncoder[java.util.UUID]       = string.contramap(_.toString)
+  implicit val string: XStrEncoder[String] = s => XString(s)
+  implicit val boolean: XStrEncoder[Boolean] = string.contramap(_.toString)
+  implicit val short: XStrEncoder[Short] = string.contramap(_.toString)
+  implicit val int: XStrEncoder[Int] = string.contramap(_.toString)
+  implicit val long: XStrEncoder[Long] = string.contramap(_.toString)
+  implicit val float: XStrEncoder[Float] = string.contramap(_.toString)
+  implicit val double: XStrEncoder[Double] = string.contramap(_.toString)
+  implicit val uuid: XStrEncoder[java.util.UUID] = string.contramap(_.toString)
   implicit val instant: XStrEncoder[java.time.Instant] =
     string.contramap(_.toString)
-  implicit val char: XStrEncoder[Char]                 = string.contramap(_.toString)
-  implicit val symbol: XStrEncoder[Symbol]             = string.contramap(_.name)
+  implicit val char: XStrEncoder[Char] = string.contramap(_.toString)
+  implicit val symbol: XStrEncoder[Symbol] = string.contramap(_.name)
 
   implicit val xstring: XStrEncoder[XString] = identity
 }

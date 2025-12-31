@@ -6,12 +6,15 @@
 
 package jsonformat.benchmarks
 
-import jsonformat._
+import jsonformat.*
 import jsonformat.BenchmarkUtils.getResourceAsString
-import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
-import scalaz._, Scalaz._
-
-import JsDecoder.ops._
+import jsonformat.JsDecoder.ops.*
+import org.openjdk.jmh.annotations.Benchmark
+import org.openjdk.jmh.annotations.Scope
+import org.openjdk.jmh.annotations.Setup
+import org.openjdk.jmh.annotations.State
+import scalaz.*
+import scalaz.Scalaz.*
 
 // jsonformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 FieldLookupBenchmarks.*
 
@@ -25,7 +28,7 @@ final case class FieldLookup(
 @State(Scope.Benchmark)
 class FieldLookupBenchmarks {
 
-  var user: s.User          = _
+  var user: s.User = _
   var baseline: FieldLookup = _
 
   @Setup
@@ -63,9 +66,9 @@ class FieldLookupBenchmarks {
   def elementAccessXl(): String = user.productElement(41).asInstanceOf[String]
 
   @Benchmark
-  def indirectionAccessValXl(): String    = translator_type_val(user)
+  def indirectionAccessValXl(): String = translator_type_val(user)
   @Benchmark
-  def indirectionAccessDefXl(): String    = translator_type_def(user)
+  def indirectionAccessDefXl(): String = translator_type_def(user)
   @Benchmark
   def indirectionAccessDefValXl(): String =
     translator_type_abstract(user, translator_type_val)
@@ -73,8 +76,8 @@ class FieldLookupBenchmarks {
   def indirectionAccessDefDefXl(): String =
     translator_type_abstract(user, translator_type_def)
 
-  val translator_type_val                                              = (u: s.User) => u.translator_type
-  def translator_type_def(u: s.User)                                   = u.translator_type
+  val translator_type_val = (u: s.User) => u.translator_type
+  def translator_type_def(u: s.User) = u.translator_type
   def translator_type_abstract(u: s.User, f: s.User => String): String = f(u)
 
 }

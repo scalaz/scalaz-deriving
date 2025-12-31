@@ -6,18 +6,18 @@
 
 package scalaz.macros
 
-import scala.Predef._
+import scala.Predef.*
 import scala.reflect.macros.blackbox
 
 final class DerivingMacrosImpl(val c: blackbox.Context) {
-  import c.universe._
+  import c.universe.*
 
   def deriving[F[_], A](implicit
-    evF: c.WeakTypeTag[F[_]],
+    evF: c.WeakTypeTag[F[?]],
     evA: c.WeakTypeTag[A]
   ): Tree = {
-    val F   = evF.tpe
-    val A   = evA.tpe
+    val F = evF.tpe
+    val A = evA.tpe
     val fqn = F.dealias.typeSymbol.fullName
     readConfig().targets.get(fqn) match {
       case Some(target) => parseTerm(target)
@@ -26,7 +26,7 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
   }
 
   def xderiving[F[_], A](implicit
-    evF: c.WeakTypeTag[F[_]],
+    evF: c.WeakTypeTag[F[?]],
     evA: c.WeakTypeTag[A]
   ): Tree = {
     val F = evF.tpe
@@ -35,20 +35,20 @@ final class DerivingMacrosImpl(val c: blackbox.Context) {
       case m: MethodSymbol if m.isParamAccessor => m.asMethod
     }.toList match {
       case value :: Nil =>
-        val hasXmap   = F.decls.find(_.name.toString == "xmap").isDefined
-        val access    = value.name
-        val U         = value.typeSignatureIn(A).resultType
+        val hasXmap = F.decls.find(_.name.toString == "xmap").isDefined
+        val access = value.name
+        val U = value.typeSignatureIn(A).resultType
         def invariant =
           q"""_root_.scalaz.InvariantFunctor[${F.typeSymbol}].xmap(
               _root_.scala.Predef.implicitly[${F.typeSymbol}[$U]],
               (u: $U) => new $A(u),
               (a: $A) => a.$access)"""
-        def xmap      =
+        def xmap =
           q"""_root_.scala.Predef.implicitly[${F.typeSymbol}[$U]].xmap(
               (u: $U) => new $A(u),
               (a: $A) => a.$access)"""
         if (hasXmap) xmap else invariant
-      case _            =>
+      case _ =>
         c.abort(c.enclosingPosition, "only supports classes with one parameter")
     }
   }

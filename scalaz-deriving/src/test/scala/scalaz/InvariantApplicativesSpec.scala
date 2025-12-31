@@ -6,17 +6,16 @@
 
 package scalaz
 
-import Scalaz._
-
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scalaz.Scalaz.*
 
 class InvariantApplicativesSpec extends AnyFlatSpec with NonImplicitAssertions {
-  import Matchers._
+  import Matchers.*
 
   "anyvals" should "behave as expected" in {
-    import examples.anyvals._
+    import examples.anyvals.*
 
     (Thing("hello") |+| Thing(" world")).shouldBe(Thing("hello world"))
 
@@ -24,7 +23,7 @@ class InvariantApplicativesSpec extends AnyFlatSpec with NonImplicitAssertions {
   }
 
   "products" should "behave as expected" in {
-    import examples.adt._
+    import examples.adt.*
 
     (Bar("good") |+| Bar("bye")).shouldBe(Bar("goodbye"))
 

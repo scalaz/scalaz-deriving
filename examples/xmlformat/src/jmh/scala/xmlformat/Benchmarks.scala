@@ -6,11 +6,9 @@
 
 package xmlformat
 
-import org.openjdk.jmh.annotations.{ State => Input, _ }
-
-import scalaz._
-
-import xmlformat.stax._
+import org.openjdk.jmh.annotations.{ State as Input, * }
+import scalaz.*
+import xmlformat.stax.*
 
 // xmlformat/jmh:run -i 5 -wi 5 -f1 -t1 -w1 -r1 .*Benchmarks
 //
@@ -29,8 +27,8 @@ class Benchmarks {
 class Data {
   val strings: List[String] = List(
     "scala-compiler-2.12.6.pom", // maven
-    "Hannu_Rajaniemi",           // wikipedia
-    "numbering.xml"              // docx content
+    "Hannu_Rajaniemi", // wikipedia
+    "numbering.xml" // docx content
   ).map(getResourceAsString(_))
 
   def parseStax =
@@ -48,9 +46,9 @@ class Data {
   def getResourceAsString(res: String): String = {
     val is = getClass().getClassLoader().getResourceAsStream(res)
     try {
-      val baos        = new java.io.ByteArrayOutputStream()
-      val data        = Array.ofDim[Byte](2048)
-      var len: Int    = 0
+      val baos = new java.io.ByteArrayOutputStream()
+      val data = Array.ofDim[Byte](2048)
+      var len: Int = 0
       def read(): Int = { len = is.read(data); len }
       while (read() != -1)
         baos.write(data, 0, len)

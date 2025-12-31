@@ -15,8 +15,7 @@
 
 package scalaz.iotaz
 
-import scala._
-
+import scala.*
 import scalaz.~>
 
 /**
@@ -33,7 +32,7 @@ object CopKNaturalTransformation {
    * The respective NaturalTransformations are pulled from the input
    * `args` on an as-needed basis; superfluous arguments are ignored.
    */
-  def of[F[a] <: CopK[_, a], G[_]](args: Any*): F ~> G =
+  def of[F[a] <: CopK[?, a], G[_]](args: Any*): F ~> G =
     macro internal.CopKFunctionKMacros.of[F, G]
 
   /**
@@ -44,6 +43,6 @@ object CopKNaturalTransformation {
    * The respective NaturalTransformations are summoned implicitly on
    * an an as-needed basis.
    */
-  def summon[F[a] <: CopK[_, a], G[_]]: F ~> G =
+  def summon[F[a] <: CopK[?, a], G[_]]: F ~> G =
     macro internal.CopKFunctionKMacros.summon[F, G]
 }

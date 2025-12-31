@@ -9,12 +9,12 @@
 package scalaz.plugins.deriving
 
 import scala.Predef.ArrowAssoc
-import scala.deprecated
 import scala.collection.immutable.Map
-import scala.reflect.internal.util._
-import scala.tools.nsc._
-import scala.tools.nsc.plugins._
-import scala.tools.nsc.transform._
+import scala.deprecated
+import scala.reflect.internal.util.*
+import scala.tools.nsc.*
+import scala.tools.nsc.plugins.*
+import scala.tools.nsc.transform.*
 
 /**
  * A compiler plugin for code generation when an annotation is on a class, trait
@@ -38,7 +38,7 @@ import scala.tools.nsc.transform._
  */
 abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
-  import global._
+  import global.*
   override lazy val description: String =
     s"Generates code for annotations $triggers"
 
@@ -54,7 +54,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef
 
   /** Use to create code that shortcuts in ENSIME and ScalaIDE */
-  def isIde: Boolean      = global.isInstanceOf[tools.nsc.interactive.Global]
+  def isIde: Boolean = global.isInstanceOf[tools.nsc.interactive.Global]
   def isScaladoc: Boolean = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
 
   // best way to inspect a tree, just call this
@@ -89,16 +89,16 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
   private def phase =
     new PluginComponent with TypingTransformers {
-      override val phaseName: String                         = AnnotationPlugin.this.name
+      override val phaseName: String = AnnotationPlugin.this.name
       override val global: AnnotationPlugin.this.global.type =
         AnnotationPlugin.this.global
-      override final def newPhase(prev: Phase): Phase        =
+      override final def newPhase(prev: Phase): Phase =
         new StdPhase(prev) {
           override def apply(unit: CompilationUnit): Unit =
             newTransformer(unit).transformUnit(unit)
         }
-      override val runsAfter: List[String]                   = "parser" :: Nil
-      override val runsBefore: List[String]                  = "namer" :: Nil
+      override val runsAfter: List[String] = "parser" :: Nil
+      override val runsBefore: List[String] = "namer" :: Nil
 
       private def newTransformer(unit: CompilationUnit) =
         new TypingTransformer(unit) {
@@ -106,7 +106,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             autobots(super.transform(tree))
         }
 
-      val Triggers: List[TypeName]             = triggers.map(newTypeName)
+      val Triggers: List[TypeName] = triggers.map(newTypeName)
       private def hasTrigger(t: Tree): Boolean =
         t.exists {
           case c: ClassDef if hasTrigger(c.mods)  => true
@@ -117,21 +117,21 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       private def hasTrigger(mods: Modifiers): Boolean =
         Triggers.exists(mods.hasAnnotationNamed)
 
-      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree])   = {
+      private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
         val trigger = getTriggers(c.mods.annotations)
         // val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
         // if we remove the annotation, like a macro annotation, we end up with a
         // compiler warning saying that the annotation is unused. Perhaps we could
         // remove it after such warnings are emitted.
         // val update = treeCopy.ClassDef(c, mods, c.name, c.tparams, c.impl)
-        val update  = c
+        val update = c
         (update, trigger)
       }
       private def extractTrigger(m: ModuleDef): (ModuleDef, List[Tree]) = {
         val trigger = getTriggers(m.mods.annotations)
         // val mods = m.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
         // val update = treeCopy.ModuleDef(m, mods, m.name, m.impl)
-        val update  = m
+        val update = m
         (update, trigger)
       }
 
@@ -265,7 +265,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             t match {
               case c: ClassDef if !modules.contains(c.name.companionName) =>
                 Some(c)
-              case _                                                      => None
+              case _ => None
             }
         }
 
@@ -274,7 +274,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
             t match {
               case c: ClassDef if modules.contains(c.name.companionName) =>
                 Some(c)
-              case _                                                     => None
+              case _ => None
             }
         }
 
@@ -285,14 +285,14 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
                 classes.get(m.name.companionName).map { c =>
                   (m, c)
                 }
-              case _            => None
+              case _ => None
             }
         }
 
         trees.flatMap {
           case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-            val companion        = genCompanion(c).withAllPos(c.pos)
-            val (cleaned, ann)   = extractTrigger(c)
+            val companion = genCompanion(c).withAllPos(c.pos)
+            val (cleaned, ann) = extractTrigger(c)
             val updatedCompanion = updateCompanion(ann, cleaned, companion)
             List(updateClass(ann, cleaned), updatedCompanion)
 

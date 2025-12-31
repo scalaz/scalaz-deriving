@@ -7,10 +7,12 @@
 package examples
 
 import java.lang.String
-
-import scala.{ Boolean, Double, Int, Long }
-
-import scalaz._, Scalaz._
+import scala.Boolean
+import scala.Double
+import scala.Int
+import scala.Long
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
 import simulacrum.typeclass
 
@@ -24,14 +26,14 @@ import simulacrum.typeclass
 sealed abstract class Packed {
   def widen: Packed = this
 }
-object Packed                {
-  final case class Real(double: Double)               extends Packed
-  final case class Rational(long: Long)               extends Packed
-  final case class Characters(chars: String)          extends Packed
+object Packed {
+  final case class Real(double: Double) extends Packed
+  final case class Rational(long: Long) extends Packed
+  final case class Characters(chars: String) extends Packed
   final case class Collection(entries: IList[Packed]) extends Packed
-  final case class Product(entries: IList[Packed])    extends Packed
+  final case class Product(entries: IList[Packed]) extends Packed
 }
-import Packed._
+import Packed.*
 
 /**
  * Encoder for Packed.
@@ -44,8 +46,8 @@ import Packed._
 @typeclass trait BadPack[A] {
   def encode(a: A): Packed
 }
-object BadPack              {
-  implicit val long: BadPack[Long]     = i => Rational(i).widen
+object BadPack {
+  implicit val long: BadPack[Long] = i => Rational(i).widen
   implicit val string: BadPack[String] = i => Characters(i).widen
 
   implicit val decidablez: Decidablez[BadPack] = new Decidablez[BadPack] {
@@ -70,5 +72,5 @@ object BadPack              {
 
   // these don't do what you think they do...
   implicit val boolean: BadPack[Boolean] = long.contramap(b => if (b) 1 else 0)
-  implicit val int: BadPack[Int]         = long.contramap(_.toLong)
+  implicit val int: BadPack[Int] = long.contramap(_.toLong)
 }

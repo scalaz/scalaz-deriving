@@ -6,7 +6,8 @@
 
 package jsonformat
 
-import scalaz._, Scalaz._
+import scalaz.*
+import scalaz.Scalaz.*
 
 class JsParserTest extends JsTest {
 

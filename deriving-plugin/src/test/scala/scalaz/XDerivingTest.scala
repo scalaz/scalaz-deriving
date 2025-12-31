@@ -7,13 +7,11 @@
 package scalaz
 
 import java.lang.String
-
-import scala.Predef.implicitly
-
-import org.scalatest.matchers.should.Matchers._
-import testing._
-import testing.typeclasses._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
+import scala.Predef.implicitly
+import testing.*
+import testing.typeclasses.*
 
 class XDerivingTest extends AnyFlatSpec {
   // scalafix:off DisableSyntax.keywords.null

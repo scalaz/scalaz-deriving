@@ -7,15 +7,16 @@
 package scalaz.macros
 
 import java.net.URL
-
-import scala.Predef.{ wrapRefArray, ArrowAssoc }
-import scala.collection.immutable.{ List, Map }
-import scala.collection.JavaConverters._
+import scala.Predef.ArrowAssoc
+import scala.Predef.wrapRefArray
+import scala.collection.JavaConverters.*
+import scala.collection.immutable.List
+import scala.collection.immutable.Map
 
 private[scalaz] final case class DerivingConfig(targets: Map[String, String])
 private[scalaz] object DerivingConfig {
   private type Result[T] = Either[String, T]
-  private type Stringy   = Map[String, String]
+  private type Stringy = Map[String, String]
 
   // cached to avoid hitting disk on every use of the macro.
   private[scalaz] lazy val targets: Result[Stringy] =
@@ -36,7 +37,7 @@ private[scalaz] object DerivingConfig {
         case (Left(e1), _)          => Left(e1)
         case (_, Left(e2))          => Left(e2)
       }
-  private[this] val EmptyResults: Result[Stringy]   = Right(Map.empty)
+  private[this] val EmptyResults: Result[Stringy] = Right(Map.empty)
 
   private[this] def parseProperties(config: String): Result[Stringy] =
     try
@@ -69,9 +70,9 @@ private[scalaz] object DerivingConfig {
     is: java.io.InputStream
   ): Either[String, String] =
     try {
-      val baos        = new java.io.ByteArrayOutputStream()
-      val data        = Array.ofDim[Byte](2048)
-      var len: Int    = 0
+      val baos = new java.io.ByteArrayOutputStream()
+      val data = Array.ofDim[Byte](2048)
+      var len: Int = 0
       def read(): Int = { len = is.read(data); len }
       while (read() != -1)
         baos.write(data, 0, len)

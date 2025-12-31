@@ -15,7 +15,8 @@
 
 package scalaz.iotaz
 
-import scala._, Predef._
+import scala.*
+import scala.Predef.*
 import scala.collection.immutable.Seq
 
 /** A product of types captured by type list `LL` */
@@ -39,7 +40,7 @@ final class Prod[LL <: TList] private (
 
 object Prod {
 
-  import scalaz.Isomorphism._
+  import scalaz.Isomorphism.*
   def gen[A, R <: TList]: A <=> Prod[R] =
     macro internal.ProductMacros.prodGen[A, R]
 

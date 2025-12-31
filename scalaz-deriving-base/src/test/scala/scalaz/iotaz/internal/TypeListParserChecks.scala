@@ -8,15 +8,13 @@ package scalaz
 package iotaz
 package internal
 
+import catryoshka.*
 import java.lang.String
-import scala._
+import org.scalacheck.*
+import org.scalacheck.Prop.*
+import scala.*
 import scala.Predef.ArrowAssoc
-
-import org.scalacheck._
-import org.scalacheck.Prop._
-
-import scalaz.std.either._
-import catryoshka._
+import scalaz.std.either.*
 
 object TypeListParserChecks extends Properties("TypeListParsers") {
 
@@ -40,19 +38,18 @@ class TypeListParserChecks(
   override val tb: Toolbelt with TypeListAST with TypeListParsers
 ) extends TestTreeHelper(tb) {
 
+  import TList.::
+  import TList.Op.Reverse as TReverse
   import tb.u.Type
 
-  import TList.::
-  import TList.Op.{ Reverse => TReverse }
-
   val tlists: List[(Type, Node)] = List(
-    t[TNil]                  -> nnil,
-    t[Int :: TNil]           -> cons[Int](),
+    t[TNil] -> nnil,
+    t[Int :: TNil] -> cons[Int](),
     t[String :: Int :: TNil] -> cons[String](cons[Int]()),
-    t[TReverse[TNil]]        -> reverse(nnil)
+    t[TReverse[TNil]] -> reverse(nnil)
   )
 
-  import TListK.Op.{ Reverse => KReverse }
+  import TListK.Op.Reverse as KReverse
 
   val tlistks: List[(Type, Node)] = List(
     t[KReverse[TNilK]] -> reverse(nnil)

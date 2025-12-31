@@ -16,16 +16,15 @@
 package scalaz.iotaz
 package internal
 
-import scala._
-
+import scala.*
 import scalaz.Applicative
 import scalaz.Cofree
 import scalaz.Functor
 import scalaz.Monad
 import scalaz.Traverse
-import scalaz.syntax.applicative._
-import scalaz.syntax.bind._
-import scalaz.syntax.traverse._
+import scalaz.syntax.applicative.*
+import scalaz.syntax.bind.*
+import scalaz.syntax.traverse.*
 
 /**
  * A gross oversimplification/hack of Matryoshka tailored to the
@@ -39,9 +38,9 @@ import scalaz.syntax.traverse._
  */
 private[internal] object catryoshka {
 
-  type Algebra[F[_], A]          = F[A] => A
-  type AlgebraM[M[_], F[_], A]   = F[A] => M[A]
-  type Coalgebra[F[_], A]        = A => F[A]
+  type Algebra[F[_], A] = F[A] => A
+  type AlgebraM[M[_], F[_], A] = F[A] => M[A]
+  type Coalgebra[F[_], A] = A => F[A]
   type CoalgebraM[M[_], F[_], A] = A => M[F[A]]
 
   final def hylo[F[_], A, B](
@@ -115,7 +114,7 @@ private[internal] object catryoshka {
     ): Birecursive.Aux[T, F] =
       new Birecursive[T] {
         type Base[A] = F[A]
-        final def embed(ft: F[T])(implicit F: Functor[F]): T  = alg(ft)
+        final def embed(ft: F[T])(implicit F: Functor[F]): T = alg(ft)
         final def project(t: T)(implicit F: Functor[F]): F[T] = coalg(t)
       }
   }
@@ -132,7 +131,7 @@ private[internal] object catryoshka {
   type Fix[F[_]] = Fix.Fix[F]
   val Fix: FixDecl = new FixDecl {
     type Fix[F[_]] = F[Fix.Fix[F]]
-    def fix[F[_]](f: F[Fix.Fix[F]]): Fix[F]   = f
+    def fix[F[_]](f: F[Fix.Fix[F]]): Fix[F] = f
     def unfix[F[_]](f: Fix[F]): F[Fix.Fix[F]] = f
   }
 

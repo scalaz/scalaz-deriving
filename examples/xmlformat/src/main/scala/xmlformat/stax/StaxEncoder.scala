@@ -7,13 +7,13 @@
 package xmlformat
 package stax
 
+import com.ctc.wstx.stax.WstxOutputFactory
 import java.io.StringWriter
 import java.util.regex.Pattern
-
-import javax.xml.stream.{ XMLOutputFactory, XMLStreamWriter }
-import scalaz._, Scalaz._
-
-import com.ctc.wstx.stax.WstxOutputFactory
+import javax.xml.stream.XMLOutputFactory
+import javax.xml.stream.XMLStreamWriter
+import scalaz.*
+import scalaz.Scalaz.*
 
 object StaxEncoder {
   // must not escape the code in this module
@@ -72,7 +72,7 @@ object StaxEncoder {
     x.writeEndElement()
   }
 
-  private[this] val entities                      = Pattern.compile("""("|&|'|<|>)""")
+  private[this] val entities = Pattern.compile("""("|&|'|<|>)""")
   def containsXmlEntities(input: String): Boolean =
     entities.matcher(input).find()
 

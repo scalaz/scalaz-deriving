@@ -6,14 +6,13 @@
 
 package xmlformat
 
-import scalaz._
-
-import org.scalatest.matchers.should.Matchers._
 import org.scalactic.source.Position
+import org.scalatest.matchers.should.Matchers.*
+import scalaz.*
 
 object XTestUtils {
-  import XDecoder.ops._
-  import XStrDecoder.ops._
+  import XDecoder.ops.*
+  import XStrDecoder.ops.*
 
   implicit class BetterEitherValuesOps[L, R](e: Either[L, R]) {
     def rightValue(implicit P: Position): R =
@@ -43,13 +42,13 @@ object XTestUtils {
       }
   }
 
-  implicit class XHelper(xml: XChildren)  {
+  implicit class XHelper(xml: XChildren) {
     def as[T: XDecoder](implicit P: Position): T = xml.decode[T].rightValue
   }
   implicit class XStrHelper(xml: XString) {
     def as[T: XStrDecoder](implicit P: Position): T = xml.decode[T].rightValue
   }
-  implicit class XTagHelper(tag: XTag)    {
+  implicit class XTagHelper(tag: XTag) {
     def as[T: XDecoder](implicit P: Position): T = tag.asChild.as[T]
   }
 

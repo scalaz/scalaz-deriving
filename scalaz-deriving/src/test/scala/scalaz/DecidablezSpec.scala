@@ -6,25 +6,21 @@
 
 package scalaz
 
+import examples.*
+import examples.BadPack.ops.*
+import examples.adt.*
+import examples.anyvals.*
+import examples.newtypes.*
+import examples.recadt.*
+import examples.recgadt.*
 import java.lang.String
-
-import Scalaz._
-
-import org.scalatest._
-
-import examples._
-import examples.BadPack.ops._
-
-import examples.anyvals._
-import examples.newtypes._
-import examples.adt._
-import examples.recadt._
-import examples.recgadt._
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scalaz.Scalaz.*
 
 class DecidablezSpec extends AnyFlatSpec with NonImplicitAssertions {
-  import Packed._
+  import Packed.*
 
   "BadPack contramap" should "behave in a counterintuitive way" in {
     // counterintuitive, we probably expected just Characters
@@ -49,7 +45,7 @@ class DecidablezSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(!D.divideLaw.composition(S, S, S)(E))
   }
 
-  import Matchers._
+  import Matchers.*
 
   val bar: Foo = Bar("hello")
   val baz: Foo = Baz
@@ -80,11 +76,11 @@ class DecidablezSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(box === box)
   }
 
-  val leaf1: Leaf    = Leaf("hello")
-  val leaf2: Leaf    = Leaf("goodbye")
+  val leaf1: Leaf = Leaf("hello")
+  val leaf2: Leaf = Leaf("goodbye")
   val branch: Branch = Branch(leaf1, leaf2)
-  val tree1: ATree   = Branch(leaf1, branch)
-  val tree2: ATree   = Branch(leaf2, branch)
+  val tree1: ATree = Branch(leaf1, branch)
+  val tree2: ATree = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
     assert(leaf1 === leaf1)
@@ -102,11 +98,11 @@ class DecidablezSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert((leaf1: ATree) < (branch: ATree))
   }
 
-  val gleaf1: GLeaf[String]    = GLeaf("hello")
-  val gleaf2: GLeaf[String]    = GLeaf("goodbye")
+  val gleaf1: GLeaf[String] = GLeaf("hello")
+  val gleaf2: GLeaf[String] = GLeaf("goodbye")
   val gbranch: GBranch[String] = GBranch(gleaf1, gleaf2)
-  val gtree1: GTree[String]    = GBranch(gleaf1, gbranch)
-  val gtree2: GTree[String]    = GBranch(gleaf2, gbranch)
+  val gtree1: GTree[String] = GBranch(gleaf1, gbranch)
+  val gtree2: GTree[String] = GBranch(gleaf2, gbranch)
 
   "recursive GADT products" should "behave as expected" in {
     assert(gleaf1 === gleaf1)

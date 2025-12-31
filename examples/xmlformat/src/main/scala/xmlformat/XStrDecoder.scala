@@ -6,24 +6,23 @@
 
 package xmlformat
 
-import java.util.UUID
 import java.time.Instant
-
+import java.util.UUID
 import scala.util.control.NonFatal
-
+import scalaz.*
+import scalaz.Scalaz.*
 import shapeless.Typeable
-import scalaz._, Scalaz._
-import simulacrum._
+import simulacrum.*
 
 @typeclass(generateAllOps = false)
-trait XStrDecoder[A]       { self =>
+trait XStrDecoder[A] { self =>
   def fromXml(x: XString): String \/ A
 
   // for performance
   final def xmap[B](f: A => B, @unused g: B => A): XStrDecoder[B] = map(f)
-  final def map[B](f: A => B): XStrDecoder[B]                     =
+  final def map[B](f: A => B): XStrDecoder[B] =
     j => fromXml(j).map(f)
-  final def emap[B](f: A => String \/ B): XStrDecoder[B]          =
+  final def emap[B](f: A => String \/ B): XStrDecoder[B] =
     j => fromXml(j).flatMap(f)
 }
 object XStrDecoder
@@ -38,7 +37,7 @@ object XStrDecoder
 
   @inline def instance[A](f: XString => String \/ A): XStrDecoder[A] = f(_)
   private type Sig[a] = XString => String \/ a
-  private[this] val iso                               = Kleisli.iso(
+  private[this] val iso = Kleisli.iso(
     λ[Sig ~> XStrDecoder](instance(_)),
     λ[XStrDecoder ~> Sig](_.fromXml)
   )
@@ -58,18 +57,18 @@ object XStrDecoder
   }
 
   implicit val boolean: XStrDecoder[Boolean] = str(_.toBoolean)
-  implicit val short: XStrDecoder[Short]     = str(_.toShort)
-  implicit val int: XStrDecoder[Int]         = str(_.toInt)
-  implicit val long: XStrDecoder[Long]       = str(_.toLong)
-  implicit val float: XStrDecoder[Float]     = str(_.toFloat)
-  implicit val double: XStrDecoder[Double]   = str(_.toDouble)
-  implicit val uuid: XStrDecoder[UUID]       = str(UUID.fromString)
+  implicit val short: XStrDecoder[Short] = str(_.toShort)
+  implicit val int: XStrDecoder[Int] = str(_.toInt)
+  implicit val long: XStrDecoder[Long] = str(_.toLong)
+  implicit val float: XStrDecoder[Float] = str(_.toFloat)
+  implicit val double: XStrDecoder[Double] = str(_.toDouble)
+  implicit val uuid: XStrDecoder[UUID] = str(UUID.fromString)
   implicit val instant: XStrDecoder[Instant] = str(Instant.parse)
-  implicit val char: XStrDecoder[Char]       = string.emap {
+  implicit val char: XStrDecoder[Char] = string.emap {
     case s if s.length == 1 => \/-(s(0))
     case s                  => -\/(s"text too long: $s")
   }
-  implicit val symbol: XStrDecoder[Symbol]   = str(Symbol(_))
+  implicit val symbol: XStrDecoder[Symbol] = str(Symbol(_))
 
   implicit val xstring: XStrDecoder[XString] = _.right[String]
 
@@ -97,8 +96,8 @@ private[xmlformat] trait XStrDecoderScalaz {
 private[xmlformat] trait XStrDecoderRefined {
   this: XStrDecoder.type =>
 
+  import eu.timepit.refined.api.*
   import eu.timepit.refined.refineV
-  import eu.timepit.refined.api._
   implicit def refined[A: XStrDecoder, B](implicit
     V: Validate[A, B]
   ): XStrDecoder[A Refined B] =
@@ -114,7 +113,7 @@ private[xmlformat] trait XStrDecoderStdlib {
     B: XStrDecoder
   ]: XStrDecoder[Either[A, B]] = disjunction[A, B].map(_.toEither)
 
-  import scala.concurrent.duration._
+  import scala.concurrent.duration.*
   implicit def finite: XStrDecoder[FiniteDuration] =
     long.emap { i =>
       if (i >= 0) \/-(i.millis)

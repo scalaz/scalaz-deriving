@@ -6,23 +6,23 @@
 
 package scalaz.macros
 
-import scala._
+import scala.*
 import scala.reflect.macros.blackbox
 
 final class IotaDerivingMacros(val c: blackbox.Context) {
-  import c.universe._
+  import c.universe.*
 
   def gen[F[_], A](implicit
-    evF: c.WeakTypeTag[F[_]],
+    evF: c.WeakTypeTag[F[?]],
     evA: c.WeakTypeTag[A]
   ): Tree = {
-    val F    = evF.tpe.typeConstructor
-    val A    = evA.tpe
+    val F = evF.tpe.typeConstructor
+    val A = evA.tpe
     val aSym = A.typeSymbol.asClass
 
-    val TNil  = weakTypeOf[scalaz.iotaz.TNil]
-    val TCons = weakTypeOf[scalaz.iotaz.TCons[_, _]].typeConstructor
-    val Name  = weakTypeOf[scalaz.Name[_]].typeConstructor
+    val TNil = weakTypeOf[scalaz.iotaz.TNil]
+    val TCons = weakTypeOf[scalaz.iotaz.TCons[?, ?]].typeConstructor
+    val Name = weakTypeOf[scalaz.Name[?]].typeConstructor
 
     def tlist(parts: List[Type]) =
       parts
@@ -41,9 +41,9 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
               internal.singleType(cl.thisPrefix, cl.module)
             else {
               // this block is needed to handle the type parameter on a GADT
-              val t    = cl.toType
+              val t = cl.toType
               val args = t.typeArgs.map { a =>
-                val sym  = a.typeSymbol
+                val sym = a.typeSymbol
                 val tSym = A
                   .find(_.typeSymbol.name == sym.name)
                   .getOrElse(
@@ -64,10 +64,10 @@ final class IotaDerivingMacros(val c: blackbox.Context) {
         }.toList
 
     val data = tlist(parts)
-    val tcs  = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
+    val tcs = tlist(parts.map(s => appliedType(Name, appliedType(F, s))))
 
     val tcs_rhs = parts.map { (s: Type) =>
-      val tc  = appliedType(F, s)
+      val tc = appliedType(F, s)
       val imp =
         c.inferImplicitValue(tc).orElse {
           // when deriving a coproduct, if we can't find implicit evidence for

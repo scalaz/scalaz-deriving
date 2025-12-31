@@ -6,9 +6,10 @@
 
 package jsonformat.benchmarks
 
-import scalaz.{ @@, Tags }
+import jsonformat.*
+import scalaz.@@
+import scalaz.Tags
 import scalaz.annotation.deriving
-import jsonformat._
 
 package s {
   final case class TradeTemplate(

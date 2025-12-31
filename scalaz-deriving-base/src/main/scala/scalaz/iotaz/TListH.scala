@@ -15,7 +15,7 @@
 
 package scalaz.iotaz
 
-import scala._
+import scala.*
 
 trait TListH
 

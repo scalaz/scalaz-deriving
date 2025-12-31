@@ -8,14 +8,11 @@ package scalaz
 package iotatests
 
 import java.lang.String
-
-import scala.Int
-
-import iotaz._
-import TList._
-
-import org.scalatest.matchers.should.Matchers._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
+import scala.Int
+import scalaz.iotaz.*
+import scalaz.iotaz.TList.*
 
 object GenTests {
   final case class Foo(s: String, ɩ: Int)
@@ -27,23 +24,23 @@ object GenTests {
 
   sealed trait Traity1
   final case class Traity1A(s: String) extends Traity1
-  case object Traity1B                 extends Traity1
+  case object Traity1B extends Traity1
 
   sealed trait Traity2
   final case class Traity2A[A](s: A) extends Traity2
-  case object Traity2B               extends Traity2
+  case object Traity2B extends Traity2
 
   sealed trait ATree
-  final case class Leaf(value: String)               extends ATree
+  final case class Leaf(value: String) extends ATree
   final case class Branch(left: ATree, right: ATree) extends ATree
 
   sealed trait GTree[A]
-  final case class GLeaf[A](value: A)                          extends GTree[A]
+  final case class GLeaf[A](value: A) extends GTree[A]
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 }
 
 class GenTests extends AnyFlatSpec {
-  import GenTests._
+  import GenTests.*
 
   "Prod.gen" should "support case classes" in {
     val foo = Foo("hello", 13)
@@ -56,7 +53,7 @@ class GenTests extends AnyFlatSpec {
 
     def gen[A] =
       Prod.gen[Goo[Int], String :: Int :: TNil]
-    val geni   = gen[Int]
+    val geni = gen[Int]
 
     geni.from(geni.to(goo)).shouldBe(goo)
   }

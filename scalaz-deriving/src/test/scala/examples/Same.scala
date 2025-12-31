@@ -7,12 +7,12 @@
 package examples
 
 import java.lang.String
-
-import scala.{ Boolean, Int, Long }
-
-import scalaz._, Scalaz._
-
-import simulacrum._
+import scala.Boolean
+import scala.Int
+import scala.Long
+import scalaz.*
+import scalaz.Scalaz.*
+import simulacrum.*
 
 /**
  * Reimplementation of Equal, to test Decidable and ExtendedInvariantAlt.
@@ -22,15 +22,15 @@ import simulacrum._
 
   final def different(a1: A, a2: A): Boolean = !same(a1, a2)
 }
-object Same              {
-  implicit val string: Same[String]   = (s1, s2) => s1 == s2
-  implicit val long: Same[Long]       = (l1, l2) => l1 == l2
+object Same {
+  implicit val string: Same[String] = (s1, s2) => s1 == s2
+  implicit val long: Same[Long] = (l1, l2) => l1 == l2
   implicit val boolean: Same[Boolean] = (b1, b2) => b1 == b2
 
   implicit val decidable: Decidable[Same] = new Decidable[Same] {
     override def divide2[A1, A2, Z](a1: =>Same[A1], a2: =>Same[A2])(
       f: Z => (A1, A2)
-    ): Same[Z]                       = { (z1, z2) =>
+    ): Same[Z] = { (z1, z2) =>
       val (s1, s2) = f(z1)
       val (t1, t2) = f(z2)
       a1.same(s1, t1) && a2.same(s2, t2)

@@ -6,22 +6,23 @@
 
 package jsonformat
 
-import scala.annotation.switch
-import scalaz._, Scalaz._
 import internal.TCord
+import scala.annotation.switch
+import scalaz.*
+import scalaz.Scalaz.*
 
 object PrettyPrinter {
   def apply(j: JsValue): String = print(j, 0).shows
 
   private def print(j: JsValue, level: Int): TCord =
     j match {
-      case JsArray(as)  =>
+      case JsArray(as) =>
         "[" :: as.map(print(_, level)).intercalate(", ") ++ "]"
       case JsObject(fs) =>
         "{" :: (fs.map(print(_, level + 1)).intercalate(",") ++ pad(
           level
         )) ++ "}"
-      case _            => CompactPrinter.print(j)
+      case _ => CompactPrinter.print(j)
     }
 
   private def print(entry: (String, JsValue), level: Int): TCord =
@@ -30,7 +31,7 @@ object PrettyPrinter {
       level
     )
 
-  private[this] val pad: Int => TCord       = Memo.arrayMemo[TCord](16).apply(pad0(_))
+  private[this] val pad: Int => TCord = Memo.arrayMemo[TCord](16).apply(pad0(_))
   private[this] def pad0(level: Int): TCord =
     "\n" + (" " * 2 * level)
 
@@ -59,7 +60,7 @@ object CompactPrinter {
   private[jsonformat] def escaped(s: String): String = {
     // scalafix:off
     val sb = new java.lang.StringBuilder
-    var i  = 0
+    var i = 0
     sb.append("\"")
     while (i < s.length) {
       sb.append(escape(s(i)))

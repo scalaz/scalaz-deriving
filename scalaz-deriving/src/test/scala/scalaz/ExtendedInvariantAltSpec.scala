@@ -6,23 +6,21 @@
 
 package scalaz
 
+import examples.Default
+import examples.Same
+import examples.Same.ops.*
+import examples.adt.*
+import examples.anyvals.*
+import examples.recadt.*
+import examples.recgadt.*
 import java.lang.String
-
-import scala.collection.immutable.List
-
-import org.scalatest._
-
-import examples.anyvals._
-import examples.adt._
-import examples.recadt._
-import examples.recgadt._
-import examples.{ Default, Same }
-import examples.Same.ops._
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.collection.immutable.List
 
 class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
-  import Matchers._
+  import Matchers.*
 
   "Alt anyvals" should "behave as expected" in {
     Default[Thing].default should equal(Thing(""))
@@ -53,7 +51,7 @@ class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
   }
 
   "Alt large ADTs" should "behave as expected" in {
-    import examples.bigadt._
+    import examples.bigadt.*
 
     Default[Bigly].default.shouldBe(BiglyO)
 
@@ -96,11 +94,11 @@ class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(box.same(box))
   }
 
-  val leaf1: Leaf    = Leaf("hello")
-  val leaf2: Leaf    = Leaf("goodbye")
+  val leaf1: Leaf = Leaf("hello")
+  val leaf2: Leaf = Leaf("goodbye")
   val branch: Branch = Branch(leaf1, leaf2)
-  val tree1: ATree   = Branch(leaf1, branch)
-  val tree2: ATree   = Branch(leaf2, branch)
+  val tree1: ATree = Branch(leaf1, branch)
+  val tree2: ATree = Branch(leaf2, branch)
 
   "Decidable recursive products" should "behave as expected" in {
     assert(leaf1.same(leaf1))
@@ -113,11 +111,11 @@ class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(tree1.different(tree2))
   }
 
-  val gleaf1: GLeaf[String]    = GLeaf("hello")
-  val gleaf2: GLeaf[String]    = GLeaf("goodbye")
+  val gleaf1: GLeaf[String] = GLeaf("hello")
+  val gleaf2: GLeaf[String] = GLeaf("goodbye")
   val gbranch: GBranch[String] = GBranch(gleaf1, gleaf2)
-  val gtree1: GTree[String]    = GBranch(gleaf1, gbranch)
-  val gtree2: GTree[String]    = GBranch(gleaf2, gbranch)
+  val gtree1: GTree[String] = GBranch(gleaf1, gbranch)
+  val gtree2: GTree[String] = GBranch(gleaf2, gbranch)
 
   "Decidable recursive GADT products" should "behave as expected" in {
     assert(gleaf1.same(gleaf1))
@@ -142,8 +140,8 @@ class ExtendedInvariantAltSpec extends AnyFlatSpec with NonImplicitAssertions {
   }
 
   "Decidable large ADTs" should "behave as expected" in {
-    import examples.bigadt._
-    import Scalaz._
+    import examples.bigadt.*
+    import scalaz.Scalaz.*
 
     // some product only litmus tests...
     assert(Bigly5("", "", "", "", 0).same(Bigly5("", "", "", "", 0)))

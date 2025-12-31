@@ -7,18 +7,18 @@
 package scalaz
 package iotatests
 
-import scala._, Predef._
-import iotaz._
-
-import org.scalacheck._
+import org.scalacheck.*
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop._
-import org.scalacheck.ScalacheckShapeless._
+import org.scalacheck.Prop.*
+import org.scalacheck.ScalacheckShapeless.*
+import scala.*
+import scala.Predef.*
+import scalaz.iotaz.*
 
 object CopTests extends Properties("CopTests") {
 
   import TList.::
-  import TList.Op._
+  import TList.Op.*
 
   case class One(a: String)
   case class Two(a: Int)
@@ -61,7 +61,7 @@ object CopTests extends Properties("CopTests") {
     checkInjectL(arbitrary[Three], Cop.InjectL[Three, Reverse[ThreeTwoOneL]], 2)
 
   type First = Int
-  type Last  = String
+  type Last = String
   type Y
 
   type Yuge =

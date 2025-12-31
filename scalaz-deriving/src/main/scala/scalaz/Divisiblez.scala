@@ -7,10 +7,9 @@
 package scalaz
 
 import scala.inline
-
-import iotaz._
-import iotaz.TList.::
-import Prods._
+import scalaz.iotaz.*
+import scalaz.iotaz.Prods.*
+import scalaz.iotaz.TList.::
 
 /**
  * Generic extension of Divisible implementing DerivingProducts.

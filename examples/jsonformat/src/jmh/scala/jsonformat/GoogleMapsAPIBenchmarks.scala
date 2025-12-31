@@ -9,13 +9,17 @@
 package jsonformat.benchmarks
 
 import fommil.DerivedEqual
-import jsonformat._
-import jsonformat.JsDecoder.ops._
-import jsonformat.JsEncoder.ops._
-import scalaz._, Scalaz._
-import scalaz.annotation.deriving
+import jsonformat.*
 import jsonformat.BenchmarkUtils.getResourceAsString
-import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
+import jsonformat.JsDecoder.ops.*
+import jsonformat.JsEncoder.ops.*
+import org.openjdk.jmh.annotations.Benchmark
+import org.openjdk.jmh.annotations.Scope
+import org.openjdk.jmh.annotations.Setup
+import org.openjdk.jmh.annotations.State
+import scalaz.*
+import scalaz.Scalaz.*
+import scalaz.annotation.deriving
 
 // jsonformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 GoogleMaps.*
 
@@ -71,13 +75,13 @@ package m {
     status: String
   )
 
-  object Value          {
+  object Value {
     implicit val equal: Equal[Value] = MagnoliaEqual.gen
   }
-  object Elements       {
+  object Elements {
     implicit val equal: Equal[Elements] = MagnoliaEqual.gen
   }
-  object Rows           {
+  object Rows {
     implicit val equal: Equal[Rows] = MagnoliaEqual.gen
   }
   object DistanceMatrix {
@@ -97,26 +101,26 @@ package s {
     status: String
   )
 
-  object Value          {
+  object Value {
     implicit val encoder: JsEncoder[Value] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Value] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Value]       = DerivedEqual.gen
+    implicit val equal: Equal[Value] = DerivedEqual.gen
   }
-  object Elements       {
+  object Elements {
     implicit val encoder: JsEncoder[Elements] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Elements] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Elements]       = DerivedEqual.gen
+    implicit val equal: Equal[Elements] = DerivedEqual.gen
   }
-  object Rows           {
+  object Rows {
     implicit val encoder: JsEncoder[Rows] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Rows] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Rows]       = DerivedEqual.gen
+    implicit val equal: Equal[Rows] = DerivedEqual.gen
   }
   object DistanceMatrix {
     implicit val encoder: JsEncoder[DistanceMatrix] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[DistanceMatrix] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[DistanceMatrix]       = DerivedEqual.gen
+    implicit val equal: Equal[DistanceMatrix] = DerivedEqual.gen
   }
 
 }
@@ -139,13 +143,13 @@ package z {
     status: String
   )
 
-  object Value          {
+  object Value {
     implicit val equal: Equal[Value] = Deriving.gen[Equal, Value]
   }
-  object Elements       {
+  object Elements {
     implicit val equal: Equal[Elements] = Deriving.gen[Equal, Elements]
   }
-  object Rows           {
+  object Rows {
     implicit val equal: Equal[Rows] = Deriving.gen[Equal, Rows]
   }
   object DistanceMatrix {
@@ -167,43 +171,43 @@ package h {
     status: String
   )
 
-  object Value          {
+  object Value {
     implicit val encoder: JsEncoder[Value] = a =>
       JsObject(
-        "text"    -> a.text.toJson ::
+        "text" -> a.text.toJson ::
           "value" -> a.value.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[Value] = JsDecoder.obj(2) { j =>
       for {
-        text  <- j.getAs[String]("text")
+        text <- j.getAs[String]("text")
         value <- j.getAs[Int]("value")
       } yield Value(text, value)
     }
-    implicit val equal: Equal[Value]       = (a1, a2) =>
+    implicit val equal: Equal[Value] = (a1, a2) =>
       a1.text === a2.text && a1.value === a2.value
   }
-  object Elements       {
+  object Elements {
     implicit val encoder: JsEncoder[Elements] = a =>
       JsObject(
-        "distance"   -> a.distance.toJson ::
+        "distance" -> a.distance.toJson ::
           "duration" -> a.duration.toJson ::
-          "status"   -> a.status.toJson ::
+          "status" -> a.status.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[Elements] = JsDecoder.obj(3) { j =>
       for {
         distance <- j.getAs[Value]("distance")
         duration <- j.getAs[Value]("duration")
-        status   <- j.getAs[String]("status")
+        status <- j.getAs[String]("status")
       } yield Elements(distance, duration, status)
     }
-    implicit val equal: Equal[Elements]       = (a1, a2) =>
+    implicit val equal: Equal[Elements] = (a1, a2) =>
       a1.distance === a2.distance &&
         a1.duration === a2.duration &&
         a1.status === a2.status
   }
-  object Rows           {
+  object Rows {
     private def list[A: JsEncoder](
       field: String,
       as: IList[A]
@@ -218,7 +222,7 @@ package h {
     implicit val decoder: JsDecoder[Rows] = JsDecoder.obj(1) { j =>
       j.getNullable[IList[Elements]]("elements").map(Rows(_))
     }
-    implicit val equal: Equal[Rows]       = (a1, a2) => a1.elements === a2.elements
+    implicit val equal: Equal[Rows] = (a1, a2) => a1.elements === a2.elements
   }
   object DistanceMatrix {
     private def list[A: JsEncoder](
@@ -238,13 +242,13 @@ package h {
       )
     implicit val decoder: JsDecoder[DistanceMatrix] = JsDecoder.obj(4) { j =>
       for {
-        dest   <- j.getNullable[IList[String]]("destination_addresses")
+        dest <- j.getNullable[IList[String]]("destination_addresses")
         origin <- j.getNullable[IList[String]]("origin_addresses")
-        rows   <- j.getNullable[IList[Rows]]("rows")
+        rows <- j.getNullable[IList[Rows]]("rows")
         status <- j.getAs[String]("status")
       } yield DistanceMatrix(dest, origin, rows, status)
     }
-    implicit val equal: Equal[DistanceMatrix]       = (a1, a2) =>
+    implicit val equal: Equal[DistanceMatrix] = (a1, a2) =>
       a1.destination_addresses === a2.destination_addresses &&
         a1.origin_addresses === a2.origin_addresses &&
         a1.rows === a2.rows &&
@@ -254,14 +258,14 @@ package h {
 }
 @State(Scope.Benchmark)
 class GoogleMapsAPIBenchmarks {
-  var jsonString: String                     = _
-  var jsonString2: String                    = _
-  var jsonString3: String                    = _
+  var jsonString: String = _
+  var jsonString2: String = _
+  var jsonString3: String = _
   var objm, objm_, objm__ : m.DistanceMatrix = _
   var objs, objs_, objs__ : s.DistanceMatrix = _
   var objz, objz_, objz__ : z.DistanceMatrix = _
   var objh, objh_, objh__ : h.DistanceMatrix = _
-  var ast1, ast2: JsValue                    = _
+  var ast1, ast2: JsValue = _
 
   @Setup
   def setup(): Unit = {

@@ -7,10 +7,9 @@
 package scalaz
 
 import scala.inline
-
-import iotaz._
-import iotaz.TList.::
-import Cops._
+import scalaz.iotaz.*
+import scalaz.iotaz.Cops.*
+import scalaz.iotaz.TList.::
 
 /**
  * Generic extension of Alt implementing Deriving.
@@ -31,7 +30,7 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
     ev: A PairedWith FA
   ): F[Z] = altlyz(tcs)(f)
 
-  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A]         =
+  override def alt[A](a1: =>F[A], a2: =>F[A]): F[A] =
     altly2(a1, a2) {
       case -\/(a) => a
       case \/-(a) => a
@@ -42,13 +41,13 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
   }
   override def altly2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: A1 \/ A2 => Z
-  ): F[Z]                                                   = {
+  ): F[Z] = {
     type L = A1 :: A2 :: TNil
     altlyz(LazyProd(a1, a2))((c: Cop[L]) => f(to2(c)))
   }
   override def altly3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: A1 \/ (A2 \/ A3) => Z
-  ): F[Z]                                                   = {
+  ): F[Z] = {
     type L = A1 :: A2 :: A3 :: TNil
     altlyz(LazyProd(a1, a2, a3))((c: Cop[L]) => f(to3(c)))
   }
@@ -59,7 +58,7 @@ trait Altz[F[_]] extends Applicativez[F] with Alt[F] with InvariantAltz[F] {
     a4: =>F[A4]
   )(
     f: A1 \/ (A2 \/ (A3 \/ A4)) => Z
-  ): F[Z]                                                   = {
+  ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
     altlyz(LazyProd(a1, a2, a3, a4))((c: Cop[L]) => f(to4(c)))
   }

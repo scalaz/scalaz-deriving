@@ -9,14 +9,17 @@
 package jsonformat.benchmarks
 
 import fommil.DerivedEqual
-import jsonformat._
-import jsonformat.JsDecoder.ops._
-import jsonformat.JsEncoder.ops._
-import scalaz._, Scalaz._
-import scalaz.annotation.deriving
+import jsonformat.*
 import jsonformat.BenchmarkUtils.getResourceAsString
-
-import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
+import jsonformat.JsDecoder.ops.*
+import jsonformat.JsEncoder.ops.*
+import org.openjdk.jmh.annotations.Benchmark
+import org.openjdk.jmh.annotations.Scope
+import org.openjdk.jmh.annotations.Setup
+import org.openjdk.jmh.annotations.State
+import scalaz.*
+import scalaz.Scalaz.*
+import scalaz.annotation.deriving
 
 // jsonformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 TwitterAPIBenchmarks.*
 //
@@ -159,28 +162,28 @@ package m {
     lang: String
   )
 
-  object Urls            {
+  object Urls {
     implicit val equal: Equal[Urls] = MagnoliaEqual.gen
   }
-  object Url             {
+  object Url {
     implicit val equal: Equal[Url] = MagnoliaEqual.gen
   }
-  object UserEntities    {
+  object UserEntities {
     implicit val equal: Equal[UserEntities] = MagnoliaEqual.gen
   }
-  object UserMentions    {
+  object UserMentions {
     implicit val equal: Equal[UserMentions] = MagnoliaEqual.gen
   }
-  object User            {
+  object User {
     implicit val equal: Equal[User] = MagnoliaEqual.gen
   }
-  object Entities        {
+  object Entities {
     implicit val equal: Equal[Entities] = MagnoliaEqual.gen
   }
   object RetweetedStatus {
     implicit val equal: Equal[RetweetedStatus] = MagnoliaEqual.gen
   }
-  object Tweet           {
+  object Tweet {
     implicit val equal: Equal[Tweet] = MagnoliaEqual.gen
   }
 
@@ -306,46 +309,46 @@ package s {
     lang: String
   )
 
-  object Urls            {
+  object Urls {
     implicit val encoder: JsEncoder[Urls] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Urls] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Urls]       = DerivedEqual.gen
+    implicit val equal: Equal[Urls] = DerivedEqual.gen
   }
-  object Url             {
+  object Url {
     implicit val encoder: JsEncoder[Url] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Url] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Url]       = DerivedEqual.gen
+    implicit val equal: Equal[Url] = DerivedEqual.gen
   }
-  object UserEntities    {
+  object UserEntities {
     implicit val encoder: JsEncoder[UserEntities] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[UserEntities] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[UserEntities]       = DerivedEqual.gen
+    implicit val equal: Equal[UserEntities] = DerivedEqual.gen
   }
-  object UserMentions    {
+  object UserMentions {
     implicit val encoder: JsEncoder[UserMentions] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[UserMentions] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[UserMentions]       = DerivedEqual.gen
+    implicit val equal: Equal[UserMentions] = DerivedEqual.gen
   }
-  object User            {
+  object User {
     implicit val encoder: JsEncoder[User] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[User] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[User]       = DerivedEqual.gen
+    implicit val equal: Equal[User] = DerivedEqual.gen
   }
-  object Entities        {
+  object Entities {
     implicit val encoder: JsEncoder[Entities] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Entities] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Entities]       = DerivedEqual.gen
+    implicit val equal: Equal[Entities] = DerivedEqual.gen
   }
   object RetweetedStatus {
     implicit val encoder: JsEncoder[RetweetedStatus] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[RetweetedStatus] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[RetweetedStatus]       = DerivedEqual.gen
+    implicit val equal: Equal[RetweetedStatus] = DerivedEqual.gen
   }
-  object Tweet           {
+  object Tweet {
     implicit val encoder: JsEncoder[Tweet] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Tweet] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Tweet]       = DerivedEqual.gen
+    implicit val equal: Equal[Tweet] = DerivedEqual.gen
   }
 }
 
@@ -484,29 +487,29 @@ package z {
     lang: String
   )
 
-  object Urls            {
+  object Urls {
     implicit val equal: Equal[Urls] = Deriving.gen[Equal, Urls]
   }
-  object Url             {
+  object Url {
     implicit val equal: Equal[Url] = Deriving.gen[Equal, Url]
   }
-  object UserEntities    {
+  object UserEntities {
     implicit val equal: Equal[UserEntities] = Deriving.gen[Equal, UserEntities]
   }
-  object UserMentions    {
+  object UserMentions {
     implicit val equal: Equal[UserMentions] = Deriving.gen[Equal, UserMentions]
   }
-  object User            {
+  object User {
     implicit val equal: Equal[User] = Deriving.gen[Equal, User]
   }
-  object Entities        {
+  object Entities {
     implicit val equal: Equal[Entities] = Deriving.gen[Equal, Entities]
   }
   object RetweetedStatus {
     implicit val equal: Equal[RetweetedStatus] =
       Deriving.gen[Equal, RetweetedStatus]
   }
-  object Tweet           {
+  object Tweet {
     implicit val equal: Equal[Tweet] = Deriving.gen[Equal, Tweet]
   }
 
@@ -634,21 +637,21 @@ package h {
 
   // \([^ ]+\):.*    "\1" -> a.\1.toJson ::
   // "\(.*\)".*      \1 <- j.getAs[]("\1")
-  object Urls         {
+  object Urls {
     implicit val encoder: JsEncoder[Urls] = a =>
       JsObject(
-        "url"            -> a.url.toJson ::
+        "url" -> a.url.toJson ::
           "expanded_url" -> a.expanded_url.toJson ::
-          "display_url"  -> a.display_url.toJson ::
-          "indices"      -> a.indices.toJson ::
+          "display_url" -> a.display_url.toJson ::
+          "indices" -> a.indices.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[Urls] = JsDecoder.obj(4)(j =>
       for {
-        url          <- j.getAs[String]("url")
+        url <- j.getAs[String]("url")
         expanded_url <- j.getAs[String]("expanded_url")
-        display_url  <- j.getAs[String]("display_url")
-        indices      <- j.getAs[IList[Int]]("indices")
+        display_url <- j.getAs[String]("display_url")
+        indices <- j.getAs[IList[Int]]("indices")
       } yield Urls(url, expanded_url, display_url, indices)
     )
 
@@ -657,7 +660,7 @@ package h {
         a1.expanded_url === a2.expanded_url &&
         a1.display_url === a2.display_url
   }
-  object Url          {
+  object Url {
     implicit val encoder: JsEncoder[Url] = a =>
       JsObject(
         "urls" -> a.urls.toJson ::
@@ -668,22 +671,22 @@ package h {
         urls <- j.getAs[IList[Urls]]("urls")
       } yield Url(urls)
     )
-    implicit val equal: Equal[Url]       = (a1, a2) => a1.urls === a2.urls
+    implicit val equal: Equal[Url] = (a1, a2) => a1.urls === a2.urls
   }
   object UserEntities {
     implicit val encoder: JsEncoder[UserEntities] = a =>
       JsObject(
-        "url"           -> a.url.toJson ::
+        "url" -> a.url.toJson ::
           "description" -> a.description.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[UserEntities] = JsDecoder.obj(2)(j =>
       for {
-        url         <- j.getAs[Url]("url")
+        url <- j.getAs[Url]("url")
         description <- j.getAs[Url]("description")
       } yield UserEntities(url, description)
     )
-    implicit val equal: Equal[UserEntities]       = (a1, a2) =>
+    implicit val equal: Equal[UserEntities] = (a1, a2) =>
       a1.url === a2.url &&
         a1.description === a2.description
   }
@@ -691,22 +694,22 @@ package h {
     implicit val encoder: JsEncoder[UserMentions] = a =>
       JsObject(
         "screen_name" -> a.screen_name.toJson ::
-          "name"      -> a.name.toJson ::
-          "id"        -> a.id.toJson ::
-          "id_str"    -> a.id_str.toJson ::
-          "indices"   -> a.indices.toJson ::
+          "name" -> a.name.toJson ::
+          "id" -> a.id.toJson ::
+          "id_str" -> a.id_str.toJson ::
+          "indices" -> a.indices.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[UserMentions] = JsDecoder.obj(5)(j =>
       for {
         screen_name <- j.getAs[String]("screen_name")
-        name        <- j.getAs[String]("name")
-        id          <- j.getAs[Long]("id")
-        id_str      <- j.getAs[String]("id_str")
-        indices     <- j.getAs[IList[Int]]("indices")
+        name <- j.getAs[String]("name")
+        id <- j.getAs[Long]("id")
+        id_str <- j.getAs[String]("id_str")
+        indices <- j.getAs[IList[Int]]("indices")
       } yield UserMentions(screen_name, name, id, id_str, indices)
     )
-    implicit val equal: Equal[UserMentions]       = (a1, a2) =>
+    implicit val equal: Equal[UserMentions] = (a1, a2) =>
       a1.screen_name === a2.screen_name &&
         a1.name === a2.name &&
         a1.id === a2.id &&
@@ -714,110 +717,110 @@ package h {
         a1.indices === a2.indices
 
   }
-  object User            {
+  object User {
     implicit val encoder: JsEncoder[User] = a =>
       JsObject(
-        "id"                                   -> a.id.toJson ::
-          "id_str"                             -> a.id_str.toJson ::
-          "name"                               -> a.name.toJson ::
-          "screen_name"                        -> a.screen_name.toJson ::
-          "location"                           -> a.location.toJson ::
-          "description"                        -> a.description.toJson ::
-          "url"                                -> a.url.toJson ::
-          "entities"                           -> a.entities.toJson ::
-          "protected"                          -> a.`protected`.toJson ::
-          "followers_count"                    -> a.followers_count.toJson ::
-          "friends_count"                      -> a.friends_count.toJson ::
-          "listed_count"                       -> a.listed_count.toJson ::
-          "created_at"                         -> a.created_at.toJson ::
-          "favourites_count"                   -> a.favourites_count.toJson ::
-          "utc_offset"                         -> a.utc_offset.toJson ::
-          "time_zone"                          -> a.time_zone.toJson ::
-          "geo_enabled"                        -> a.geo_enabled.toJson ::
-          "verified"                           -> a.verified.toJson ::
-          "statuses_count"                     -> a.statuses_count.toJson ::
-          "lang"                               -> a.lang.toJson ::
-          "contributors_enabled"               -> a.contributors_enabled.toJson ::
-          "is_translator"                      -> a.is_translator.toJson ::
-          "is_translation_enabled"             -> a.is_translation_enabled.toJson ::
-          "profile_background_color"           -> a.profile_background_color.toJson ::
-          "profile_background_image_url"       -> a.profile_background_image_url.toJson ::
+        "id" -> a.id.toJson ::
+          "id_str" -> a.id_str.toJson ::
+          "name" -> a.name.toJson ::
+          "screen_name" -> a.screen_name.toJson ::
+          "location" -> a.location.toJson ::
+          "description" -> a.description.toJson ::
+          "url" -> a.url.toJson ::
+          "entities" -> a.entities.toJson ::
+          "protected" -> a.`protected`.toJson ::
+          "followers_count" -> a.followers_count.toJson ::
+          "friends_count" -> a.friends_count.toJson ::
+          "listed_count" -> a.listed_count.toJson ::
+          "created_at" -> a.created_at.toJson ::
+          "favourites_count" -> a.favourites_count.toJson ::
+          "utc_offset" -> a.utc_offset.toJson ::
+          "time_zone" -> a.time_zone.toJson ::
+          "geo_enabled" -> a.geo_enabled.toJson ::
+          "verified" -> a.verified.toJson ::
+          "statuses_count" -> a.statuses_count.toJson ::
+          "lang" -> a.lang.toJson ::
+          "contributors_enabled" -> a.contributors_enabled.toJson ::
+          "is_translator" -> a.is_translator.toJson ::
+          "is_translation_enabled" -> a.is_translation_enabled.toJson ::
+          "profile_background_color" -> a.profile_background_color.toJson ::
+          "profile_background_image_url" -> a.profile_background_image_url.toJson ::
           "profile_background_image_url_https" -> a.profile_background_image_url_https.toJson ::
-          "profile_background_tile"            -> a.profile_background_tile.toJson ::
-          "profile_image_url"                  -> a.profile_image_url.toJson ::
-          "profile_image_url_https"            -> a.profile_image_url_https.toJson ::
-          "profile_banner_url"                 -> a.profile_banner_url.toJson ::
-          "profile_link_color"                 -> a.profile_link_color.toJson ::
-          "profile_sidebar_border_color"       -> a.profile_sidebar_border_color.toJson ::
-          "profile_sidebar_fill_color"         -> a.profile_sidebar_fill_color.toJson ::
-          "profile_text_color"                 -> a.profile_text_color.toJson ::
-          "profile_use_background_image"       -> a.profile_use_background_image.toJson ::
-          "has_extended_profile"               -> a.has_extended_profile.toJson ::
-          "default_profile"                    -> a.default_profile.toJson ::
-          "default_profile_image"              -> a.default_profile_image.toJson ::
-          "following"                          -> a.following.toJson ::
-          "follow_request_sent"                -> a.follow_request_sent.toJson ::
-          "notifications"                      -> a.notifications.toJson ::
-          "translator_type"                    -> a.translator_type.toJson ::
+          "profile_background_tile" -> a.profile_background_tile.toJson ::
+          "profile_image_url" -> a.profile_image_url.toJson ::
+          "profile_image_url_https" -> a.profile_image_url_https.toJson ::
+          "profile_banner_url" -> a.profile_banner_url.toJson ::
+          "profile_link_color" -> a.profile_link_color.toJson ::
+          "profile_sidebar_border_color" -> a.profile_sidebar_border_color.toJson ::
+          "profile_sidebar_fill_color" -> a.profile_sidebar_fill_color.toJson ::
+          "profile_text_color" -> a.profile_text_color.toJson ::
+          "profile_use_background_image" -> a.profile_use_background_image.toJson ::
+          "has_extended_profile" -> a.has_extended_profile.toJson ::
+          "default_profile" -> a.default_profile.toJson ::
+          "default_profile_image" -> a.default_profile_image.toJson ::
+          "following" -> a.following.toJson ::
+          "follow_request_sent" -> a.follow_request_sent.toJson ::
+          "notifications" -> a.notifications.toJson ::
+          "translator_type" -> a.translator_type.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[User] = JsDecoder.obj(41)(j =>
       for {
-        id                                 <- j.getAs[Long]("id")
-        id_str                             <- j.getAs[String]("id_str")
-        name                               <- j.getAs[String]("name")
-        screen_name                        <- j.getAs[String]("screen_name")
-        location                           <- j.getAs[String]("location")
-        description                        <- j.getAs[String]("description")
-        url                                <- j.getAs[String]("url")
-        entities                           <- j.getAs[UserEntities]("entities")
-        protected_                         <- j.getAs[Boolean]("protected")
-        followers_count                    <- j.getAs[Int]("followers_count")
-        friends_count                      <- j.getAs[Int]("friends_count")
-        listed_count                       <- j.getAs[Int]("listed_count")
-        created_at                         <- j.getAs[String]("created_at")
-        favourites_count                   <- j.getAs[Int]("favourites_count")
-        utc_offset                         <- j.getAs[Int]("utc_offset")
-        time_zone                          <- j.getAs[String]("time_zone")
-        geo_enabled                        <- j.getAs[Boolean]("geo_enabled")
-        verified                           <- j.getAs[Boolean]("verified")
-        statuses_count                     <- j.getAs[Int]("statuses_count")
-        lang                               <- j.getAs[String]("lang")
-        contributors_enabled               <- j.getAs[Boolean]("contributors_enabled")
-        is_translator                      <- j.getAs[Boolean]("is_translator")
-        is_translation_enabled             <- j.getAs[Boolean]("is_translation_enabled")
-        profile_background_color           <- j.getAs[String](
-                                                "profile_background_color"
-                                              )
-        profile_background_image_url       <- j.getAs[String](
-                                                "profile_background_image_url"
-                                              )
+        id <- j.getAs[Long]("id")
+        id_str <- j.getAs[String]("id_str")
+        name <- j.getAs[String]("name")
+        screen_name <- j.getAs[String]("screen_name")
+        location <- j.getAs[String]("location")
+        description <- j.getAs[String]("description")
+        url <- j.getAs[String]("url")
+        entities <- j.getAs[UserEntities]("entities")
+        protected_ <- j.getAs[Boolean]("protected")
+        followers_count <- j.getAs[Int]("followers_count")
+        friends_count <- j.getAs[Int]("friends_count")
+        listed_count <- j.getAs[Int]("listed_count")
+        created_at <- j.getAs[String]("created_at")
+        favourites_count <- j.getAs[Int]("favourites_count")
+        utc_offset <- j.getAs[Int]("utc_offset")
+        time_zone <- j.getAs[String]("time_zone")
+        geo_enabled <- j.getAs[Boolean]("geo_enabled")
+        verified <- j.getAs[Boolean]("verified")
+        statuses_count <- j.getAs[Int]("statuses_count")
+        lang <- j.getAs[String]("lang")
+        contributors_enabled <- j.getAs[Boolean]("contributors_enabled")
+        is_translator <- j.getAs[Boolean]("is_translator")
+        is_translation_enabled <- j.getAs[Boolean]("is_translation_enabled")
+        profile_background_color <- j.getAs[String](
+          "profile_background_color"
+        )
+        profile_background_image_url <- j.getAs[String](
+          "profile_background_image_url"
+        )
         profile_background_image_url_https <-
           j.getAs[String](
             "profile_background_image_url_https"
           )
-        profile_background_tile            <- j.getAs[Boolean]("profile_background_tile")
-        profile_image_url                  <- j.getAs[String]("profile_image_url")
-        profile_image_url_https            <- j.getAs[String]("profile_image_url_https")
-        profile_banner_url                 <- j.getAs[String]("profile_banner_url")
-        profile_link_color                 <- j.getAs[String]("profile_link_color")
-        profile_sidebar_border_color       <- j.getAs[String](
-                                                "profile_sidebar_border_color"
-                                              )
-        profile_sidebar_fill_color         <- j.getAs[String](
-                                                "profile_sidebar_fill_color"
-                                              )
-        profile_text_color                 <- j.getAs[String]("profile_text_color")
-        profile_use_background_image       <- j.getAs[Boolean](
-                                                "profile_use_background_image"
-                                              )
-        has_extended_profile               <- j.getAs[Boolean]("has_extended_profile")
-        default_profile                    <- j.getAs[Boolean]("default_profile")
-        default_profile_image              <- j.getAs[Boolean]("default_profile_image")
-        following                          <- j.getAs[Boolean]("following")
-        follow_request_sent                <- j.getAs[Boolean]("follow_request_sent")
-        notifications                      <- j.getAs[Boolean]("notifications")
-        translator_type                    <- j.getAs[String]("translator_type")
+        profile_background_tile <- j.getAs[Boolean]("profile_background_tile")
+        profile_image_url <- j.getAs[String]("profile_image_url")
+        profile_image_url_https <- j.getAs[String]("profile_image_url_https")
+        profile_banner_url <- j.getAs[String]("profile_banner_url")
+        profile_link_color <- j.getAs[String]("profile_link_color")
+        profile_sidebar_border_color <- j.getAs[String](
+          "profile_sidebar_border_color"
+        )
+        profile_sidebar_fill_color <- j.getAs[String](
+          "profile_sidebar_fill_color"
+        )
+        profile_text_color <- j.getAs[String]("profile_text_color")
+        profile_use_background_image <- j.getAs[Boolean](
+          "profile_use_background_image"
+        )
+        has_extended_profile <- j.getAs[Boolean]("has_extended_profile")
+        default_profile <- j.getAs[Boolean]("default_profile")
+        default_profile_image <- j.getAs[Boolean]("default_profile_image")
+        following <- j.getAs[Boolean]("following")
+        follow_request_sent <- j.getAs[Boolean]("follow_request_sent")
+        notifications <- j.getAs[Boolean]("notifications")
+        translator_type <- j.getAs[String]("translator_type")
       } yield User(
         id,
         id_str,
@@ -863,7 +866,7 @@ package h {
         translator_type
       )
     )
-    implicit val equal: Equal[User]       = (a1, a2) =>
+    implicit val equal: Equal[User] = (a1, a2) =>
       a1.id === a2.id &&
         a1.id_str === a2.id_str &&
         a1.name === a2.name &&
@@ -907,24 +910,24 @@ package h {
         a1.notifications === a2.notifications &&
         a1.translator_type === a2.translator_type
   }
-  object Entities        {
+  object Entities {
     implicit val encoder: JsEncoder[Entities] = a =>
       JsObject(
-        "hashtags"        -> a.hashtags.toJson ::
-          "symbols"       -> a.symbols.toJson ::
+        "hashtags" -> a.hashtags.toJson ::
+          "symbols" -> a.symbols.toJson ::
           "user_mentions" -> a.user_mentions.toJson ::
-          "urls"          -> a.urls.toJson ::
+          "urls" -> a.urls.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[Entities] = JsDecoder.obj(4)(j =>
       for {
-        hashtags      <- j.getAs[IList[String]]("hashtags")
-        symbols       <- j.getAs[IList[String]]("symbols")
+        hashtags <- j.getAs[IList[String]]("hashtags")
+        symbols <- j.getAs[IList[String]]("symbols")
         user_mentions <- j.getAs[IList[UserMentions]]("user_mentions")
-        urls          <- j.getAs[IList[Urls]]("urls")
+        urls <- j.getAs[IList[Urls]]("urls")
       } yield Entities(hashtags, symbols, user_mentions, urls)
     )
-    implicit val equal: Equal[Entities]       = (a1, a2) =>
+    implicit val equal: Equal[Entities] = (a1, a2) =>
       a1.hashtags === a2.hashtags &&
         a1.symbols === a2.symbols &&
         a1.user_mentions === a2.user_mentions &&
@@ -942,66 +945,66 @@ package h {
 
     implicit val encoder: JsEncoder[RetweetedStatus] = a =>
       JsObject(
-        "created_at"           -> a.created_at.toJson ::
-          "id"                 -> a.id.toJson ::
-          "id_str"             -> a.id_str.toJson ::
-          "text"               -> a.text.toJson ::
-          "truncated"          -> a.truncated.toJson ::
-          "entities"           -> a.entities.toJson ::
-          "source"             -> a.source.toJson ::
+        "created_at" -> a.created_at.toJson ::
+          "id" -> a.id.toJson ::
+          "id_str" -> a.id_str.toJson ::
+          "text" -> a.text.toJson ::
+          "truncated" -> a.truncated.toJson ::
+          "entities" -> a.entities.toJson ::
+          "source" -> a.source.toJson ::
           opt("in_reply_to_status_id", a.in_reply_to_status_id) :::
           opt("in_reply_to_status_id_str", a.in_reply_to_status_id_str) :::
           opt("in_reply_to_user_id", a.in_reply_to_user_id) :::
           opt("in_reply_to_user_id_str", a.in_reply_to_user_id_str) :::
           opt("in_reply_to_screen_name", a.in_reply_to_screen_name) :::
-          "user"               -> a.user.toJson ::
+          "user" -> a.user.toJson ::
           opt("geo", a.geo) :::
           opt("coordinates", a.coordinates) :::
           opt("place", a.place) :::
           opt("contributors", a.contributors) :::
-          "is_quote_status"    -> a.is_quote_status.toJson ::
-          "retweet_count"      -> a.retweet_count.toJson ::
-          "favorite_count"     -> a.favorite_count.toJson ::
-          "favorited"          -> a.favorited.toJson ::
-          "retweeted"          -> a.retweeted.toJson ::
+          "is_quote_status" -> a.is_quote_status.toJson ::
+          "retweet_count" -> a.retweet_count.toJson ::
+          "favorite_count" -> a.favorite_count.toJson ::
+          "favorited" -> a.favorited.toJson ::
+          "retweeted" -> a.retweeted.toJson ::
           "possibly_sensitive" -> a.possibly_sensitive.toJson ::
-          "lang"               -> a.lang.toJson ::
+          "lang" -> a.lang.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[RetweetedStatus] = JsDecoder.obj(25)(j =>
       for {
-        created_at                <- j.getAs[String]("created_at")
-        id                        <- j.getAs[Long]("id")
-        id_str                    <- j.getAs[String]("id_str")
-        text                      <- j.getAs[String]("text")
-        truncated                 <- j.getAs[Boolean]("truncated")
-        entities                  <- j.getAs[Entities]("entities")
-        source                    <- j.getAs[String]("source")
-        in_reply_to_status_id     <- j.getOption[String](
-                                       "in_reply_to_status_id"
-                                     )
+        created_at <- j.getAs[String]("created_at")
+        id <- j.getAs[Long]("id")
+        id_str <- j.getAs[String]("id_str")
+        text <- j.getAs[String]("text")
+        truncated <- j.getAs[Boolean]("truncated")
+        entities <- j.getAs[Entities]("entities")
+        source <- j.getAs[String]("source")
+        in_reply_to_status_id <- j.getOption[String](
+          "in_reply_to_status_id"
+        )
         in_reply_to_status_id_str <- j.getOption[String](
-                                       "in_reply_to_status_id_str"
-                                     )
-        in_reply_to_user_id       <- j.getOption[String]("in_reply_to_user_id")
-        in_reply_to_user_id_str   <- j.getOption[String](
-                                       "in_reply_to_user_id_str"
-                                     )
-        in_reply_to_screen_name   <- j.getOption[String](
-                                       "in_reply_to_screen_name"
-                                     )
-        user                      <- j.getAs[User]("user")
-        geo                       <- j.getOption[String]("geo")
-        coordinates               <- j.getOption[String]("coordinates")
-        place                     <- j.getOption[String]("place")
-        contributors              <- j.getOption[String]("contributors")
-        is_quote_status           <- j.getAs[Boolean]("is_quote_status")
-        retweet_count             <- j.getAs[Int]("retweet_count")
-        favorite_count            <- j.getAs[Int]("favorite_count")
-        favorited                 <- j.getAs[Boolean]("favorited")
-        retweeted                 <- j.getAs[Boolean]("retweeted")
-        possibly_sensitive        <- j.getAs[Boolean]("possibly_sensitive")
-        lang                      <- j.getAs[String]("lang")
+          "in_reply_to_status_id_str"
+        )
+        in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
+        in_reply_to_user_id_str <- j.getOption[String](
+          "in_reply_to_user_id_str"
+        )
+        in_reply_to_screen_name <- j.getOption[String](
+          "in_reply_to_screen_name"
+        )
+        user <- j.getAs[User]("user")
+        geo <- j.getOption[String]("geo")
+        coordinates <- j.getOption[String]("coordinates")
+        place <- j.getOption[String]("place")
+        contributors <- j.getOption[String]("contributors")
+        is_quote_status <- j.getAs[Boolean]("is_quote_status")
+        retweet_count <- j.getAs[Int]("retweet_count")
+        favorite_count <- j.getAs[Int]("favorite_count")
+        favorited <- j.getAs[Boolean]("favorited")
+        retweeted <- j.getAs[Boolean]("retweeted")
+        possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
+        lang <- j.getAs[String]("lang")
 
       } yield RetweetedStatus(
         created_at,
@@ -1030,7 +1033,7 @@ package h {
         lang
       )
     )
-    implicit val equal: Equal[RetweetedStatus]       = (a1, a2) =>
+    implicit val equal: Equal[RetweetedStatus] = (a1, a2) =>
       a1.created_at === a2.created_at &&
         a1.id === a2.id &&
         a1.id_str === a2.id_str &&
@@ -1069,68 +1072,68 @@ package h {
 
     implicit val encoder: JsEncoder[Tweet] = a =>
       JsObject(
-        "created_at"           -> a.created_at.toJson ::
-          "id"                 -> a.id.toJson ::
-          "id_str"             -> a.id_str.toJson ::
-          "text"               -> a.text.toJson ::
-          "truncated"          -> a.truncated.toJson ::
-          "entities"           -> a.entities.toJson ::
-          "source"             -> a.source.toJson ::
+        "created_at" -> a.created_at.toJson ::
+          "id" -> a.id.toJson ::
+          "id_str" -> a.id_str.toJson ::
+          "text" -> a.text.toJson ::
+          "truncated" -> a.truncated.toJson ::
+          "entities" -> a.entities.toJson ::
+          "source" -> a.source.toJson ::
           opt("in_reply_to_status_id", a.in_reply_to_status_id) :::
           opt("in_reply_to_status_id_str", a.in_reply_to_status_id_str) :::
           opt("in_reply_to_user_id", a.in_reply_to_user_id) :::
           opt("in_reply_to_user_id_str", a.in_reply_to_user_id_str) :::
           opt("in_reply_to_screen_name", a.in_reply_to_screen_name) :::
-          "user"               -> a.user.toJson ::
+          "user" -> a.user.toJson ::
           opt("geo", a.geo) :::
           opt("coordinates", a.coordinates) :::
           opt("place", a.place) :::
           opt("contributors", a.contributors) :::
-          "retweeted_status"   -> a.retweeted_status.toJson ::
-          "is_quote_status"    -> a.is_quote_status.toJson ::
-          "retweet_count"      -> a.retweet_count.toJson ::
-          "favorite_count"     -> a.favorite_count.toJson ::
-          "favorited"          -> a.favorited.toJson ::
-          "retweeted"          -> a.retweeted.toJson ::
+          "retweeted_status" -> a.retweeted_status.toJson ::
+          "is_quote_status" -> a.is_quote_status.toJson ::
+          "retweet_count" -> a.retweet_count.toJson ::
+          "favorite_count" -> a.favorite_count.toJson ::
+          "favorited" -> a.favorited.toJson ::
+          "retweeted" -> a.retweeted.toJson ::
           "possibly_sensitive" -> a.possibly_sensitive.toJson ::
-          "lang"               -> a.lang.toJson ::
+          "lang" -> a.lang.toJson ::
           IList.empty
       )
     implicit val decoder: JsDecoder[Tweet] = JsDecoder.obj(25)(j =>
       for {
-        created_at                <- j.getAs[String]("created_at")
-        id                        <- j.getAs[Long]("id")
-        id_str                    <- j.getAs[String]("id_str")
-        text                      <- j.getAs[String]("text")
-        truncated                 <- j.getAs[Boolean]("truncated")
-        entities                  <- j.getAs[Entities]("entities")
-        source                    <- j.getAs[String]("source")
-        in_reply_to_status_id     <- j.getOption[String](
-                                       "in_reply_to_status_id"
-                                     )
+        created_at <- j.getAs[String]("created_at")
+        id <- j.getAs[Long]("id")
+        id_str <- j.getAs[String]("id_str")
+        text <- j.getAs[String]("text")
+        truncated <- j.getAs[Boolean]("truncated")
+        entities <- j.getAs[Entities]("entities")
+        source <- j.getAs[String]("source")
+        in_reply_to_status_id <- j.getOption[String](
+          "in_reply_to_status_id"
+        )
         in_reply_to_status_id_str <- j.getOption[String](
-                                       "in_reply_to_status_id_str"
-                                     )
-        in_reply_to_user_id       <- j.getOption[String]("in_reply_to_user_id")
-        in_reply_to_user_id_str   <- j.getOption[String](
-                                       "in_reply_to_user_id_str"
-                                     )
-        in_reply_to_screen_name   <- j.getOption[String](
-                                       "in_reply_to_screen_name"
-                                     )
-        user                      <- j.getAs[User]("user")
-        geo                       <- j.getOption[String]("geo")
-        coordinates               <- j.getOption[String]("coordinates")
-        place                     <- j.getOption[String]("place")
-        contributors              <- j.getOption[String]("contributors")
-        retweeted_status          <- j.getAs[RetweetedStatus]("retweeted_status")
-        is_quote_status           <- j.getAs[Boolean]("is_quote_status")
-        retweet_count             <- j.getAs[Int]("retweet_count")
-        favorite_count            <- j.getAs[Int]("favorite_count")
-        favorited                 <- j.getAs[Boolean]("favorited")
-        retweeted                 <- j.getAs[Boolean]("retweeted")
-        possibly_sensitive        <- j.getAs[Boolean]("possibly_sensitive")
-        lang                      <- j.getAs[String]("lang")
+          "in_reply_to_status_id_str"
+        )
+        in_reply_to_user_id <- j.getOption[String]("in_reply_to_user_id")
+        in_reply_to_user_id_str <- j.getOption[String](
+          "in_reply_to_user_id_str"
+        )
+        in_reply_to_screen_name <- j.getOption[String](
+          "in_reply_to_screen_name"
+        )
+        user <- j.getAs[User]("user")
+        geo <- j.getOption[String]("geo")
+        coordinates <- j.getOption[String]("coordinates")
+        place <- j.getOption[String]("place")
+        contributors <- j.getOption[String]("contributors")
+        retweeted_status <- j.getAs[RetweetedStatus]("retweeted_status")
+        is_quote_status <- j.getAs[Boolean]("is_quote_status")
+        retweet_count <- j.getAs[Int]("retweet_count")
+        favorite_count <- j.getAs[Int]("favorite_count")
+        favorited <- j.getAs[Boolean]("favorited")
+        retweeted <- j.getAs[Boolean]("retweeted")
+        possibly_sensitive <- j.getAs[Boolean]("possibly_sensitive")
+        lang <- j.getAs[String]("lang")
 
       } yield Tweet(
         created_at,
@@ -1160,7 +1163,7 @@ package h {
         lang
       )
     )
-    implicit val equal: Equal[Tweet]       = (a1, a2) =>
+    implicit val equal: Equal[Tweet] = (a1, a2) =>
       a1.created_at === a2.created_at &&
         a1.id === a2.id &&
         a1.id_str === a2.id_str &&
@@ -1193,7 +1196,7 @@ package h {
 @State(Scope.Benchmark)
 class TwitterAPIBenchmarks {
   var jsonString, jsonString2, jsonString3: String = _
-  var ast1, ast2: JsValue                          = _
+  var ast1, ast2: JsValue = _
 
   var objm, objm_, objm__ : List[m.Tweet] = _
   var objs, objs_, objs__ : List[s.Tweet] = _

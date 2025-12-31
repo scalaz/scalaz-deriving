@@ -6,19 +6,17 @@
 
 package xmlformat
 
-import java.time.Instant
-
-import scala.concurrent.duration._
-
 import eu.timepit.refined
-import scalaz._, Scalaz._
-
+import java.time.Instant
 import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.should.Matchers._
+import org.scalatest.matchers.should.Matchers.*
+import scala.concurrent.duration.*
+import scalaz.*
+import scalaz.Scalaz.*
 
 class XEncoderTests extends AnyFreeSpec {
-  import XEncoder.ops._
-  import XStrEncoder.ops._
+  import XEncoder.ops.*
+  import XStrEncoder.ops.*
 
   "XNode Encoder" - {
     "should support Boolean" in {
@@ -60,7 +58,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should special-case Either for objects" in {
-      import examples._
+      import examples.*
 
       Stringy("hello")
         .left[Inty]
@@ -158,14 +156,14 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support Instant" in {
-      val iso     = "2013-05-30T23:38:23.085Z"
+      val iso = "2013-05-30T23:38:23.085Z"
       val instant = Instant.parse(iso)
       instant.toXml.shouldBe(XString(iso))
     }
 
     "should support refined types" in {
       import refined.api.Refined
-      import refined.auto._
+      import refined.auto.*
       import refined.numeric.Positive
 
       val pos: Long Refined Positive = 1L
@@ -173,7 +171,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support generic products" in {
-      import examples._
+      import examples.*
 
       Foo("hello").toXml.shouldBe(
         XTag("Foo", XTag("s", XString("hello")).asChild).asChild
@@ -191,7 +189,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support generic coproducts" in {
-      import examples._
+      import examples.*
 
       (Foo("hello"): SimpleTrait).toXml.shouldBe(
         XTag(
@@ -250,7 +248,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support generic recursive ADTs" in {
-      import examples._
+      import examples.*
 
       Recursive("hello", Some(Recursive("goodbye"))).toXml.shouldBe(
         XTag(
@@ -273,7 +271,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should encode fields as XmlAttribute" in {
-      import examples._
+      import examples.*
 
       val multifield = MultiField("hello", "goodbye")
 
@@ -315,7 +313,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support lists of tags" in {
-      import examples._
+      import examples.*
 
       List[AbstractThing](Wibble, Wibble).toXml.shouldBe(
         XChildren(
@@ -353,7 +351,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support inlined semigroup fields" in {
-      import examples._
+      import examples.*
 
       Inliner(Foo("hello"), "goodbye").toXml.shouldBe(
         XTag(
@@ -376,7 +374,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support inlined single fields" in {
-      import examples._
+      import examples.*
 
       AmbiguousCoproduct(Foo("hello")).toXml.shouldBe(
         XTag(
@@ -392,7 +390,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support inlined monoid lists" in {
-      import examples._
+      import examples.*
 
       Inliners(List(Foo("hello"), Foo("goodbye"))).toXml.shouldBe(
         XTag(
@@ -408,7 +406,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support inlined content" in {
-      import examples._
+      import examples.*
 
       Outliners(Some("hello"), Some("goodbye")).toXml.shouldBe(
         XTag(
@@ -421,7 +419,7 @@ class XEncoderTests extends AnyFreeSpec {
     }
 
     "should support tagged coproduct disambiguation" in {
-      import examples._
+      import examples.*
 
       TaggyCoproduct(TaggyA()).toXml.shouldBe(
         XTag(

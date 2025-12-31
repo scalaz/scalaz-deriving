@@ -6,16 +6,13 @@
 
 package scalaz
 
+import examples.adt.*
+import examples.recadt.*
+import examples.recgadt.*
 import java.lang.String
-
-import org.scalatest._
-
-import examples.adt._
-import examples.recadt._
-import examples.recgadt._
-
-import Scalaz._
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
+import scalaz.Scalaz.*
 
 class DecidableSpec extends AnyFlatSpec with NonImplicitAssertions {
 
@@ -39,11 +36,11 @@ class DecidableSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(faz === faz)
   }
 
-  val leaf1: Leaf    = Leaf("hello")
-  val leaf2: Leaf    = Leaf("goodbye")
+  val leaf1: Leaf = Leaf("hello")
+  val leaf2: Leaf = Leaf("goodbye")
   val branch: Branch = Branch(leaf1, leaf2)
-  val tree1: ATree   = Branch(leaf1, branch)
-  val tree2: ATree   = Branch(leaf2, branch)
+  val tree1: ATree = Branch(leaf1, branch)
+  val tree2: ATree = Branch(leaf2, branch)
 
   "recursive products" should "behave as expected" in {
     assert(leaf1 === leaf1)
@@ -56,11 +53,11 @@ class DecidableSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(tree1 /== tree2)
   }
 
-  val gleaf1: GLeaf[String]    = GLeaf("hello")
-  val gleaf2: GLeaf[String]    = GLeaf("goodbye")
+  val gleaf1: GLeaf[String] = GLeaf("hello")
+  val gleaf2: GLeaf[String] = GLeaf("goodbye")
   val gbranch: GBranch[String] = GBranch(gleaf1, gleaf2)
-  val gtree1: GTree[String]    = GBranch(gleaf1, gbranch)
-  val gtree2: GTree[String]    = GBranch(gleaf2, gbranch)
+  val gtree1: GTree[String] = GBranch(gleaf1, gbranch)
+  val gtree2: GTree[String] = GBranch(gleaf2, gbranch)
 
   "recursive GADT products" should "behave as expected" in {
     assert(gleaf1 === gleaf1)
