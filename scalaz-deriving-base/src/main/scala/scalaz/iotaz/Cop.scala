@@ -15,7 +15,8 @@
 
 package scalaz.iotaz
 
-import scala._, Predef._
+import scala.*
+import scala.Predef.*
 
 /** A coproduct of types captured by type list `L` */
 final class Cop[LL <: TList] private (
@@ -39,7 +40,7 @@ final class Cop[LL <: TList] private (
 
 object Cop {
 
-  import scalaz.Isomorphism._
+  import scalaz.Isomorphism.*
   def gen[A, R <: TList]: A <=> Cop[R] = macro internal.CopMacros.copGen[A, R]
 
   def unsafeApply[L <: TList, A](index: Int, a: A): Cop[L] =
@@ -49,21 +50,21 @@ object Cop {
    * A type class witnessing the ability to inject type `A` into a
    * coproduct of types `B`
    */
-  sealed abstract class Inject[A, B <: Cop[_]] {
+  sealed abstract class Inject[A, B <: Cop[?]] {
     def inj: A => B
     def prj: B => Option[A]
-    final def apply(a: A): B           = inj(a)
+    final def apply(a: A): B = inj(a)
     final def unapply(b: B): Option[A] = prj(b)
   }
 
   object Inject {
-    def apply[A, B <: Cop[_]](implicit ev: Inject[A, B]): Inject[A, B] = ev
+    def apply[A, B <: Cop[?]](implicit ev: Inject[A, B]): Inject[A, B] = ev
 
     implicit def injectFromInjectL[A, L <: TList](implicit
       ev: InjectL[A, L]
     ): Inject[A, Cop[L]] =
       new Inject[A, Cop[L]] {
-        val inj: A => Cop[L]         = ev.inj(_)
+        val inj: A => Cop[L] = ev.inj(_)
         val prj: Cop[L] => Option[A] = ev.proj(_)
       }
   }
@@ -73,11 +74,11 @@ object Cop {
    * coproduct of types for [[TList]] type `L`
    */
   final class InjectL[A, L <: TList] private[InjectL] (index: Int) {
-    def inj(a: A): Cop[L]             = new Cop[L](index, a)
-    def proj(c: Cop[L]): Option[A]    =
+    def inj(a: A): Cop[L] = new Cop[L](index, a)
+    def proj(c: Cop[L]): Option[A] =
       if (c.index == index) Some(c.value.asInstanceOf[A])
       else None
-    def apply(a: A): Cop[L]           = inj(a)
+    def apply(a: A): Cop[L] = inj(a)
     def unapply(c: Cop[L]): Option[A] = proj(c)
   }
 
@@ -85,7 +86,7 @@ object Cop {
     def apply[A, L <: TList](implicit ev: InjectL[A, L]): InjectL[A, L] = ev
     implicit def makeInjectL[A, L <: TList](implicit
       ev: TList.Pos[L, A]
-    ): InjectL[A, L]                                                    =
+    ): InjectL[A, L] =
       new InjectL[A, L](ev.index)
   }
 
@@ -102,7 +103,7 @@ object Cop {
     def apply[A, L <: TList](implicit ev: RemoveL[A, L]): RemoveL[A, L] = ev
     implicit def makeRemoveL[A, L <: TList](implicit
       ev: TList.Pos[L, A]
-    ): RemoveL[A, L]                                                    =
+    ): RemoveL[A, L] =
       new RemoveL[A, L](ev.index)
   }
 

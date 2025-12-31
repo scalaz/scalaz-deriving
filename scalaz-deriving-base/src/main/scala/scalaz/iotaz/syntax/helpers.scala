@@ -18,7 +18,7 @@ package iotaz
 package syntax
 
 import scala.AnyVal
-import iotaz.evidence._
+import scalaz.iotaz.evidence.*
 
 trait EvidenceSyntax {
   def firstK[L <: TListK, A](implicit ev: FirstK[L, A]): CopK[L, A] =
@@ -26,7 +26,7 @@ trait EvidenceSyntax {
 }
 
 final class InjectOps[A](val a: A) extends AnyVal {
-  def inject[B <: Cop[_]](implicit ev: Cop.Inject[A, B]): B =
+  def inject[B <: Cop[?]](implicit ev: Cop.Inject[A, B]): B =
     ev.inj(a)
 }
 
@@ -35,7 +35,7 @@ trait InjectSyntax {
 }
 
 final class InjectKOps[F[_], A](val fa: F[A]) extends AnyVal {
-  def injectK[G[α] <: CopK[_, α]](implicit ev: CopK.Inject[F, G]): G[A] =
+  def injectK[G[α] <: CopK[?, α]](implicit ev: CopK.Inject[F, G]): G[A] =
     ev.inj(fa)
 }
 

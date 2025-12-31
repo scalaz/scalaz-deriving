@@ -7,7 +7,7 @@
 package fommil
 
 import scalaz.Equal
-import shapeless._
+import shapeless.*
 
 // lots of copypasta with DerivedOrder
 

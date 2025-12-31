@@ -7,12 +7,14 @@
 package examples
 
 import java.lang.String
-import scala.{ AnyVal, Boolean, Int }
-
-import scalaz._, Scalaz._
+import org.scalacheck.Arbitrary
+import scala.AnyVal
+import scala.Boolean
+import scala.Int
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
-import org.scalacheck.Arbitrary
 
 package anyvals {
   @xderiving(
@@ -76,7 +78,7 @@ package adt {
     Show,
     Monoid
   )
-  final case class Bar(s: String)          extends Foo
+  final case class Bar(s: String) extends Foo
   @deriving(
     Equal,
     Default,
@@ -97,11 +99,11 @@ package adt {
     Show,
     Semigroup
   )
-  final case object Baz                    extends Foo
+  final case object Baz extends Foo
 
   // the @deriving is implied by the parent!
   final case class Box(i: Int) extends Foo
-  final case object Flooz      extends Foo
+  final case object Flooz extends Foo
 }
 
 // more complex recursive type example
@@ -127,7 +129,7 @@ package recadt {
     Same,
     Show
   )
-  final case class Leaf(value: String)               extends ATree
+  final case class Leaf(value: String) extends ATree
   @deriving(
     Arbitrary,
     Order,
@@ -164,7 +166,7 @@ package recgadt {
     Same,
     Show
   )
-  final case class GLeaf[A](value: A)                          extends GTree[A]
+  final case class GLeaf[A](value: A) extends GTree[A]
   @deriving(
     Arbitrary,
     Equal,
@@ -184,7 +186,7 @@ package bigadt {
   @deriving(Same, Default)
   sealed abstract class Bigly
   @deriving(Same, Default)
-  final case object BiglyO  extends Bigly
+  final case object BiglyO extends Bigly
   @deriving(Same, Default)
   final case class Bigly0() extends Bigly
   @deriving(Same, Default)

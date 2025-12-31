@@ -6,8 +6,9 @@
 
 package fommil
 
-import magnolia._
-import scalaz._, Scalaz._
+import magnolia.*
+import scalaz.*
+import scalaz.Scalaz.*
 
 object MagnoliaShow {
   type Typeclass[A] = Show[A]

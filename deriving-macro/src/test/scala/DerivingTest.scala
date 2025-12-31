@@ -7,15 +7,16 @@
 package tests
 
 import java.lang.String
-import org.scalatest.matchers.should.Matchers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
 import play.api.libs.json
-import play.api.libs.json.{ JsArray, JsString }
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
 import scala.collection.immutable.List
 import shapeless.the
-import testing.classes._
-import testing.typeclasses._
-import Cofoo.ops._
-import org.scalatest.flatspec.AnyFlatSpec
+import testing.classes.*
+import testing.typeclasses.*
+import testing.typeclasses.Cofoo.ops.*
 
 class DerivingTest extends AnyFlatSpec {
   // scalafix:off DisableSyntax.keywords.null
@@ -85,19 +86,19 @@ class DerivingTest extends AnyFlatSpec {
   }
 
   it should "special case @newtype" in {
-    import newtypes._
+    import newtypes.*
     val res = scala.Predef.implicitly[json.Format[Spam]].writes(Spam("hello"))
     res.shouldBe(JsString("hello"))
   }
 
   it should "special case @newsubtype" in {
-    import newtypes._
+    import newtypes.*
     val res = scala.Predef.implicitly[json.Format[Eggs]].writes(Eggs("hello"))
     res.shouldBe(JsString("hello"))
   }
 
   it should "special case @newtype with type params" in {
-    import newtypes._
+    import newtypes.*
     val res = scala.Predef
       .implicitly[json.Format[Spammer[String]]]
       .writes(Spammer(List("hello")))
@@ -105,7 +106,7 @@ class DerivingTest extends AnyFlatSpec {
   }
 
   it should "special case @newsubtype with type params" in {
-    import newtypes._
+    import newtypes.*
     val res = scala.Predef
       .implicitly[json.Format[EggHead[String]]]
       .writes(EggHead(List("hello")))

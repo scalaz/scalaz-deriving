@@ -7,12 +7,18 @@
 package xmlformat
 package generic
 
-import scalaz.{ -\/, \/, \/-, ICons, IList, INil }
-import scalaz.Scalaz._
-
-import shapeless._
-import shapeless.labelled._
-import xmlformat.{ XAttr, XString, XTag }
+import scalaz.-\/
+import scalaz.ICons
+import scalaz.IList
+import scalaz.INil
+import scalaz.Scalaz.*
+import scalaz.\/
+import scalaz.\/-
+import shapeless.*
+import shapeless.labelled.*
+import xmlformat.XAttr
+import xmlformat.XString
+import xmlformat.XTag
 
 sealed trait DerivedXEncoder[R, AS <: HList, BS <: HList] {
   // a union type would be very nice here... left is for products, right is for
@@ -24,7 +30,7 @@ sealed trait DerivedXEncoder[R, AS <: HList, BS <: HList] {
     bs: BS
   ): IList[XAttr \/ (XTag \/ XString)] \/ (XTag \/ XTag)
 }
-object DerivedXEncoder                                    {
+object DerivedXEncoder {
 
   def gen[A, R, AS <: HList, BS <: HList](implicit
     T: Typeable[A],
@@ -34,7 +40,7 @@ object DerivedXEncoder                                    {
     R: Cached[Strict[DerivedXEncoder[R, AS, BS]]]
   ): XEncoder[A] = { t =>
     R.value.value.to(G.to(t), AA(), AB()) match {
-      case -\/(product)   =>
+      case -\/(product) =>
         val (attrs, content) = product.separate
         val (children, body) = content.separate
         XTag(T.describe, attrs, children, body.fold1Opt.toMaybe).asChild
@@ -53,8 +59,8 @@ object DerivedXEncoder                                    {
       -\/(product(r, as, bs))
     def product(r: R, as: AS, bs: BS): IList[XAttr \/ (XTag \/ XString)]
 
-    protected final def lift(a: XAttr): XAttr \/ (XTag \/ XString)   = -\/(a)
-    protected final def lift(a: XTag): XAttr \/ (XTag \/ XString)    = \/-(-\/(a))
+    protected final def lift(a: XAttr): XAttr \/ (XTag \/ XString) = -\/(a)
+    protected final def lift(a: XTag): XAttr \/ (XTag \/ XString) = \/-(-\/(a))
     protected final def lift(a: XString): XAttr \/ (XTag \/ XString) =
       \/-(\/-(a))
   }
@@ -196,7 +202,7 @@ object DerivedXEncoder                                    {
       ): IList[XAttr \/ (XTag \/ XString)] =
         r match {
           case head :: tail =>
-            val key   = K.value.name
+            val key = K.value.name
             val value = H.toXml(head)
             lift(XAttr(key, value)) :: T.product(tail, as.tail, bs.tail)
         }
@@ -230,7 +236,7 @@ object DerivedXEncoder                                    {
         (r: Option[H] :: T) match {
           case None :: tail       => T.product(tail, as.tail, bs.tail)
           case Some(head) :: tail =>
-            val key   = K.value.name
+            val key = K.value.name
             val value = H.toXml(head)
             lift(XAttr(key, value)) :: T.product(tail, as.tail, bs.tail)
         }
@@ -367,13 +373,13 @@ object DerivedXEncoder                                    {
         r: FieldType[K, H] :+: T,
         as: None.type :: AS,
         bs: None.type :: BS
-      ): XTag \/ XTag        =
+      ): XTag \/ XTag =
         r match {
           case Inl(ins) =>
             H.value.toXml(ins) match {
               case XChildren(ICons(XTag(n, as, ts, b), INil())) =>
                 XTag(n, hint :: as, ts, b).left
-              case c                                            =>
+              case c =>
                 XTag("value", c).copy(attrs = IList.single(hint)).left
             }
 
@@ -406,7 +412,7 @@ object DerivedXEncoder                                    {
         r: FieldType[K, H] :+: T,
         as: None.type :: AS,
         bs: Some[x.body] :: BS
-      ): XTag \/ XTag       =
+      ): XTag \/ XTag =
         r match {
           case Inl(ins) =>
             H.value.toXml(ins) match {

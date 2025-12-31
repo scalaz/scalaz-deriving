@@ -16,24 +16,22 @@
 package scalaz.iotaz
 package internal
 
-import scala._, Predef._
+import catryoshka.*
 import java.lang.StackOverflowError
-
-import scalaz.Applicative
-import scalaz.Id.Id
-import scalaz.Foldable
-import scalaz.Traverse
-import scalaz.std.either._
-import scalaz.std.list._
-import scalaz.syntax.foldable._
-
-import catryoshka._
-
+import scala.*
+import scala.Predef.*
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
 import scala.reflect.api.Universe
-import scala.reflect.runtime.{ universe => runtimeUniverse }
 import scala.reflect.macros.blackbox.Context
+import scala.reflect.runtime.universe as runtimeUniverse
+import scalaz.Applicative
+import scalaz.Foldable
+import scalaz.Id.Id
+import scalaz.Traverse
+import scalaz.std.either.*
+import scalaz.std.list.*
+import scalaz.syntax.foldable.*
 
 private[internal] trait Toolbelt {
   type Uu <: Universe
@@ -47,7 +45,7 @@ private[internal] trait MacroToolbelt extends Toolbelt {
   final override type Uu = c.universe.type
   final override val u: Uu = c.universe
 
-  import u._
+  import u.*
 
   final val iotaPackage: Tree =
     q"_root_.scalaz.iotaz"
@@ -93,25 +91,25 @@ private[internal] class IotaMacroToolbelt[C <: Context] private (val c: C)
 // - implementation
 
 private[internal] sealed trait TypeListAST { self: Toolbelt =>
-  import u._
+  import u.*
 
   sealed trait NodeF[+A]
   case class ConsF[A](head: Type, tail: A) extends NodeF[A] with ConsFEquality
-  case class ConcatF[A](nodes: List[A])    extends NodeF[A]
-  case class ReverseF[A](node: A)          extends NodeF[A]
-  case class TakeF[A](n: Int, node: A)     extends NodeF[A]
-  case class DropF[A](n: Int, node: A)     extends NodeF[A]
+  case class ConcatF[A](nodes: List[A]) extends NodeF[A]
+  case class ReverseF[A](node: A) extends NodeF[A]
+  case class TakeF[A](n: Int, node: A) extends NodeF[A]
+  case class DropF[A](n: Int, node: A) extends NodeF[A]
   case class RemoveF[A](t: Type, nodes: A) extends NodeF[A]
-  case class MapF[A](f: Type, nodes: A)    extends NodeF[A]
-  case object NNilF                        extends NodeF[Nothing]
+  case class MapF[A](f: Type, nodes: A) extends NodeF[A]
+  case object NNilF extends NodeF[Nothing]
 
-  sealed trait ConsFEquality { self: ConsF[_] =>
+  sealed trait ConsFEquality { self: ConsF[?] =>
     override def equals(that: Any): Boolean =
       that match {
-        case that: ConsF[_] =>
+        case that: ConsF[?] =>
           that.canEqual(this) &&
           this.head =:= that.head && this.tail == that.tail
-        case _              => false
+        case _ => false
       }
   }
 
@@ -122,11 +120,11 @@ private[internal] sealed trait TypeListAST { self: Toolbelt =>
         fa: NodeF[A]
       )(f: A => G[B])(implicit G: Applicative[G]): G[NodeF[B]] =
         fa match {
-          case ConsF(hd, a)  => G.map(f(a))(ConsF(hd, _))
-          case ConcatF(as)   => G.map(Traverse[List].traverse(as)(f))(ConcatF(_))
-          case ReverseF(a)   => G.map(f(a))(ReverseF(_))
-          case TakeF(n, a)   => G.map(f(a))(TakeF(n, _))
-          case DropF(n, a)   => G.map(f(a))(DropF(n, _))
+          case ConsF(hd, a) => G.map(f(a))(ConsF(hd, _))
+          case ConcatF(as)  => G.map(Traverse[List].traverse(as)(f))(ConcatF(_))
+          case ReverseF(a)  => G.map(f(a))(ReverseF(_))
+          case TakeF(n, a)  => G.map(f(a))(TakeF(n, _))
+          case DropF(n, a)  => G.map(f(a))(DropF(n, _))
           case RemoveF(t, a) => G.map(f(a))(RemoveF(t, _))
           case MapF(ft, a)   => G.map(f(a))(MapF(ft, _))
           case NNilF         => G.pure(NNilF: NodeF[B])
@@ -149,7 +147,7 @@ private[internal] sealed trait TypeListAST { self: Toolbelt =>
 
 private[internal] sealed trait TypeListParsers {
   self: Toolbelt with TypeListAST =>
-  import u._
+  import u.*
 
   type TypeListParser = CoalgebraM[Either[Id[String], *], NodeF, Type]
 
@@ -200,7 +198,7 @@ private[internal] sealed trait TypeListParsers {
     tpe0 => {
       @tailrec def loop(tpe: Type): Either[Id[String], NodeF[Type]] =
         tpe.dealias match {
-          case TypeRef(_, sym, args)   =>
+          case TypeRef(_, sym, args) =>
             sym.asType.toType.dealias.typeSymbol match {
               case ConsSym    => ConsF(args(0), args(1)).asRight
               case NilSym     => NNilF.asRight
@@ -214,7 +212,7 @@ private[internal] sealed trait TypeListParsers {
                 s"Unexpected symbol $sym for type $tpe: ${showRaw(tpe)}".asLeft
             }
           case ExistentialType(_, res) => loop(res) // the irony...
-          case _                       => s"Unable to parse type $tpe: ${showRaw(tpe)}".asLeft
+          case _ => s"Unable to parse type $tpe: ${showRaw(tpe)}".asLeft
         }
       loop(tpe0)
     }
@@ -222,13 +220,13 @@ private[internal] sealed trait TypeListParsers {
   private[this] def literalInt(tpe: Type): Either[Id[String], Int] =
     tpe.dealias match {
       case ConstantType(Constant(value: Int)) => value.asRight
-      case _                                  => s"Expected $tpe to be a literal integer".asLeft
+      case _ => s"Expected $tpe to be a literal integer".asLeft
     }
 }
 
 private[internal] sealed trait TypeListEvaluators {
   self: Toolbelt with TypeListAST =>
-  import u._
+  import u.*
 
   type TypeListEvaluator = Algebra[NodeF, List[Type]]
 
@@ -253,22 +251,22 @@ private[internal] sealed trait TypeListEvaluators {
 
 private[internal] sealed trait TypeListBuilders {
   self: Toolbelt with TypeListAST =>
-  import u._
+  import u.*
 
   type TypeListBuilder = Algebra[List, Type]
 
   final lazy val buildTList: TypeListBuilder =
-    typeListBuilder(weakTypeOf[TCons[_, _]].typeConstructor, weakTypeOf[TNil])
+    typeListBuilder(weakTypeOf[TCons[?, ?]].typeConstructor, weakTypeOf[TNil])
 
   final lazy val buildTListK: TypeListBuilder =
     typeListBuilder(
-      weakTypeOf[TConsK[Nothing, _]].typeConstructor,
+      weakTypeOf[TConsK[Nothing, ?]].typeConstructor,
       weakTypeOf[TNilK]
     )
 
   final lazy val buildTListH: TypeListBuilder =
     typeListBuilder(
-      weakTypeOf[TConsH[Nothing, _]].typeConstructor,
+      weakTypeOf[TConsH[Nothing, ?]].typeConstructor,
       weakTypeOf[TNilH]
     )
 
@@ -279,7 +277,7 @@ private[internal] sealed trait TypeListBuilders {
 
     lazy val (consPrefix, consSym) = consTpe match {
       case TypeRef(prefix, sym, _) => (prefix, sym)
-      case _                       => sys.error("internal iota initialization error")
+      case _ => sys.error("internal iota initialization error")
     }
 
     tpes =>
@@ -295,7 +293,7 @@ private[internal] sealed trait TypeListAPIs
     with TypeListEvaluators {
   self: Toolbelt =>
 
-  import u._
+  import u.*
 
   final def tlistTypes(tpe: Type): Either[Id[String], List[Type]] =
     hyloM(tpe)(evalTree.generalizeM[Either[Id[String], *]], tlistParser)
@@ -312,12 +310,12 @@ private[internal] sealed trait TypeListAPIs
 }
 
 private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
-  import u._
+  import u.*
 
   case class CopTypes(L: Type)
   case class CopKTypes(L: Type, A: Type)
 
-  private[this] final lazy val CopTpe  =
+  private[this] final lazy val CopTpe =
     typeOf[Cop[Nothing]].etaExpand.resultType
   private[this] final lazy val CopKTpe =
     typeOf[CopK[Nothing, Nothing]].etaExpand.resultType
@@ -329,8 +327,8 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
     tpe.dealias.resultType match {
       case TypeRef(_, sym, l :: Nil) if resultType(sym) <:< CopTpe =>
         Right(CopTypes(l))
-      case TypeRef(_, sym, Nil)                                    => destructCop(sym.asType.toType)
-      case t                                                       =>
+      case TypeRef(_, sym, Nil) => destructCop(sym.asType.toType)
+      case t                    =>
         Left(s"unexpected type $t ${showRaw(t)} when destructuring Cop $tpe")
     }
 
@@ -338,15 +336,15 @@ private[internal] sealed trait CoproductAPIs { self: Toolbelt =>
     tpe.dealias.resultType match {
       case TypeRef(_, sym, l :: a :: Nil) if resultType(sym) <:< CopKTpe =>
         Right(CopKTypes(l, a))
-      case TypeRef(_, sym, Nil)                                          => destructCopK(sym.asType.toType)
-      case t                                                             =>
+      case TypeRef(_, sym, Nil) => destructCopK(sym.asType.toType)
+      case t                    =>
         Left(s"unexpected type $t ${showRaw(t)} when destructuring CopK $tpe")
     }
 
 }
 
 private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
-  import u._
+  import u.*
 
   /**
    * Converts an eta expanded `PolyType` such as `[z]Either[String, z]`
@@ -382,7 +380,7 @@ private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
     tpe match {
       case poly: PolyType       => projectPoly(poly)
       case TypeRef(_, sym, Nil) => c.internal.gen.mkAttributedIdent(sym)
-      case _                    => c.internal.gen.mkAttributedIdent(tpe.typeSymbol)
+      case _ => c.internal.gen.mkAttributedIdent(tpe.typeSymbol)
     }
 
   private[this] val FastNatTrans =
@@ -397,14 +395,14 @@ private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
     handlers: List[TermName => Tree]
   ): Tree = {
 
-    val A  = TypeName("Ξ$")
+    val A = TypeName("Ξ$")
     val fa = TermName("η$")
     val FF = toTypeTree(F)
     val GG = toTypeTree(G)
     val FA = AppliedTypeTree(FF, Ident(A) :: Nil)
     val GA = AppliedTypeTree(GG, Ident(A) :: Nil)
 
-    val cases         = handlers.zipWithIndex.map { case (h, i) => cq"$i => ${h(fa)}" }
+    val cases = handlers.zipWithIndex.map { case (h, i) => cq"$i => ${h(fa)}" }
     val toStringValue = s"FastFunctionK[$F, $G]<<generated>>"
 
     q"""
@@ -424,7 +422,7 @@ private[internal] sealed trait CoproductMacroAPIs { self: MacroToolbelt =>
 
 private[internal] sealed trait TypeListMacroAPIs extends TypeListAPIs {
   self: MacroToolbelt =>
-  import u._
+  import u.*
 
   lazy val showAborts: Boolean =
     !c.inferImplicitValue(typeOf[debug.optionTypes.ShowAborts], true).isEmpty

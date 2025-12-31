@@ -7,9 +7,11 @@
 package testing
 
 import java.lang.String
-import scala.{ AnyVal, Either, Int }
-
-import scalaz.annotation.{ deriving, xderiving }
+import scala.AnyVal
+import scala.Either
+import scala.Int
+import scalaz.annotation.deriving
+import scalaz.annotation.xderiving
 
 package typeclasses {
   trait Cofoo[A]
@@ -25,7 +27,7 @@ package typeclasses {
 }
 trait Wibble[A]
 object Wibble
-import typeclasses.{ Cobar => B, _ }
+import typeclasses.{ Cobar as B, * }
 
 @deriving(Cofoo, B)
 sealed trait Baz
@@ -54,7 +56,7 @@ final case class Anyx(s: String) extends AnyVal
 final case class Anyz(s: String) extends AnyVal
 
 @xderiving(Cofoo, B)
-final class Anyzz(val s: String)               extends scala.AnyVal
+final class Anyzz(val s: String) extends scala.AnyVal
 @xderiving(Cofoo)
 final class Valuezz[L, R](val e: Either[L, R]) extends AnyVal
 

@@ -7,13 +7,11 @@
 package scalaz
 
 import java.lang.String
-import scala.Predef.implicitly
-
-import org.scalatest.matchers.should.Matchers._
-
-import testing._
-import testing.typeclasses._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
+import scala.Predef.implicitly
+import testing.*
+import testing.typeclasses.*
 
 class DerivingPluginTest extends AnyFlatSpec {
 
@@ -64,7 +62,7 @@ class DerivingPluginTest extends AnyFlatSpec {
   }
 
   it should "support nested object and no top level package" in {
-    import NotDerived._
+    import NotDerived.*
 
     implicitly[Cofoo[Inner.type]].shouldBe(Inner._deriving_cofoo)
   }

@@ -17,27 +17,27 @@ package scalaz
 package iotaz
 package internal
 
-import scala._, Predef._
+import scala.*
+import scala.Predef.*
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox.Context
-
-import scalaz.std.list._
+import scalaz.std.list.*
 
 final class ProductSeq(p: Product) extends OptimisedIndexedSeq[Any] {
   def apply(i: Int): Any = p.productElement(i)
-  def length: Int        = p.productArity
+  def length: Int = p.productArity
 }
 
 final class ArraySeq(p: Array[Any]) extends OptimisedIndexedSeq[Any] {
   def apply(i: Int): Any = p(i)
-  def length: Int        = p.length
+  def length: Int = p.length
 }
 
 sealed abstract class OptimisedIndexedSeq[A]
     extends collection.immutable.IndexedSeq[A] {
 
   // optimisations...
-  override def toList: List[A]                        = {
+  override def toList: List[A] = {
     @tailrec
     def loop(acc: List[A], i: Int): List[A] =
       if (i >= 0)
@@ -55,8 +55,8 @@ sealed abstract class OptimisedIndexedSeq[A]
         acc
     loop(z, length - 1)
   }
-  override def foldLeft[B](z: B)(op: (B, A) => B): B  = {
-    val len                     = length
+  override def foldLeft[B](z: B)(op: (B, A) => B): B = {
+    val len = length
     @tailrec
     def loop(acc: B, i: Int): B =
       if (i < len)
@@ -68,7 +68,7 @@ sealed abstract class OptimisedIndexedSeq[A]
 }
 
 private[iotaz] final class ProductMacros(val c: Context) {
-  import c.universe._
+  import c.universe.*
 
   private[this] val tb = IotaMacroToolbelt(c)
 
@@ -82,21 +82,21 @@ private[iotaz] final class ProductMacros(val c: Context) {
 
     tb.foldAbort(for {
       algebras <- tb.memoizedTListTypes(L).left.map(NonEmptyList.one(_))
-      argTypes  = args.toList.map(_.tree.tpe)
-      _        <-
+      argTypes = args.toList.map(_.tree.tpe)
+      _ <-
         require(
           argTypes.length == algebras.length,
           s"Expected ${algebras.length} arguments but received ${argTypes.length}"
         )
-      _        <- Traverse[List]
-                    .traverse(argTypes.zip(algebras))(tpes =>
-                      require(
-                        tpes._1 <:< tpes._2,
-                        s"Expected ${tpes._1} <:< ${tpes._2}"
-                      ).toAvowal
-                    )
-                    .toEither
-      seq       =
+      _ <- Traverse[List]
+        .traverse(argTypes.zip(algebras))(tpes =>
+          require(
+            tpes._1 <:< tpes._2,
+            s"Expected ${tpes._1} <:< ${tpes._2}"
+          ).toAvowal
+        )
+        .toEither
+      seq =
         if (argTypes.length == 0) q"_root_.scala.collection.immutable.Nil"
         // perf testing shows that ArraySeq is faster than ProductSeq
         // for raw fields, but is faster for case classes.
@@ -114,7 +114,7 @@ private[iotaz] final class ProductMacros(val c: Context) {
 
     val aSym = A.typeSymbol
 
-    val Prod = weakTypeOf[iotaz.Prod[_]].typeSymbol
+    val Prod = weakTypeOf[iotaz.Prod[?]].typeSymbol
 
     if (aSym.isModuleClass)
       q"""
@@ -142,7 +142,7 @@ private[iotaz] final class ProductMacros(val c: Context) {
       val fromParts = (accessors.zipWithIndex).map { case (method, i) =>
         q"p.values($i).asInstanceOf[${method.typeSignatureIn(A).resultType}]"
       }
-      val from      = q"""(p: $Prod[$R]) => ${aSym.companion}(..$fromParts): $A"""
+      val from = q"""(p: $Prod[$R]) => ${aSym.companion}(..$fromParts): $A"""
 
       q"""_root_.scalaz.Isomorphism.IsoSet[$A, $Prod[$R]]($to, $from)"""
     } else

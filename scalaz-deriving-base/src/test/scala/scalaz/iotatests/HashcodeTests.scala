@@ -7,13 +7,13 @@
 package scalaz
 package iotatests
 
-import scala._, Predef._
-import iotaz._
-
-import org.scalacheck._
+import org.scalacheck.*
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop._
-import org.scalacheck.ScalacheckShapeless._
+import org.scalacheck.Prop.*
+import org.scalacheck.ScalacheckShapeless.*
+import scala.*
+import scala.Predef.*
+import scalaz.iotaz.*
 
 object HashcodeTests extends Properties("HashcodeTests") {
 
@@ -22,8 +22,8 @@ object HashcodeTests extends Properties("HashcodeTests") {
     type CC[A] = CopK[List :: TNilK, A]
     val I = CopK.Inject[List, CC]
     forAll(arbitrary[Map[List[Int], String]].suchThat(_.size > 0)) { map =>
-      val copMap  = map.map { case (k, v) => (I(k), v) }
-      val key     = copMap.keys.head
+      val copMap = map.map { case (k, v) => (I(k), v) }
+      val key = copMap.keys.head
       val keyCopy = I(I.prj(key).get)
 
       copMap.get(keyCopy) ?= copMap.get(key)

@@ -6,18 +6,16 @@
 
 package scalaz
 
+import examples.adt.*
+import examples.recadt.*
+import examples.recgadt.*
 import java.lang.String
-
-import org.scalatest._
-
-import examples.adt._
-import examples.recadt._
-import examples.recgadt._
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class AltSpec extends AnyFlatSpec with NonImplicitAssertions {
-  import Matchers._
+  import Matchers.*
 
   "products" should "behave as expected" in {
     Default[Faz].default should equal(Faz(false, 0))

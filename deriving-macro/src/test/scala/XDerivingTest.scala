@@ -7,16 +7,14 @@
 package tests
 
 import java.lang.String
-
-import scala.{ Either, Right }
-
-import org.scalatest.matchers.should.Matchers._
-import shapeless.the
-import testing.classes._
-import testing.typeclasses._
-
-import Cofoo.ops._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
+import scala.Either
+import scala.Right
+import shapeless.the
+import testing.classes.*
+import testing.typeclasses.*
+import testing.typeclasses.Cofoo.ops.*
 
 class XDerivingTest extends AnyFlatSpec {
   // scalafix:off DisableSyntax.keywords.null

@@ -8,12 +8,15 @@
 
 package jsonformat.benchmarks
 
-import jsonformat._
-import jsonformat.JsDecoder.ops._
-import jsonformat.JsEncoder.ops._
-import scalaz._, Scalaz._
+import jsonformat.*
+import jsonformat.JsDecoder.ops.*
+import jsonformat.JsEncoder.ops.*
+import org.openjdk.jmh.annotations.Scope
+import org.openjdk.jmh.annotations.Setup
+import org.openjdk.jmh.annotations.State
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
-import org.openjdk.jmh.annotations.{ Scope, Setup, State }
 //import org.openjdk.jmh.annotations.Benchmark
 
 // jsonformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 SyntheticBenchmarks.*
@@ -46,7 +49,7 @@ package h {
           fields.collectFirst { case ("n", v) =>
             v.as[Nested]
           }.getOrElse(fail("n", JsObject(fields)))
-      case other            => fail("JsObject", other)
+      case other => fail("JsObject", other)
     }
   }
 }
@@ -62,14 +65,14 @@ package s {
 @State(Scope.Benchmark)
 class SyntheticBenchmarks {
   // @Param(Array("100", "1000"))
-  var size: Int                       = 500
-  var objh: h.Nested                  = _
-  var objm: m.Nested                  = _
-  var objs: s.Nested                  = _
-  var jsonString: String              = _
-  var parsingErrorJsonString: String  = _
+  var size: Int = 500
+  var objh: h.Nested = _
+  var objm: m.Nested = _
+  var objs: s.Nested = _
+  var jsonString: String = _
+  var parsingErrorJsonString: String = _
   var decodingErrorJsonString: String = _
-  var ast1, ast2: JsValue             = _
+  var ast1, ast2: JsValue = _
 
   @Setup
   def setup(): Unit = {

@@ -6,12 +6,13 @@
 
 package xmlformat
 
-import scalaz._, Scalaz._
+import org.scalacheck.Arbitrary
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
-import org.scalacheck.Arbitrary
-import scalaz.scalacheck.ScalazArbitrary._
-import scalaz.scalacheck.ScalaCheckBinding._
+import scalaz.scalacheck.ScalaCheckBinding.*
+import scalaz.scalacheck.ScalazArbitrary.*
 
 /**
  * ADT for XML, unaware of schemas, namespaces and comments (which are all

@@ -12,13 +12,13 @@ package scalaz {
   import scala.annotation.Annotation
 
   package annotation {
-    class deriving(val typeclasses: AnyRef*)  extends Annotation
+    class deriving(val typeclasses: AnyRef*) extends Annotation
     class xderiving(val typeclasses: AnyRef*) extends Annotation
   }
 
   package macros {
     object DerivingMacros {
-      def deriving[F[_], A]: Null  = null // scalafix:ok
+      def deriving[F[_], A]: Null = null // scalafix:ok
       def xderiving[F[_], A]: Null = null // scalafix:ok
     }
   }

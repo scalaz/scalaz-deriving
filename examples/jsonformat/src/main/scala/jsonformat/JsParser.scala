@@ -6,10 +6,11 @@
 
 package jsonformat
 
+import internal.FastToIList.*
+import org.typelevel.jawn.*
 import scala.util.control.NoStackTrace
-import org.typelevel.jawn._
-import scalaz._, Scalaz._
-import internal.FastToIList._
+import scalaz.*
+import scalaz.Scalaz.*
 
 object JsParser extends SupportParser[JsValue] {
 
@@ -21,9 +22,9 @@ object JsParser extends SupportParser[JsValue] {
 
   implicit val facade: Facade[JsValue] =
     new Facade.SimpleFacade[JsValue] {
-      val jnull: JsNull.type                                            = JsNull
-      val jfalse: JsBoolean                                             = JsBoolean(false)
-      val jtrue: JsBoolean                                              = JsBoolean(true)
+      val jnull: JsNull.type = JsNull
+      val jfalse: JsBoolean = JsBoolean(false)
+      val jtrue: JsBoolean = JsBoolean(true)
       def jnum(cs: CharSequence, decIndex: Int, expIndex: Int): JsValue = {
         val s = cs.toString
         val n =
@@ -39,8 +40,8 @@ object JsParser extends SupportParser[JsValue] {
         )
       }
 
-      def jstring(s: CharSequence): JsString          = JsString(s.toString)
-      def jarray(vs: List[JsValue]): JsArray          = JsArray(vs.toIList)
+      def jstring(s: CharSequence): JsString = JsString(s.toString)
+      def jarray(vs: List[JsValue]): JsArray = JsArray(vs.toIList)
       def jobject(vs: Map[String, JsValue]): JsObject = JsObject(vs.asIList)
     }
 }

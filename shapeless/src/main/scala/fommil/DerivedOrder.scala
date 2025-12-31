@@ -6,8 +6,9 @@
 
 package fommil
 
-import scalaz.{ Order, Ordering }
-import shapeless._
+import scalaz.Order
+import scalaz.Ordering
+import shapeless.*
 
 // lots of copypasta with DerivedEqual
 sealed trait DerivedOrder[A] extends Order[A]
@@ -45,7 +46,7 @@ object DerivedOrder {
 
   implicit val hnil: DerivedOrder[HNil] = new DerivedOrder[HNil] {
     override def equal(h1: HNil, h2: HNil): Boolean = true
-    def order(h1: HNil, h2: HNil): Ordering         = Ordering.EQ
+    def order(h1: HNil, h2: HNil): Ordering = Ordering.EQ
   }
 
   implicit def ccons[H, T <: Coproduct](implicit
@@ -59,7 +60,7 @@ object DerivedOrder {
           case (Inr(c1), Inr(c2)) => T.equal(c1, c2)
           case _                  => false
         }
-      def order(ht1: H :+: T, ht2: H :+: T): Ordering         =
+      def order(ht1: H :+: T, ht2: H :+: T): Ordering =
         (ht1, ht2) match {
           case (Inl(c1), Inl(c2)) =>
             if (quick(c1, c2)) Ordering.EQ
@@ -72,7 +73,7 @@ object DerivedOrder {
 
   implicit val cnil: DerivedOrder[CNil] = new DerivedOrder[CNil] {
     override def equal(c1: CNil, c2: CNil): Boolean = sys.error("impossible")
-    def order(c1: CNil, c2: CNil): Ordering         = sys.error("impossible")
+    def order(c1: CNil, c2: CNil): Ordering = sys.error("impossible")
   }
 
   @inline private final def quick(a: Any, b: Any): Boolean =

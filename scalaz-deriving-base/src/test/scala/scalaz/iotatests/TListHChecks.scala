@@ -7,14 +7,14 @@
 package scalaz
 package iotatests
 
-import scala._
-import iotaz._
+import scala.*
+import scalaz.iotaz.*
 
 object TListHChecks {
 
-  import TListH.Compute
-  import TListH.Op._
   import TListH.::
+  import TListH.Compute
+  import TListH.Op.*
 
   def check[L <: TListH, O <: TListH](implicit ev: Compute.Aux[L, O]): Unit = ()
 

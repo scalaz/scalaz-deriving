@@ -6,9 +6,10 @@
 
 package xmlformat
 
-import org.scalatest.matchers.should.Matchers._
 import org.scalatest.flatspec.AnyFlatSpecLike
-import scalaz._, Scalaz._
+import org.scalatest.matchers.should.Matchers.*
+import scalaz.*
+import scalaz.Scalaz.*
 
 trait EncoderTestsParent {
   this: AnyFlatSpecLike =>

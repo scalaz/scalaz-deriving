@@ -7,9 +7,11 @@
 package examples
 
 import java.lang.String
-import scala.{ AnyVal, Boolean, Int }
-
-import scalaz._, Scalaz._
+import scala.AnyVal
+import scala.Boolean
+import scala.Int
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
 
@@ -25,15 +27,15 @@ package adt {
   @deriving(Show)
   sealed trait Foo
   @deriving(Show)
-  final case class Bar(s: String)          extends Foo
+  final case class Bar(s: String) extends Foo
   @deriving(Show)
   final case class Faz(b: Boolean, i: Int) extends Foo
   @deriving(Show)
-  final case object Baz                    extends Foo
+  final case object Baz extends Foo
 
   // the @deriving is implied by the parent!
   final case class Box(i: Int) extends Foo
-  final case object Flooz      extends Foo
+  final case object Flooz extends Foo
 }
 
 // more complex recursive type example
@@ -41,7 +43,7 @@ package recadt {
   @deriving(Show)
   sealed trait ATree
   @deriving(Show)
-  final case class Leaf(value: String)               extends ATree
+  final case class Leaf(value: String) extends ATree
   @deriving(Show)
   final case class Branch(left: ATree, right: ATree) extends ATree
 }
@@ -51,7 +53,7 @@ package recgadt {
   @deriving(Show)
   sealed trait GTree[A]
   @deriving(Show)
-  final case class GLeaf[A](value: A)                          extends GTree[A]
+  final case class GLeaf[A](value: A) extends GTree[A]
   @deriving(Show)
   final case class GBranch[A](left: GTree[A], right: GTree[A]) extends GTree[A]
 }

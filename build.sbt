@@ -1,11 +1,11 @@
 import sbtrelease.ReleaseStateTransformations.*
 
-val scalazVersion     = "7.3.8"
-val shapelessVersion  = "2.3.13"
+val scalazVersion = "7.3.8"
+val shapelessVersion = "2.3.13"
 val simulacrumVersion = "1.0.1"
-val magnoliaVersion   = "0.12.8"
-val refinedVersion    = "0.11.3"
-val newtypeVersion    = "0.4.4"
+val magnoliaVersion = "0.12.8"
+val refinedVersion = "0.11.3"
+val newtypeVersion = "0.4.4"
 
 addCommandAlias("cpl", "all Test/compile Jmh/compile")
 addCommandAlias("fmt", "all scalafmtSbt scalafmtAll")
@@ -24,8 +24,8 @@ val plugin = (project in file("deriving-plugin")).settings(
   Test / scalacOptions += "-Yno-predef",
   Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
   crossScalaVersions := ProjectKeys.allScalaVersions,
-  crossVersion       := CrossVersion.full,
-  crossTarget        := {
+  crossVersion := CrossVersion.full,
+  crossTarget := {
     // workaround for https://github.com/sbt/sbt/issues/5097
     target.value / s"scala-${scalaVersion.value}"
   },
@@ -39,7 +39,7 @@ val plugin = (project in file("deriving-plugin")).settings(
 )
 
 // doesn't sbt offer a way to do this?
-def ScalazDeriving: Seq[Setting[_]] =
+def ScalazDeriving: Seq[Setting[?]] =
   Seq(
     scalacOptions ++= {
       val jar = (plugin / Compile / packageBin).value
@@ -50,9 +50,9 @@ def ScalazDeriving: Seq[Setting[_]] =
 val macros = (project in file("deriving-macro"))
   .settings(ScalazDeriving)
   .settings(
-    name                    := "deriving-macro",
+    name := "deriving-macro",
     MacroParadise,
-    exportJars              := true,
+    exportJars := true,
     Test / managedClasspath := {
       val res = (Test / resourceDirectory).value
       val old = (Test / managedClasspath).value
@@ -60,7 +60,7 @@ val macros = (project in file("deriving-macro"))
     },
     scalacOptions += "-Yno-predef",
     Test / scalacOptions += "-Yno-imports", // checks for relative vs full fqn
-    Test / sources          := {
+    Test / sources := {
       val x = (Test / sources).value
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 13)) =>
@@ -69,18 +69,18 @@ val macros = (project in file("deriving-macro"))
           } else {
             Nil // TODO enable tests
           }
-        case _             =>
+        case _ =>
           x
       }
     },
     libraryDependencies ++= Seq(
-      "org.scala-lang"     % "scala-compiler" % scalaVersion.value % "provided",
-      "org.scala-lang"     % "scala-reflect"  % scalaVersion.value % "provided",
-      "org.scalaz"        %% "scalaz-core"    % scalazVersion      % "test",
-      "com.chuusai"       %% "shapeless"      % shapelessVersion   % "test",
-      "org.typelevel"     %% "simulacrum"     % simulacrumVersion  % "test",
-      "org.playframework" %% "play-json"      % "3.0.6"            % "test",
-      "io.estatico"       %% "newtype"        % newtypeVersion     % "test"
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+      "org.scalaz" %% "scalaz-core" % scalazVersion % "test",
+      "com.chuusai" %% "shapeless" % shapelessVersion % "test",
+      "org.typelevel" %% "simulacrum" % simulacrumVersion % "test",
+      "org.playframework" %% "play-json" % "3.0.6" % "test",
+      "io.estatico" %% "newtype" % newtypeVersion % "test"
     )
   )
 
@@ -88,8 +88,8 @@ val macros = (project in file("deriving-macro"))
 val base = (project in file("scalaz-deriving-base")).settings(
   KindProjector,
   MonadicFor,
-  name          := "scalaz-deriving-base",
-  licenses      := Seq(
+  name := "scalaz-deriving-base",
+  licenses := Seq(
     ("BSD-3" -> url("https://opensource.org/licenses/BSD-3-Clause"))
   ),
   headerLicense := Some(
@@ -102,9 +102,9 @@ val base = (project in file("scalaz-deriving-base")).settings(
   scalacOptions += "-Yno-imports",
   scalacOptions += "-Yno-predef",
   libraryDependencies ++= Seq(
-    "org.scala-lang"              % "scala-reflect"             % scalaVersion.value % "provided",
-    "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0"            % "test",
-    "org.scalaz"                 %% "scalaz-core"               % scalazVersion
+    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0" % "test",
+    "org.scalaz" %% "scalaz-core" % scalazVersion
   )
 )
 
@@ -116,8 +116,8 @@ val magnolia = project
   .settings(
     name := "scalaz-deriving-magnolia",
     libraryDependencies ++= Seq(
-      "com.propensive" %% "magnolia"    % magnoliaVersion,
-      "org.scalaz"     %% "scalaz-core" % scalazVersion
+      "com.propensive" %% "magnolia" % magnoliaVersion,
+      "org.scalaz" %% "scalaz-core" % scalazVersion
     )
   )
 
@@ -129,8 +129,8 @@ val shapeless = project
   .settings(
     name := "scalaz-deriving-shapeless",
     libraryDependencies ++= Seq(
-      "com.chuusai" %% "shapeless"   % shapelessVersion,
-      "org.scalaz"  %% "scalaz-core" % scalazVersion
+      "com.chuusai" %% "shapeless" % shapelessVersion,
+      "org.scalaz" %% "scalaz-core" % scalazVersion
     )
   )
 
@@ -142,8 +142,8 @@ val scalacheck = project
   .settings(
     name := "scalaz-deriving-scalacheck",
     libraryDependencies ++= Seq(
-      "com.propensive" %% "magnolia"                  % magnoliaVersion,
-      "org.scalaz"     %% "scalaz-scalacheck-binding" % scalazVersion
+      "com.propensive" %% "magnolia" % magnoliaVersion,
+      "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion
     )
   )
 
@@ -151,7 +151,7 @@ val deriving = (project in file("scalaz-deriving"))
   .dependsOn(
     base,
     macros,
-    magnolia   % "test",
+    magnolia % "test",
     scalacheck % "test"
   )
   .settings(inConfig(Test)(ScalazDeriving))
@@ -163,8 +163,8 @@ val deriving = (project in file("scalaz-deriving"))
     scalacOptions += "-Yno-imports",
     scalacOptions += "-Yno-predef",
     libraryDependencies ++= Seq(
-      "io.estatico"   %% "newtype"        % newtypeVersion     % "test",
-      "org.typelevel" %% "simulacrum"     % simulacrumVersion  % "test",
+      "io.estatico" %% "newtype" % newtypeVersion % "test",
+      "org.typelevel" %% "simulacrum" % simulacrumVersion % "test",
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
     )
   )
@@ -179,10 +179,10 @@ val xmlformat = (project in file("examples/xmlformat"))
     MonadicFor,
     libraryDependencies ++= Seq(
       "com.fasterxml.woodstox" % "woodstox-core" % "7.1.1",
-      "eu.timepit"            %% "refined"       % refinedVersion,
-      "org.scalaz"            %% "scalaz-core"   % scalazVersion,
-      "com.chuusai"           %% "shapeless"     % shapelessVersion,
-      "org.typelevel"         %% "simulacrum"    % simulacrumVersion
+      "eu.timepit" %% "refined" % refinedVersion,
+      "org.scalaz" %% "scalaz-core" % scalazVersion,
+      "com.chuusai" %% "shapeless" % shapelessVersion,
+      "org.typelevel" %% "simulacrum" % simulacrumVersion
     )
   )
   .enablePlugins(NeoJmhPlugin)
@@ -200,11 +200,11 @@ val jsonformat = (project in file("examples/jsonformat"))
     MacroParadise,
     MonadicFor,
     libraryDependencies ++= Seq(
-      "eu.timepit"        %% "refined"         % refinedVersion,
-      "org.scalaz"        %% "scalaz-core"     % scalazVersion,
-      "org.typelevel"     %% "simulacrum"      % simulacrumVersion,
+      "eu.timepit" %% "refined" % refinedVersion,
+      "org.scalaz" %% "scalaz-core" % scalazVersion,
+      "org.typelevel" %% "simulacrum" % simulacrumVersion,
       "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
-      "org.typelevel"     %% "jawn-parser"     % "1.6.0"
+      "org.typelevel" %% "jawn-parser" % "1.6.0"
     )
     // addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     // scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")

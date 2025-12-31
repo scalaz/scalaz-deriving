@@ -6,13 +6,13 @@
 
 package scalaz
 
-import scala.{ inline, Any }
+import scala.Any
 import scala.annotation.switch
 import scala.collection.immutable.Seq
-
-import iotaz._
-import iotaz.TList.::
-import Cops.ops._
+import scala.inline
+import scalaz.iotaz.*
+import scalaz.iotaz.Cops.ops.*
+import scalaz.iotaz.TList.::
 
 /** Implement `Deriving` (N-arity) by wrapping `InvariantAlt` (fixed arity). */
 final class ExtendedInvariantAlt[F[_]] private (
@@ -54,11 +54,11 @@ final class ExtendedInvariantAlt[F[_]] private (
         F.xcoproduct3(tcs(0).value, tcs(1).value, tcs(2).value)(fz, gz)
 
       case length =>
-        type Four    = Any :: Any :: Any :: Any :: TNil
+        type Four = Any :: Any :: Any :: Any :: TNil
         type FourDis = Any \/ (Any \/ (Any \/ Any))
         val fe: FourDis => Cop[Four] = e => Cops.from4(e).shift(length - 4)
         val ge: Cop[Four] => FourDis = c => Cops.to4(c.shift(4 - length))
-        val end: F[Cop[Four]]        = F.xcoproduct4(
+        val end: F[Cop[Four]] = F.xcoproduct4(
           tcs(length - 4).value,
           tcs(length - 3).value,
           tcs(length - 2).value,

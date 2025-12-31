@@ -1,12 +1,12 @@
 // Copyright: 2017 Sam Halliday
 // License: http://www.gnu.org/licenses/gpl.html
 
-import sbt._
-import sbt.Keys._
-
 import org.scalafmt.sbt.ScalafmtPlugin
-import scalafix.sbt.ScalafixPlugin, ScalafixPlugin.autoImport._
+import sbt.*
+import sbt.Keys.*
 import sbtheader.HeaderPlugin.autoImport.*
+import scalafix.sbt.ScalafixPlugin
+import scalafix.sbt.ScalafixPlugin.autoImport.*
 
 object ProjectKeys {
   val allScalaVersions = Seq(
@@ -42,7 +42,7 @@ object ProjectKeys {
                 .cross(CrossVersion.full)
             )
           )
-        case _                       =>
+        case _ =>
           Nil
       }
     }
@@ -64,19 +64,19 @@ object ProjectKeys {
 object ProjectPlugin extends AutoPlugin {
 
   override def requires = ScalafmtPlugin && ScalafixPlugin
-  override def trigger  = allRequirements
+  override def trigger = allRequirements
 
   val autoImport = ProjectKeys
-  import autoImport._
+  import autoImport.*
 
   def startYearValue: Int = 2017
 
   override def buildSettings =
     Seq(
-      organization       := "org.scalaz",
+      organization := "org.scalaz",
       crossScalaVersions := Seq(Scala212, Scala213),
-      scalaVersion       := Scala213,
-      pomExtra           := {
+      scalaVersion := Scala213,
+      pomExtra := {
         <url>http://github.com/scalaz/scalaz-deriving</url>
         <scm>
           <url>http://github.com/scalaz/scalaz-deriving</url>
@@ -88,29 +88,29 @@ object ProjectPlugin extends AutoPlugin {
           </developer>
         </developers>
       },
-      headerLicense      := Some(
+      headerLicense := Some(
         HeaderLicense.LGPLv3(
           yyyy = startYearValue.toString,
           copyrightOwner = "Sam Halliday",
           licenseStyle = HeaderLicenseStyle.SpdxSyntax
         )
       ),
-      licenses           := Seq(
+      licenses := Seq(
         "LGPL 3.0" -> url("https://www.gnu.org/licenses/lgpl-3.0.en.html")
       ),
-      startYear          := Some(startYearValue)
+      startYear := Some(startYearValue)
     )
 
   override def projectSettings: Seq[Def.Setting[?]] =
     Seq(
-      publishTo                              := (if (isSnapshot.value) None else localStaging.value),
+      publishTo := (if (isSnapshot.value) None else localStaging.value),
       libraryDependencies += compilerPlugin(
         ("org.scalameta" % "semanticdb-scalac" % "4.14.3")
           .cross(CrossVersion.full)
       ),
-      fork                                   := true,
-      libraryDependencies += "org.scalatest" %% "scalatest-flatspec"       % "3.2.19" % Test,
-      libraryDependencies += "org.scalatest" %% "scalatest-freespec"       % "3.2.19" % Test,
+      fork := true,
+      libraryDependencies += "org.scalatest" %% "scalatest-flatspec" % "3.2.19" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest-freespec" % "3.2.19" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.19" % Test,
       scalacOptions --= Seq(
         "-Xfatal-warnings"
@@ -125,7 +125,7 @@ object ProjectPlugin extends AutoPlugin {
               "-Ywarn-nullary-override",
               "-Ywarn-inaccessible"
             )
-          case _                       =>
+          case _ =>
             Nil
         }
       },
@@ -141,7 +141,7 @@ object ProjectPlugin extends AutoPlugin {
               "-Xsource:3",
               "-Ypartial-unification"
             )
-          case _             =>
+          case _ =>
             Nil
         }
       },
@@ -159,6 +159,6 @@ object ProjectPlugin extends AutoPlugin {
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Werror"))),
       Test / doc / scalacOptions ~= (_.filterNot(_.startsWith("-Ywarn"))),
       Test / doc / scalacOptions -= "-Xfatal-warnings",
-      Compile / console / initialCommands    := "import scalaz._, Scalaz._"
+      Compile / console / initialCommands := "import scalaz._, Scalaz._"
     )
 }

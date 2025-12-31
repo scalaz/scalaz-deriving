@@ -6,14 +6,14 @@
 
 package scalaz
 
+import scala.Any
 import scala.Predef.identity
-import scala.{ inline, Any }
 import scala.annotation.switch
 import scala.collection.immutable.Seq
-
-import iotaz._
-import iotaz.TList.::
-import Prods.ops._
+import scala.inline
+import scalaz.iotaz.*
+import scalaz.iotaz.Prods.ops.*
+import scalaz.iotaz.TList.::
 
 /** Implement `DerivingProducts` (N-arity) by wrapping `InvariantApplicative` (fixed arity). */
 class ExtendedInvariantApplicative[F[_]] private[scalaz] (

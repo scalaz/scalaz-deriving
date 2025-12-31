@@ -7,14 +7,14 @@
 package xmlformat
 package stax
 
-import org.scalatest.matchers.should.Matchers._
 import org.scalactic.source.Position
-
-import scalaz._, Scalaz._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers.*
+import scalaz.*
+import scalaz.Scalaz.*
 
 class StaxDecoderTests extends AnyFlatSpec {
-  import XTestUtils._
+  import XTestUtils.*
 
   implicit class StringHelper(txt: String) {
     def parsed(implicit P: Position): XTag =
@@ -28,7 +28,7 @@ class StaxDecoderTests extends AnyFlatSpec {
   }
 
   "Stax2 Decoder" should "support elements" in {
-    val data     = "<foo>wibble</foo>"
+    val data = "<foo>wibble</foo>"
     val expected = XTag("foo", XString("wibble"))
 
     data.parsed.shouldBe(expected)

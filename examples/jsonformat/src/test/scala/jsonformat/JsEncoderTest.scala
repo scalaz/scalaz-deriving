@@ -6,9 +6,9 @@
 
 package jsonformat
 
-import JsEncoder.ops._
-
-import scalaz._, Scalaz._
+import JsEncoder.ops.*
+import scalaz.*
+import scalaz.Scalaz.*
 
 class JsEncoderTest extends JsTest {
 
@@ -52,7 +52,7 @@ class JsEncoderTest extends JsTest {
   // }
 
   it should "encode stringy maps" in {
-    val map  = Map("a" -> 1, "b" -> 2, "c" -> 3)
+    val map = Map("a" -> 1, "b" -> 2, "c" -> 3)
     val json =
       JsObject("a" -> JsInteger(1), "b" -> JsInteger(2), "c" -> JsInteger(3))
 
@@ -61,14 +61,14 @@ class JsEncoderTest extends JsTest {
 
   it should "encode stdlib List" in {
     val list1 = List(1, 2, 3)
-    val json  = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
+    val json = JsArray(JsInteger(1), JsInteger(2), JsInteger(3))
     list1.toJson.assert_===(json)
 
     val list2 = scala.collection.IndexedSeq(1, 2, 3)
     list2.toJson.assert_===(json)
   }
 
-  import examples._
+  import examples.*
   it should "encode anyval" in {
     Optimal("hello").toJson.assert_===(JsString("hello"))
   }
@@ -113,7 +113,7 @@ class JsEncoderTest extends JsTest {
       override def conquer[A]: JsEncoder[A] = _ => JsNull
     }
 
-    val S: JsEncoder[String]        = JsEncoder[String]
+    val S: JsEncoder[String] = JsEncoder[String]
     val E: Equal[JsEncoder[String]] =
       (p1, p2) => p1.toJson("hello") === p2.toJson("hello")
     assert(!D.divideLaw.composition(S, S, S)(E))

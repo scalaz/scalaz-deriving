@@ -7,8 +7,7 @@
 package jsonformat.internal
 
 import scala.annotation.tailrec
-
-import scalaz._
+import scalaz.*
 
 // backport of scalaz.Cord from 7.3
 private[jsonformat] sealed abstract class TCord {
@@ -16,7 +15,7 @@ private[jsonformat] sealed abstract class TCord {
 
   final def reset: TCord = TCord.Leaf(shows)
 
-  final def shows: String       =
+  final def shows: String =
     this match {
       case TCord.Leaf(str) => str
       case _               =>
@@ -27,17 +26,17 @@ private[jsonformat] sealed abstract class TCord {
   final def ::(o: TCord): TCord = TCord.Branch(o, this)
   final def ++(o: TCord): TCord = TCord.Branch(this, o)
 }
-private[jsonformat] object TCord                {
+private[jsonformat] object TCord {
   implicit def fromString(s: String): TCord = apply(s) // scalafix:ok
-  def apply(s: String): TCord               = Leaf.apply(s)
-  def apply(): TCord                        = Leaf.Empty
+  def apply(s: String): TCord = Leaf.apply(s)
+  def apply(): TCord = Leaf.Empty
 
   private[internal] final class Leaf private (
     val s: String
   ) extends TCord
   private[internal] object Leaf {
-    val Empty: Leaf                    = new Leaf("")
-    def apply(s: String): Leaf         =
+    val Empty: Leaf = new Leaf("")
+    def apply(s: String): Leaf =
       if (s.isEmpty) Empty
       else new Leaf(s)
     def unapply(l: Leaf): Some[String] = Some(l.s)
@@ -49,13 +48,13 @@ private[jsonformat] object TCord                {
     val right: TCord
   ) extends TCord
   private[internal] object Branch {
-    val max: Int                                      = 100
-    def apply(a: TCord, b: TCord): TCord              =
+    val max: Int = 100
+    def apply(a: TCord, b: TCord): TCord =
       if (a.eq(Leaf.Empty)) b
       else if (b.eq(Leaf.Empty)) a
       else
         a match {
-          case _: Leaf   =>
+          case _: Leaf =>
             new Branch(1, a, b)
           case a: Branch =>
             val branch = new Branch(a.leftDepth + 1, a, b)
@@ -69,7 +68,7 @@ private[jsonformat] object TCord                {
   }
 
   implicit val monoid: Monoid[TCord] = new Monoid[TCord] {
-    def zero: TCord                           = Leaf.Empty
+    def zero: TCord = Leaf.Empty
     def append(f1: TCord, f2: =>TCord): TCord = Branch(f1, f2)
   }
 
@@ -78,10 +77,10 @@ private[jsonformat] object TCord                {
       case Branch(_, a, b) =>
         unsafeAppendTo_(a, sb)
         unsafeAppendTo(b, sb)
-      case Leaf(s)         =>
+      case Leaf(s) =>
         val _ = sb.append(s)
     }
-  private[this] def unsafeAppendTo_(c: TCord, sb: StringBuilder): Unit   =
+  private[this] def unsafeAppendTo_(c: TCord, sb: StringBuilder): Unit =
     unsafeAppendTo(c, sb)
 
 }

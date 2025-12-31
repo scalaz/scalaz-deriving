@@ -6,9 +6,11 @@
 
 package scalaz
 
-import scala.{ inline, Any, AnyRef, Boolean }
-
-import Scalaz._
+import scala.Any
+import scala.AnyRef
+import scala.Boolean
+import scala.inline
+import scalaz.Scalaz.*
 
 /**
  * Interface for generic derivation of typeclasses (and algebras) for products
@@ -39,28 +41,29 @@ trait Deriving[F[_]] extends DerivingProducts[F] {
  */
 trait DerivingProducts[F[_]] {
   // convenient aliases for the API to minimise imports
-  type NameF[a]         = Name[F[a]]
-  type TList            = iotaz.TList
+  type NameF[a] = Name[F[a]]
+  type TList = iotaz.TList
   type Prod[a <: TList] = iotaz.Prod[a]
-  type Cop[a <: TList]  = iotaz.Cop[a]
+  type Cop[a <: TList] = iotaz.Cop[a]
 
   type PairedWith[A <: TList, FA <: TList] =
     iotaz.TList.Compute.Aux[iotaz.TList.Op.Map[NameF, A], FA]
 
   // scalafix:off DisableSyntax.implicitConversion
   // provides convenient syntax for implementors...
-  import iotaz.{ Cops, Prods }
+  import scalaz.iotaz.Cops
+  import scalaz.iotaz.Prods
   protected implicit def ProdOps[A <: TList](p: Prod[A]): Prods.ops.ProdOps[A] =
     new Prods.ops.ProdOps[A](p)
   protected implicit def ProdOps2[A <: TList](
     p: (Prod[A], Prod[A])
-  ): Prods.ops.ProdOps2[A]                                                     =
+  ): Prods.ops.ProdOps2[A] =
     new Prods.ops.ProdOps2[A](p)
-  protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A]     =
+  protected implicit def CopOps[A <: TList](p: Cop[A]): Cops.ops.CopOps[A] =
     new Cops.ops.CopOps[A](p)
   protected implicit def CopOps2[A <: TList](
     p: (Cop[A], Cop[A])
-  ): Cops.ops.CopOps2[A]                                                       =
+  ): Cops.ops.CopOps2[A] =
     new Cops.ops.CopOps2[A](p)
   // scalafix:on
 
@@ -113,7 +116,7 @@ object Deriving {
     ): Equal[Z] = { (z1, z2) =>
       (g(z1), g(z2)).zip(tcs).all { p =>
         val (a1, a2) = p.a
-        val fa       = p.b
+        val fa = p.b
         quick(a1, a2) || fa.value.equal(a1, a2)
       }
     }
@@ -129,7 +132,7 @@ object Deriving {
           case -\/(_) => false
           case \/-(p) =>
             val (a1, a2) = p.a
-            val fa       = p.b
+            val fa = p.b
             quick(a1, a2) || fa.value.equal(a1, a2)
         }
     }
@@ -154,10 +157,10 @@ object Deriving {
       val delegate = new DecidablezEqual().dividez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering         =
+        def order(z1: Z, z2: Z): Ordering =
           (g(z1), g(z2)).zip(tcs).foldRight(Ordering.EQ: Ordering) { (p, acc) =>
             val (a1, a2) = p.a
-            val fa       = p.b
+            val fa = p.b
             if (quick(a1, a2)) acc
             else
               fa.value.order(a1, a2) match {
@@ -176,12 +179,12 @@ object Deriving {
       val delegate = new DecidablezEqual().choosez(tcs)(g)(null) // scalafix:ok
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
-        def order(z1: Z, z2: Z): Ordering         =
+        def order(z1: Z, z2: Z): Ordering =
           (g(z1), g(z2)).zip(tcs).into {
             case -\/((i1, _, i2, _)) => Ordering.fromInt(i1 - i2)
             case \/-(p)              =>
               val (a1, a2) = p.a
-              val fa       = p.b
+              val fa = p.b
               if (quick(a1, a2)) Ordering.EQ
               else fa.value.order(a1, a2)
           }
@@ -239,7 +242,7 @@ object DerivingProducts {
 
         new Monoid[Z] {
           def append(z1: Z, z2: =>Z): Z = delegate.append(z1, z2)
-          def zero: Z                   = f(tcs.traverse(nada))
+          def zero: Z = f(tcs.traverse(nada))
         }
       }
     }

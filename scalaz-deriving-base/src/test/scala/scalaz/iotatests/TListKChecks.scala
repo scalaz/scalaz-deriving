@@ -7,14 +7,14 @@
 package scalaz
 package iotatests
 
-import scala._
-import iotaz._
+import scala.*
+import scalaz.iotaz.*
 
 object TListKChecks {
 
-  import TListK.Compute
-  import TListK.Op._
   import TListK.::
+  import TListK.Compute
+  import TListK.Op.*
 
   def check[L <: TListK, O <: TListK](implicit ev: Compute.Aux[L, O]): Unit = ()
 
@@ -35,8 +35,8 @@ object TListKChecks {
   type ListOption[A] = CopK[ListOptionL, A]
 
   check[Concat[
-    OptionList[_]#L,
-    ListOption[_]#L
+    OptionList[?]#L,
+    ListOption[?]#L
   ], Option :: List :: List :: Option :: TNilK]
 
   check[Concat[Option :: TNilK, List :: TNilK], OptionListL]

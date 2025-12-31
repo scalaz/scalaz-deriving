@@ -7,10 +7,9 @@
 package scalaz
 
 import scala.inline
-
-import iotaz._
-import iotaz.TList.::
-import Prods._
+import scalaz.iotaz.*
+import scalaz.iotaz.Prods.*
+import scalaz.iotaz.TList.::
 
 /**
  * Generic extension of InvariantApplicative implementing DerivingProducts.
@@ -22,7 +21,7 @@ trait InvariantApplicativez[F[_]]
   override def xmap[A, B](ma: F[A], f: A => B, g: B => A): F[B] =
     xproduct1(ma)(f, g)
 
-  override def xproduct0[Z](z: =>Z): F[Z]                                  =
+  override def xproduct0[Z](z: =>Z): F[Z] =
     xproductz[Z, TNil, TNil](empty)(_ => z, _ => empty)
   override def xproduct1[Z, A1](a1: =>F[A1])(f: A1 => Z, g: Z => A1): F[Z] = {
     type L = A1 :: TNil
@@ -34,7 +33,7 @@ trait InvariantApplicativez[F[_]]
   override def xproduct2[Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(
     f: (A1, A2) => Z,
     g: Z => (A1, A2)
-  ): F[Z]                                                                  = {
+  ): F[Z] = {
     type L = A1 :: A2 :: TNil
     xproductz(LazyProd(a1, a2))(
       (as: Prod[L]) => f.tupled(to2T(as)),
@@ -44,7 +43,7 @@ trait InvariantApplicativez[F[_]]
   override def xproduct3[Z, A1, A2, A3](a1: =>F[A1], a2: =>F[A2], a3: =>F[A3])(
     f: (A1, A2, A3) => Z,
     g: Z => (A1, A2, A3)
-  ): F[Z]                                                                  = {
+  ): F[Z] = {
     type L = A1 :: A2 :: A3 :: TNil
     xproductz(LazyProd(a1, a2, a3))(
       (as: Prod[L]) => f.tupled(to3T(as)),
@@ -59,7 +58,7 @@ trait InvariantApplicativez[F[_]]
   )(
     f: (A1, A2, A3, A4) => Z,
     g: Z => (A1, A2, A3, A4)
-  ): F[Z]                                                                  = {
+  ): F[Z] = {
     type L = A1 :: A2 :: A3 :: A4 :: TNil
     xproductz(LazyProd(a1, a2, a3, a4))(
       (as: Prod[L]) => f.tupled(to4T(as)),

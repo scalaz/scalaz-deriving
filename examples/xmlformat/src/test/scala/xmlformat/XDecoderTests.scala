@@ -6,21 +6,18 @@
 
 package xmlformat
 
-import java.time.Instant
-
-import scala.collection.immutable._
-import scala.concurrent.duration._
-
-import scalaz._
-
 import eu.timepit.refined
+import java.time.Instant
 import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.should.Matchers._
+import org.scalatest.matchers.should.Matchers.*
+import scala.collection.immutable.*
+import scala.concurrent.duration.*
+import scalaz.*
 
 class XDecoderTests extends AnyFreeSpec {
-  import XDecoder.ops._
-  import XStrDecoder.ops._
-  import XTestUtils._
+  import XDecoder.ops.*
+  import XStrDecoder.ops.*
+  import XTestUtils.*
 
   "XNode Decoder" - {
 
@@ -75,9 +72,9 @@ class XDecoderTests extends AnyFreeSpec {
     }
 
     "should special-case Either for objects" in {
-      import examples._
+      import examples.*
 
-      val stringy   = XTag(
+      val stringy = XTag(
         "StringyTagged",
         XTag("value", XString("hello")).asChild
       ).asChild
@@ -192,7 +189,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should support Instant" in {
-      val iso     = "2013-05-30T23:38:23.085Z"
+      val iso = "2013-05-30T23:38:23.085Z"
       val instant = Instant.parse(iso)
       XString(iso).as[Instant].shouldBe(instant)
     }
@@ -209,7 +206,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should support generic products" in {
-      import examples._
+      import examples.*
 
       XTag(
         "Foo",
@@ -248,7 +245,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should support generic coproducts" in {
-      import examples._
+      import examples.*
 
       XTag(
         "SimpleTrait",
@@ -297,7 +294,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should support generic recursive ADTs" in {
-      import examples._
+      import examples.*
 
       XTag(
         "Recursive",
@@ -320,7 +317,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should decode XmlAttribute fields" in {
-      import examples._
+      import examples.*
 
       XTag(
         "MultiField",
@@ -380,7 +377,7 @@ Right: Inty -> expected one 'value' with a body, got XChildren([XTag(StringyTagg
     }
 
     "should support inlined semigroup fields" in {
-      import examples._
+      import examples.*
 
       XTag(
         "Inliner",
@@ -436,7 +433,7 @@ Foo -> expected one 's' with a body, got XChildren([XTag(Foo,[],[XTag(b,[],[],Ju
     }
 
     "should support inlined single fields" in {
-      import examples._
+      import examples.*
 
       XTag(
         "AmbiguousCoproduct",
@@ -472,7 +469,7 @@ SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTr
     }
 
     "should support inlined monoid lists" in {
-      import examples._
+      import examples.*
 
       val xml2 = XTag(
         "Inliners",
@@ -525,7 +522,7 @@ SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTr
     }
 
     "should support inlined content" in {
-      import examples._
+      import examples.*
 
       val xml1 = XTag(
         "Outliners",
@@ -556,7 +553,7 @@ SimpleTrait -> Foo -> expected one 's' with a body, got XChildren([XTag(SimpleTr
     }
 
     "should support tagged coproduct disambiguation" in {
-      import examples._
+      import examples.*
 
       XTag(
         "TaggyCoproduct",

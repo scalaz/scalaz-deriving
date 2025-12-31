@@ -6,8 +6,9 @@
 
 package examples
 
-import jsonformat._
-import scalaz._, Scalaz._
+import jsonformat.*
+import scalaz.*
+import scalaz.Scalaz.*
 import scalaz.annotation.deriving
 import scalaz.annotation.xderiving
 
@@ -17,8 +18,8 @@ final case class Optimal(thing: String) extends AnyVal
 @deriving(Equal, Show, JsEncoder, JsDecoder)
 sealed trait SimpleTrait { def widen: SimpleTrait = this }
 final case class Foo(s: String) extends SimpleTrait
-final case class Bar()          extends SimpleTrait
-case object Baz                 extends SimpleTrait
+final case class Bar() extends SimpleTrait
+case object Baz extends SimpleTrait
 @json(false, None, Some("fazzy"))
 final case class Faz(
   @json(true, None, None) o: Option[String]

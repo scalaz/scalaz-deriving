@@ -6,18 +6,19 @@
 
 package xmlformat
 
-import scalaz._, Scalaz._
-import simulacrum._
+import scalaz.*
+import scalaz.Scalaz.*
+import simulacrum.*
 
 @typeclass(generateAllOps = false)
-trait XDecoder[A]        { self =>
+trait XDecoder[A] { self =>
   def fromXml(x: XChildren): String \/ A
 
   // for performance
   final def xmap[B](f: A => B, @unused g: B => A): XDecoder[B] = map(f)
-  final def map[B](f: A => B): XDecoder[B]                     =
+  final def map[B](f: A => B): XDecoder[B] =
     j => fromXml(j).map(f)
-  final def emap[B](f: A => String \/ B): XDecoder[B]          =
+  final def emap[B](f: A => String \/ B): XDecoder[B] =
     j => fromXml(j).flatMap(f)
 }
 object XDecoder
@@ -30,11 +31,11 @@ object XDecoder
     implicit class XDecoderOps(private val x: XChildren) extends AnyVal {
       def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x)
     }
-    implicit class XTagDecoderOps(private val x: XTag)   extends AnyVal {
+    implicit class XTagDecoderOps(private val x: XTag) extends AnyVal {
       def decode[A: XDecoder]: String \/ A = XDecoder[A].fromXml(x.asChild)
 
       // inefficient if there are more lookups than entries
-      def findAttr(name: String): Maybe[XAttr]    =
+      def findAttr(name: String): Maybe[XAttr] =
         x.attrs.find(_.name == name).toMaybe
       def findChildren(name: String): IList[XTag] =
         x.children.filter(_.name == name)
@@ -43,7 +44,7 @@ object XDecoder
 
   @inline def instance[A](f: XChildren => String \/ A): XDecoder[A] = f(_)
   private type Sig[a] = XChildren => String \/ a
-  private[this] val iso                            = Kleisli.iso(
+  private[this] val iso = Kleisli.iso(
     λ[Sig ~> XDecoder](instance(_)),
     λ[XDecoder ~> Sig](_.fromXml)
   )
@@ -58,9 +59,9 @@ object XDecoder
   def tagged[A](name: String, delegate: XDecoder[A]): XDecoder[A] = {
     case x @ XChildren(ICons(XTag(`name`, _, _, _), INil())) =>
       delegate.fromXml(x)
-    case XChildren(ICons(XTag(got, _, _, _), INil()))        =>
+    case XChildren(ICons(XTag(got, _, _, _), INil())) =>
       -\/(s"expected tag '$name' but got '$got'")
-    case other                                               =>
+    case other =>
       XDecoder.fail(name, other)
   }
 
@@ -83,7 +84,7 @@ private[xmlformat] trait XDecoderScalaz1 {
     xs.tree.traverseDisjunction {
       case XTag(_, _, _, Maybe.Just(body)) =>
         XStrDecoder[A].fromXml(body)
-      case other                           => fail(s"a single tag with a body", other.asChild)
+      case other => fail(s"a single tag with a body", other.asChild)
     }
   }
 
@@ -118,8 +119,8 @@ private[xmlformat] trait XDecoderScalaz2 {
 private[xmlformat] trait XDecoderRefined {
   this: XDecoder.type =>
 
+  import eu.timepit.refined.api.*
   import eu.timepit.refined.refineV
-  import eu.timepit.refined.api._
 
   implicit def refined[A: XDecoder, B](implicit
     V: Validate[A, B]
@@ -135,7 +136,7 @@ private[xmlformat] trait XDecoderStdlib1 {
 
   implicit def listStr[A: XStrDecoder]: XDecoder[List[A]] =
     ilistStr[A].map(_.toList)
-  implicit def list[A: XDecoder]: XDecoder[List[A]]       = ilist[A].map(_.toList)
+  implicit def list[A: XDecoder]: XDecoder[List[A]] = ilist[A].map(_.toList)
 
   implicit def tuple2[A: XNodeDecoder, B: XNodeDecoder]: XDecoder[(A, B)] = {
     case XChildren(

@@ -7,14 +7,14 @@
 package scalaz.plugins.deriving
 
 import scala.collection.immutable.Set
-import scala.tools.nsc._
+import scala.tools.nsc.*
 
 class DerivingPlugin(override val global: Global)
     extends AnnotationPlugin(global) {
-  override val name: String           = "deriving"
+  override val name: String = "deriving"
   override val triggers: List[String] = List("deriving", "xderiving")
 
-  import global._
+  import global.*
 
   private[this] val DerivingMacros =
     Select(
@@ -38,7 +38,7 @@ class DerivingPlugin(override val global: Global)
     triggered: List[Tree],
     clazz: ClassDef,
     companion: ModuleDef
-  ): ModuleDef                                                      = {
+  ): ModuleDef = {
     val extras = triggered.flatMap { ann =>
       val target = annotationName(ann)
       findTypeclasses(ann).map { case (gen, typeclass) =>
@@ -169,7 +169,7 @@ class DerivingPlugin(override val global: Global)
       )
     )
 
-  private[this] val newtypes              = Set("newtype", "newsubtype")
+  private[this] val newtypes = Set("newtype", "newsubtype")
   def isNewType(clazz: ClassDef): Boolean =
     clazz.mods.annotations.collectFirst {
       case Apply(Select(New(ann), termNames.CONSTRUCTOR), Nil) => ann

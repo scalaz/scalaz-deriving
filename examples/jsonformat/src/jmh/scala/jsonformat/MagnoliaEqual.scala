@@ -6,8 +6,8 @@
 
 package jsonformat
 
-import magnolia._
-import scalaz._
+import magnolia.*
+import scalaz.*
 
 object MagnoliaEqual {
   type Typeclass[T] = Equal[T]

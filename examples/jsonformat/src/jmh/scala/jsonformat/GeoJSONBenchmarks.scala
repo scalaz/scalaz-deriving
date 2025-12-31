@@ -9,14 +9,18 @@
 package jsonformat.benchmarks
 
 import fommil.DerivedEqual
-import jsonformat._
-import jsonformat.JsDecoder.ops._
-import jsonformat.JsDecoder.fail
-import jsonformat.JsEncoder.ops._
-import scalaz._, Scalaz._
-import scalaz.annotation.deriving
+import jsonformat.*
 import jsonformat.BenchmarkUtils.getResourceAsString
-import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State }
+import jsonformat.JsDecoder.fail
+import jsonformat.JsDecoder.ops.*
+import jsonformat.JsEncoder.ops.*
+import org.openjdk.jmh.annotations.Benchmark
+import org.openjdk.jmh.annotations.Scope
+import org.openjdk.jmh.annotations.Setup
+import org.openjdk.jmh.annotations.State
+import scalaz.*
+import scalaz.Scalaz.*
+import scalaz.annotation.deriving
 
 // jsonformat/jmh:run -i 5 -wi 5 -f1 -t2 -w1 -r1 GeoJSONBenchmarks.*
 //
@@ -33,7 +37,7 @@ object orphans {
         JsDecoder.fail("2 numbers", JsArray(other.map(JsDouble(_))))
     }
 }
-import orphans._
+import orphans.*
 
 package m {
 
@@ -61,37 +65,37 @@ package m {
       extends GeoJSON
   final case class FeatureCollection(features: IList[GeoJSON]) extends GeoJSON
 
-  object Geometry           {
+  object Geometry {
     implicit val equal: Equal[Geometry] = MagnoliaEqual.gen
   }
-  object Point              {
+  object Point {
     implicit val equal: Equal[Point] = MagnoliaEqual.gen
   }
-  object MultiPoint         {
+  object MultiPoint {
     implicit val equal: Equal[MultiPoint] = MagnoliaEqual.gen
   }
-  object LineString         {
+  object LineString {
     implicit val equal: Equal[LineString] = MagnoliaEqual.gen
   }
-  object MultiLineString    {
+  object MultiLineString {
     implicit val equal: Equal[MultiLineString] = MagnoliaEqual.gen
   }
-  object Polygon            {
+  object Polygon {
     implicit val equal: Equal[Polygon] = MagnoliaEqual.gen
   }
-  object MultiPolygon       {
+  object MultiPolygon {
     implicit val equal: Equal[MultiPolygon] = MagnoliaEqual.gen
   }
   object GeometryCollection {
     implicit val equal: Equal[GeometryCollection] = MagnoliaEqual.gen
   }
-  object GeoJSON            {
+  object GeoJSON {
     implicit val equal: Equal[GeoJSON] = MagnoliaEqual.gen
   }
-  object Feature            {
+  object Feature {
     implicit val equal: Equal[Feature] = MagnoliaEqual.gen
   }
-  object FeatureCollection  {
+  object FeatureCollection {
     implicit val equal: Equal[FeatureCollection] = MagnoliaEqual.gen
   }
 
@@ -121,67 +125,67 @@ package s {
       extends GeoJSON
   final case class FeatureCollection(features: IList[GeoJSON]) extends GeoJSON
 
-  object Geometry        {
+  object Geometry {
     implicit val encoder: JsEncoder[Geometry] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Geometry] = DerivedCoproductJsDecoder.gen
-    implicit val equal: Equal[Geometry]       = DerivedEqual.gen
+    implicit val equal: Equal[Geometry] = DerivedEqual.gen
   }
-  object Point           {
+  object Point {
     implicit val encoder: JsEncoder[Point] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Point] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Point]       = DerivedEqual.gen
+    implicit val equal: Equal[Point] = DerivedEqual.gen
   }
-  object MultiPoint      {
+  object MultiPoint {
     implicit val encoder: JsEncoder[MultiPoint] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiPoint] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[MultiPoint]       = DerivedEqual.gen
+    implicit val equal: Equal[MultiPoint] = DerivedEqual.gen
   }
-  object LineString      {
+  object LineString {
     implicit val encoder: JsEncoder[LineString] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[LineString] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[LineString]       = DerivedEqual.gen
+    implicit val equal: Equal[LineString] = DerivedEqual.gen
   }
   object MultiLineString {
     implicit val encoder: JsEncoder[MultiLineString] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiLineString] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[MultiLineString]       = DerivedEqual.gen
+    implicit val equal: Equal[MultiLineString] = DerivedEqual.gen
   }
-  object Polygon         {
+  object Polygon {
     implicit val encoder: JsEncoder[Polygon] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Polygon] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Polygon]       = DerivedEqual.gen
+    implicit val equal: Equal[Polygon] = DerivedEqual.gen
 
   }
   object MultiPolygon {
     implicit val encoder: JsEncoder[MultiPolygon] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[MultiPolygon] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[MultiPolygon]       = DerivedEqual.gen
+    implicit val equal: Equal[MultiPolygon] = DerivedEqual.gen
 
   }
   object GeometryCollection {
     implicit val encoder: JsEncoder[GeometryCollection] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[GeometryCollection] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[GeometryCollection]       = DerivedEqual.gen
+    implicit val equal: Equal[GeometryCollection] = DerivedEqual.gen
 
   }
 
-  object GeoJSON           {
+  object GeoJSON {
     implicit val encoder: JsEncoder[GeoJSON] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[GeoJSON] = DerivedCoproductJsDecoder.gen
-    implicit val equal: Equal[GeoJSON]       = DerivedEqual.gen
+    implicit val equal: Equal[GeoJSON] = DerivedEqual.gen
   }
-  object Feature           {
+  object Feature {
     implicit val encoder: JsEncoder[Feature] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[Feature] = DerivedProductJsDecoder.gen
-    implicit val equal: Equal[Feature]       = DerivedEqual.gen
+    implicit val equal: Equal[Feature] = DerivedEqual.gen
   }
   object FeatureCollection {
     implicit val encoder: JsEncoder[FeatureCollection] = DerivedJsEncoder.gen
     implicit val decoder: JsDecoder[FeatureCollection] =
       DerivedProductJsDecoder.gen
-    implicit val equal: Equal[FeatureCollection]       = DerivedEqual.gen
+    implicit val equal: Equal[FeatureCollection] = DerivedEqual.gen
   }
 
 }
@@ -212,39 +216,39 @@ package z {
       extends GeoJSON
   final case class FeatureCollection(features: IList[GeoJSON]) extends GeoJSON
 
-  object Geometry           {
+  object Geometry {
     implicit val equal: Equal[Geometry] = Deriving.gen[Equal, Geometry]
   }
-  object Point              {
+  object Point {
     implicit val equal: Equal[Point] = Deriving.gen[Equal, Point]
   }
-  object MultiPoint         {
+  object MultiPoint {
     implicit val equal: Equal[MultiPoint] = Deriving.gen[Equal, MultiPoint]
   }
-  object LineString         {
+  object LineString {
     implicit val equal: Equal[LineString] = Deriving.gen[Equal, LineString]
   }
-  object MultiLineString    {
+  object MultiLineString {
     implicit val equal: Equal[MultiLineString] =
       Deriving.gen[Equal, MultiLineString]
   }
-  object Polygon            {
+  object Polygon {
     implicit val equal: Equal[Polygon] = Deriving.gen[Equal, Polygon]
   }
-  object MultiPolygon       {
+  object MultiPolygon {
     implicit val equal: Equal[MultiPolygon] = Deriving.gen[Equal, MultiPolygon]
   }
   object GeometryCollection {
     implicit val equal: Equal[GeometryCollection] =
       Deriving.gen[Equal, GeometryCollection]
   }
-  object GeoJSON            {
+  object GeoJSON {
     implicit val equal: Equal[GeoJSON] = Deriving.gen[Equal, GeoJSON]
   }
-  object Feature            {
+  object Feature {
     implicit val equal: Equal[Feature] = Deriving.gen[Equal, Feature]
   }
-  object FeatureCollection  {
+  object FeatureCollection {
     implicit val equal: Equal[FeatureCollection] =
       Deriving.gen[Equal, FeatureCollection]
   }
@@ -265,15 +269,15 @@ package h {
     implicit val decoder: JsDecoder[Coords] = {
       case JsArray(ICons(JsDouble(x), ICons(JsDouble(y), INil()))) =>
         Coords(x, y).right
-      case other                                                   => fail("JsArray with two numbers", other)
+      case other => fail("JsArray with two numbers", other)
     }
-    implicit val equal: Equal[Coords]       = (a1, a2) => a1.x == a2.x && a1.y == a2.y
+    implicit val equal: Equal[Coords] = (a1, a2) => a1.x == a2.x && a1.y == a2.y
   }
 
   sealed abstract class Geometry
-  final case class Point(coordinates: Coords)                 extends Geometry
-  final case class MultiPoint(coordinates: IList[Coords])     extends Geometry
-  final case class LineString(coordinates: IList[Coords])     extends Geometry
+  final case class Point(coordinates: Coords) extends Geometry
+  final case class MultiPoint(coordinates: IList[Coords]) extends Geometry
+  final case class LineString(coordinates: IList[Coords]) extends Geometry
   final case class MultiLineString(
     coordinates: IList[IList[Coords]]
   ) extends Geometry
@@ -298,33 +302,33 @@ package h {
       else field -> as.toJson :: IList.empty
 
     implicit val encoder: JsEncoder[Geometry] = {
-      case Point(c)               =>
+      case Point(c) =>
         JsObject(
-          "type"          -> JsString("Point") ::
+          "type" -> JsString("Point") ::
             "coordinates" -> c.toJson ::
             IList.empty
         )
-      case MultiPoint(c)          =>
+      case MultiPoint(c) =>
         JsObject(
           "type" -> JsString("MultiPoint") ::
             list("coordinates", c)
         )
-      case LineString(c)          =>
+      case LineString(c) =>
         JsObject(
           "type" -> JsString("LineString") ::
             list("coordinates", c)
         )
-      case MultiLineString(c)     =>
+      case MultiLineString(c) =>
         JsObject(
           "type" -> JsString("MultiLineString") ::
             list("coordinates", c)
         )
-      case Polygon(c)             =>
+      case Polygon(c) =>
         JsObject(
           "type" -> JsString("Polygon") ::
             list("coordinates", c)
         )
-      case MultiPolygon(c)        =>
+      case MultiPolygon(c) =>
         JsObject(
           "type" -> JsString("MultiPolygon") ::
             list("coordinates", c)
@@ -337,54 +341,54 @@ package h {
     }
     implicit val decoder: JsDecoder[Geometry] = JsDecoder.obj(2) { j =>
       j.get("type").flatMap {
-        case JsString("Point")              =>
+        case JsString("Point") =>
           j.getAs[Coords]("coordinates").map(Point(_))
-        case JsString("MultiPoint")         =>
+        case JsString("MultiPoint") =>
           j.getNullable[IList[Coords]]("coordinates").map(MultiPoint(_))
-        case JsString("LineString")         =>
+        case JsString("LineString") =>
           j.getNullable[IList[Coords]]("coordinates").map(LineString(_))
-        case JsString("MultiLineString")    =>
+        case JsString("MultiLineString") =>
           j.getNullable[IList[IList[Coords]]]("coordinates")
             .map(MultiLineString(_))
-        case JsString("Polygon")            =>
+        case JsString("Polygon") =>
           j.getNullable[IList[IList[Coords]]]("coordinates").map(Polygon(_))
-        case JsString("MultiPolygon")       =>
+        case JsString("MultiPolygon") =>
           j.getNullable[IList[IList[IList[Coords]]]]("coordinates")
             .map(MultiPolygon(_))
         case JsString("GeometryCollection") =>
           j.getNullable[IList[Geometry]]("geometries")
             .map(GeometryCollection(_))
-        case other                          => fail("valid type field", other)
+        case other => fail("valid type field", other)
       }
     }
-    implicit val equal: Equal[Geometry]       = (a1, a2) =>
+    implicit val equal: Equal[Geometry] = (a1, a2) =>
       a1 match {
-        case Point(c1)               =>
+        case Point(c1) =>
           a2 match {
             case Point(c2) => c1 === c2
             case _         => false
           }
-        case MultiPoint(c1)          =>
+        case MultiPoint(c1) =>
           a2 match {
             case MultiPoint(c2) => c1 === c2
             case _              => false
           }
-        case LineString(c1)          =>
+        case LineString(c1) =>
           a2 match {
             case LineString(c2) => c1 === c2
             case _              => false
           }
-        case MultiLineString(c1)     =>
+        case MultiLineString(c1) =>
           a2 match {
             case MultiLineString(c2) => c1 === c2
             case _                   => false
           }
-        case Polygon(c1)             =>
+        case Polygon(c1) =>
           a2 match {
             case Polygon(c2) => c1 === c2
             case _           => false
           }
-        case MultiPolygon(c1)        =>
+        case MultiPolygon(c1) =>
           a2 match {
             case MultiPolygon(c2) => c1 === c2
             case _                => false
@@ -414,9 +418,9 @@ package h {
       else field -> as.toJson :: IList.empty
 
     implicit val encoder: JsEncoder[GeoJSON] = {
-      case Feature(props, geo)         =>
+      case Feature(props, geo) =>
         JsObject(
-          "type"       -> JsString("Feature") ::
+          "type" -> JsString("Feature") ::
             dict("properties", props) :::
             "geometry" -> geo.toJson ::
             IList.empty
@@ -429,19 +433,19 @@ package h {
     }
     implicit val decoder: JsDecoder[GeoJSON] = JsDecoder.obj(3) { j =>
       j.get("type").flatMap {
-        case JsString("Feature")           =>
+        case JsString("Feature") =>
           for {
             props <- j.getNullable[Map[String, String]]("properties")
-            geo   <- j.getAs[Geometry]("geometry")
+            geo <- j.getAs[Geometry]("geometry")
           } yield Feature(props, geo)
         case JsString("FeatureCollection") =>
           j.getNullable[IList[GeoJSON]]("features").map(FeatureCollection(_))
-        case other                         => fail("valid type field", other)
+        case other => fail("valid type field", other)
       }
     }
-    implicit val equal: Equal[GeoJSON]       = (a1, a2) =>
+    implicit val equal: Equal[GeoJSON] = (a1, a2) =>
       a1 match {
-        case Feature(props1, geo1)        =>
+        case Feature(props1, geo1) =>
           a2 match {
             case Feature(props2, geo2) => props1 === props2 && geo1 === geo2
             case _                     => false
@@ -458,14 +462,14 @@ package h {
 
 @State(Scope.Benchmark)
 class GeoJSONBenchmarks {
-  var jsonString: String              = _
-  var jsonString2: String             = _
-  var jsonStringErr: String           = _
+  var jsonString: String = _
+  var jsonString2: String = _
+  var jsonStringErr: String = _
   var objm, objm_, objm__ : m.GeoJSON = _
   var objs, objs_, objs__ : s.GeoJSON = _
   var objz, objz_, objz__ : z.GeoJSON = _
   var objh, objh_, objh__ : h.GeoJSON = _
-  var ast1, ast2, astErr: JsValue     = _
+  var ast1, ast2, astErr: JsValue = _
 
   @Setup
   def setup(): Unit = {
