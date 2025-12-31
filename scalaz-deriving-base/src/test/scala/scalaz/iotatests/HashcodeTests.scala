@@ -10,7 +10,6 @@ package iotatests
 import org.scalacheck.*
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.*
-import org.scalacheck.ScalacheckShapeless.*
 import scala.*
 import scala.Predef.*
 import scalaz.iotaz.*

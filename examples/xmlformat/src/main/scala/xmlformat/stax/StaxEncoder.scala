@@ -12,7 +12,6 @@ import java.io.StringWriter
 import java.util.regex.Pattern
 import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
-import scalaz.*
 import scalaz.Scalaz.*
 
 object StaxEncoder {

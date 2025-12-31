@@ -14,7 +14,6 @@ import java.lang.String
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.*
-import scalaz.*
 import scalaz.Scalaz.*
 
 class ShowSpec extends AnyFlatSpec with NonImplicitAssertions {

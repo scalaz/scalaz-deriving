@@ -9,7 +9,6 @@ package fommil
 import magnolia.*
 import mercator.*
 import org.scalacheck.*
-import scalaz.*
 import scalaz.Scalaz.*
 import scalaz.scalacheck.ScalaCheckBinding.*
 
