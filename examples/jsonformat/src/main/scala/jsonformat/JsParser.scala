@@ -27,7 +27,7 @@ object JsParser extends SupportParser[JsValue] {
       val jtrue: JsBoolean = JsBoolean(true)
       def jnum(cs: CharSequence, decIndex: Int, expIndex: Int): JsValue = {
         val s = cs.toString
-        val n =
+        val n: Validation[String, JsValue] =
           if (decIndex == -1)
             s.parseLong.map(JsInteger(_))
           else if (s.endsWith(".0"))

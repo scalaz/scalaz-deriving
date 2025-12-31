@@ -96,7 +96,8 @@ package object iotaz {
       def apply[A](
         f: =>A
       )(implicit T: ClassTag[T], NT: NotNothing[T]): Avowal[T, A] =
-        Validation.fromTryCatchThrowable[A, T](f)
+        try { Validation.success(f) }
+        catch { case e: T => Validation.failure(e) }
     }
   }
 
