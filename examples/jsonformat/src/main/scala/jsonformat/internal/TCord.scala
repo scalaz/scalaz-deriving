@@ -27,7 +27,7 @@ private[jsonformat] sealed abstract class TCord {
   final def ++(o: TCord): TCord = TCord.Branch(this, o)
 }
 private[jsonformat] object TCord {
-  implicit def fromString(s: String): TCord = apply(s) // scalafix:ok
+  implicit def fromString(s: String): TCord = apply(s)
   def apply(s: String): TCord = Leaf.apply(s)
   def apply(): TCord = Leaf.Empty
 

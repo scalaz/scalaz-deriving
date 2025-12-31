@@ -14,7 +14,6 @@ import testing.*
 import testing.typeclasses.*
 
 class XDerivingTest extends AnyFlatSpec {
-  // scalafix:off DisableSyntax.keywords.null
 
   "@xderiving" should "support AnyVal" in {
     implicitly[Cofoo[Anyx]].shouldBe(Anyx._deriving_cofoo)

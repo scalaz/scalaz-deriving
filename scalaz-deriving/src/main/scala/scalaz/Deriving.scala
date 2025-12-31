@@ -49,7 +49,6 @@ trait DerivingProducts[F[_]] {
   type PairedWith[A <: TList, FA <: TList] =
     iotaz.TList.Compute.Aux[iotaz.TList.Op.Map[NameF, A], FA]
 
-  // scalafix:off DisableSyntax.implicitConversion
   // provides convenient syntax for implementors...
   import scalaz.iotaz.Cops
   import scalaz.iotaz.Prods
@@ -65,7 +64,6 @@ trait DerivingProducts[F[_]] {
     p: (Cop[A], Cop[A])
   ): Cops.ops.CopOps2[A] =
     new Cops.ops.CopOps2[A](p)
-  // scalafix:on
 
   def xproductz[Z, A <: TList, FA <: TList](
     tcs: Prod[FA]
@@ -154,7 +152,7 @@ object Deriving {
     )(implicit
       ev: A PairedWith FA
     ): Order[Z] = {
-      val delegate = new DecidablezEqual().dividez(tcs)(g)(null) // scalafix:ok
+      val delegate = new DecidablezEqual().dividez(tcs)(g)(null)
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
         def order(z1: Z, z2: Z): Ordering =
@@ -176,7 +174,7 @@ object Deriving {
     )(implicit
       ev: A PairedWith FA
     ): Order[Z] = {
-      val delegate = new DecidablezEqual().choosez(tcs)(g)(null) // scalafix:ok
+      val delegate = new DecidablezEqual().choosez(tcs)(g)(null)
       new Order[Z] {
         override def equal(z1: Z, z2: Z): Boolean = delegate.equal(z1, z2)
         def order(z1: Z, z2: Z): Ordering =
@@ -236,7 +234,7 @@ object DerivingProducts {
         ev: A PairedWith FA
       ): Monoid[Z] = {
         val delegate = new InvariantApplicativezSemigroup()
-          .xproductz(tcs)(f, g)(null) // scalafix:ok
+          .xproductz(tcs)(f, g)(null)
 
         val nada = λ[NameF ~> Id](_.value.zero)
 

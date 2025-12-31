@@ -15,9 +15,8 @@ addCommandAlias(
 )
 addCommandAlias(
   "lint",
-  s";++ $Scala212;scalafix --check;Test/scalafix --check"
+  s";++ $Scala212;scalafixAll --check"
 )
-addCommandAlias("fix", s";++ $Scala212;all compile:scalafix test:scalafix")
 
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",

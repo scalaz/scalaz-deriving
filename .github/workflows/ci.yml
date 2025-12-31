@@ -25,4 +25,4 @@ jobs:
       name: install sbt
       run: curl -Ls https://raw.githubusercontent.com/dwijnand/sbt-extras/103ab5905df0d7be505e258fc600935bbb511ec9/sbt > ./sbt && chmod 0755 ./sbt
     - uses: coursier/cache-action@bebeeb0e6f48ebad66d3783946588ecf43114433 # v6.4.8
-    - run: ./sbt -v ";+check ;+cpl ;+test; +doc"
+    - run: ./sbt -v ";+check ;+cpl ;+test; +doc; lint"

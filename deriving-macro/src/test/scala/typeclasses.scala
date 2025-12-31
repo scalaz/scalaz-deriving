@@ -77,7 +77,7 @@ package a {
     ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 
-    implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */
+    implicit def hcons[F[_]]: DerivedCobaz[F] = null
   }
 }
 package b {
@@ -89,6 +89,6 @@ package b {
     ): DerivedCobaz[T] =
       new DerivedCobaz[T] {}
 
-    implicit def hcons[F[_]]: DerivedCobaz[F] = null /* scalafix:ok */
+    implicit def hcons[F[_]]: DerivedCobaz[F] = null
   }
 }
