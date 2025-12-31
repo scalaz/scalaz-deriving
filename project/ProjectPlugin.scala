@@ -131,14 +131,18 @@ object ProjectPlugin extends AutoPlugin {
       },
       scalacOptions ++= {
         CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, n)) if n >= 13 =>
+          case Some((2, 13)) =>
             Seq(
+              "-Xsource:3-cross",
               "-Ymacro-annotations"
             )
-          case Some((2, v)) if v <= 12 =>
+          case Some((2, 12)) =>
             Seq(
+              "-Xsource:3",
               "-Ypartial-unification"
             )
+          case _             =>
+            Nil
         }
       },
       scalacOptions ++= Seq(
