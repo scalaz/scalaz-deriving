@@ -31,7 +31,7 @@ object JsEncoder
         b => fa.toJson(f(b))
     }
 
-  implicit val jsValue: JsEncoder[JsValue] = identity
+  implicit val jsValue: JsEncoder[JsValue] = x => x
   implicit val long: JsEncoder[Long] = JsInteger(_)
   implicit val double: JsEncoder[Double] = JsDouble(_)
   implicit val boolean: JsEncoder[Boolean] = JsBoolean(_)

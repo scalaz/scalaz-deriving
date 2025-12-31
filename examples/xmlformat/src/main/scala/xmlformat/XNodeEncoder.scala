@@ -16,5 +16,5 @@ object XNodeEncoder {
   implicit def fromText[A](implicit X: XStrEncoder[A]): XNodeEncoder[A] =
     X.toXml(_)
 
-  implicit val xnode: XNodeEncoder[XNode] = identity
+  implicit val xnode: XNodeEncoder[XNode] = x => x
 }

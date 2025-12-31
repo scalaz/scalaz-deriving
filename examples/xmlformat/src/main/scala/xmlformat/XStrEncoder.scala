@@ -43,7 +43,7 @@ object XStrEncoder
   implicit val char: XStrEncoder[Char] = string.contramap(_.toString)
   implicit val symbol: XStrEncoder[Symbol] = string.contramap(_.name)
 
-  implicit val xstring: XStrEncoder[XString] = identity
+  implicit val xstring: XStrEncoder[XString] = x => x
 }
 
 private[xmlformat] trait XStrEncoderScalaz {
