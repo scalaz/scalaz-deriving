@@ -105,7 +105,7 @@ object ProjectPlugin extends AutoPlugin {
     Seq(
       publishTo := (if (isSnapshot.value) None else localStaging.value),
       libraryDependencies += compilerPlugin(
-        ("org.scalameta" % "semanticdb-scalac" % "4.14.3")
+        ("org.scalameta" % "semanticdb-scalac" % "4.14.4")
           .cross(CrossVersion.full)
       ),
       fork := true,
