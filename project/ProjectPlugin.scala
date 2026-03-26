@@ -111,7 +111,7 @@ object ProjectPlugin extends AutoPlugin {
       fork := true,
       libraryDependencies += "org.scalatest" %% "scalatest-flatspec" % "3.2.20" % Test,
       libraryDependencies += "org.scalatest" %% "scalatest-freespec" % "3.2.20" % Test,
-      libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.19" % Test,
+      libraryDependencies += "org.scalatest" %% "scalatest-shouldmatchers" % "3.2.20" % Test,
       scalacOptions --= {
         CrossVersion.partialVersion(scalaVersion.value) match {
           case Some((2, v)) if v >= 13 =>
