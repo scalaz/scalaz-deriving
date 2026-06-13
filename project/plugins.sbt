@@ -10,4 +10,4 @@ addSbtPlugin("com.fommil" % "sbt-neojmh" % "1.1.1")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.1")
 
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.6")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.7")
