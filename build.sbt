@@ -203,7 +203,7 @@ val jsonformat = (project in file("examples/jsonformat"))
       "org.scalaz" %% "scalaz-core" % scalazVersion,
       "org.typelevel" %% "simulacrum" % simulacrumVersion,
       "org.scalatestplus" %% "scalacheck-1-19" % "3.2.20.0",
-      "org.typelevel" %% "jawn-parser" % "1.6.0"
+      "org.typelevel" %% "jawn-parser" % "1.7.0"
     )
     // addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     // scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")
