@@ -7,17 +7,6 @@ val magnoliaVersion = "0.12.8"
 val refinedVersion = "0.11.4"
 val newtypeVersion = "0.4.4"
 
-addCommandAlias("cpl", "all Test/compile Jmh/compile")
-addCommandAlias("fmt", "all scalafmtSbt scalafmtAll")
-addCommandAlias(
-  "check",
-  "all headerCheck Test/headerCheck Jmh/headerCheck scalafmtSbtCheck scalafmtCheckAll"
-)
-addCommandAlias(
-  "lint",
-  s";++ $Scala212;scalafixAll --check"
-)
-
 val plugin = (project in file("deriving-plugin")).settings(
   name := "deriving-plugin",
   Test / scalacOptions += "-Yno-predef",
@@ -32,7 +21,7 @@ val plugin = (project in file("deriving-plugin")).settings(
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   ),
   (Test / scalacOptions) ++= {
-    val jar = (Compile / packageBin).value
+    val jar = fileConverter.value.toPath((Compile / packageBin).value).toFile
     Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
   }
 )
@@ -41,7 +30,8 @@ val plugin = (project in file("deriving-plugin")).settings(
 def ScalazDeriving: Seq[Setting[?]] =
   Seq(
     scalacOptions ++= {
-      val jar = (plugin / Compile / packageBin).value
+      val jar =
+        fileConverter.value.toPath((plugin / Compile / packageBin).value).toFile
       Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
     }
   )
@@ -53,7 +43,8 @@ val macros = (project in file("deriving-macro"))
     MacroParadise,
     exportJars := true,
     Test / managedClasspath := {
-      val res = (Test / resourceDirectory).value
+      val res = fileConverter.value
+        .toVirtualFile((Test / resourceDirectory).value.toPath)
       val old = (Test / managedClasspath).value
       Attributed.blank(res) +: old
     },
@@ -214,21 +205,30 @@ val jsonformat = (project in file("examples/jsonformat"))
     org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings(Jmh)
   )
 
-// root project
-publish / skip := true
-
-releaseCrossBuild := true
-
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runTest,
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  releaseStepCommandAndRemaining("+publishSigned"),
-  releaseStepCommandAndRemaining("sonaRelease"),
-  setNextVersion,
-  commitNextVersion,
-  pushChanges
+lazy val scalazDerivingRoot = rootProject.autoAggregate.settings(
+  addCommandAlias("cpl", "all Test/compile Jmh/compile"),
+  addCommandAlias("fmt", "all scalafmtSbt scalafmtAll"),
+  addCommandAlias(
+    "check",
+    "all headerCheck Test/headerCheck Jmh/headerCheck scalafmtSbtCheck scalafmtCheckAll"
+  ),
+  addCommandAlias(
+    "lint",
+    s";++ $Scala212;scalafixAll --check"
+  ),
+  publish / skip := true,
+  releaseCrossBuild := true,
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("+publishSigned"),
+    releaseStepCommandAndRemaining("sonaRelease"),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
 )

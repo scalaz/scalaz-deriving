@@ -96,7 +96,10 @@ object ProjectPlugin extends AutoPlugin {
         )
       ),
       licenses := Seq(
-        "LGPL 3.0" -> url("https://www.gnu.org/licenses/lgpl-3.0.en.html")
+        License(
+          "LGPL 3.0",
+          url("https://www.gnu.org/licenses/lgpl-3.0.en.html")
+        )
       ),
       startYear := Some(startYearValue)
     )
