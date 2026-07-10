@@ -184,7 +184,7 @@ val xmlformat = (project in file("examples/xmlformat"))
       "org.typelevel" %% "simulacrum" % simulacrumVersion
     )
   )
-  .enablePlugins(NeoJmhPlugin)
+  .enablePlugins(JmhPlugin)
   .settings(headerSettings(Jmh))
   .settings(
     org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings(Jmh)
@@ -208,7 +208,7 @@ val jsonformat = (project in file("examples/jsonformat"))
     // addCompilerPlugin("ch.epfl.scala" %% "scalac-profiling" % "1.0.0"),
     // scalacOptions ++= Seq("-Ystatistics:typer", "-P:scalac-profiling:no-profiledb")
   )
-  .enablePlugins(NeoJmhPlugin)
+  .enablePlugins(JmhPlugin)
   .settings(headerSettings(Jmh))
   .settings(
     org.scalafmt.sbt.ScalafmtPlugin.scalafmtConfigSettings(Jmh)
