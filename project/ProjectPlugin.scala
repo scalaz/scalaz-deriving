@@ -18,7 +18,7 @@ object ProjectKeys {
     "2.13.18"
   )
 
-  private[this] def latest(n: Int): String = {
+  private def latest(n: Int): String = {
     val prefix = "2." + n + "."
     prefix + allScalaVersions
       .filter(_.startsWith(prefix))
